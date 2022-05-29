@@ -1,34 +1,41 @@
-"""Class to perform the variant simulation.
+"""This module generates an artificial stemma given an initial text. 
 """
-from posixpath import split
 import json
 from typing import Dict, List, Union
-from stemmabench.textual_units import text
+from random import uniform, gauss
+from stemmabench.config_parser import StemmaBenchConfig, VariantConfig
+from stemmabench.textual_units.text import Text
 
 
-def identity(string: str) -> str:
-    return string
-
-
-class VariantTree:
-    """Class to generate an ensemble of manuscript.
+class Stemma:
+    """Class to generate an artificial textual tradition,
+    given a configuration file.
     """
 
     def __init__(
         self,
         original_text: str,
-        depth: int = 3,
-        width: int = 4,
-        config: Dict[str, str] = {}
+        config: StemmaBenchConfig
     ) -> None:
         """A class to perform variant generation.
         Use the .fit() method to actually perform variant generation.
         """
         self.original_text = original_text
-        self.depth = depth
-        self.width = width
+        self.depth = config.stemma.depth
         self.config = config
         self._levels: List[Dict[str, List[str]]] = []
+
+    @property
+    def width(self):
+        """Get the width of the tree, based on the random law defined
+        in the configuration file.
+        """
+        if self.config.stemma.width.law == "Uniform":
+            return int(uniform(self.config.stemma.width.min, self.config.stemma.width.max))
+        elif self.config.stemma.width.law == "Gaussian":
+            return int(gauss(self.config.stemma.width.mean, self.config.stemma.width.sd))
+        else:
+            raise Exception("Only Gaussian and Uniform laws are supported.")
 
     def dict(self) -> Dict[str, Union[List[str], Dict[str, List[str]]]]:
         """Return a dict representation of the tree.
@@ -54,16 +61,16 @@ class VariantTree:
         """String representation of the tree"""
         return "Tree(" + json.dumps(self.dict(), indent=2) + ")"
 
-    def _apply_once(self, value: str) -> List[str]:
-        """Apply transformation on a single value"""
-        return [text(value).transform(**self.config) for _ in range(self.width)]
+    def _apply_level(self, manuscript: str) -> List[str]:
+        """Apply transformation on a single generation"""
+        return [Text(manuscript).transform(self.config.variants) for _ in range(self.width)]
 
     def generate(self):
         """Fit the tree, I.E, generate variants"""
         # Empty levels
         self._levels = []
         # Get first variants
-        first_variants = self._apply_once(self.original_text)
+        first_variants = self._apply_level(self.original_text)
         # Append first level
         self._levels.append({self.original_text: first_variants})
         # Keep track of remaining depth
@@ -71,11 +78,11 @@ class VariantTree:
         # Loop while there is reamining depth
         while remaining_depth >= 0:
             # Initialize new level
-            new_level: Dict[str, List[str]] = {}
+            new_level = {}
             # Gather values from last levels
             for values in self._levels[-1].values():
                 for value in values:
-                    new_variants = self._apply_once(value)
+                    new_variants = self._apply_level(value)
                     new_level[value] = new_variants
             # Append new level
             self._levels.append(new_level)
@@ -85,5 +92,5 @@ class VariantTree:
         return self
 
     def vizualize(self):
-        """Vizualize the tree using DAG.
+        """Vizualize the tree using a DAG representation.
         """

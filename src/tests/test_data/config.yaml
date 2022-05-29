@@ -6,19 +6,19 @@ variants:
   words:
     synonym:
       law: Bernouilli
-      rate: 0.2
+      rate: 0.1
     hyponym:
       law: Bernouilli
-      rate: 0.2
+      rate: 0.1
     hypernym:
       law: Bernouilli
-      rate: 0.2
+      rate: 0.1
     mispell:
       law: Bernouilli
-      rate: 0.2
+      rate: 0.05
     omit:
       law: Bernouilli
-      rate: 0.1
+      rate: 0.05
   sentences:
     duplicate:
       args:
@@ -27,7 +27,7 @@ variants:
       rate: 0.1
 
 stemma:
-  depth: 4
+  depth: 2
   width:
     law: Uniform
     min: 2

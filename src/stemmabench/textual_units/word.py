@@ -88,7 +88,7 @@ class Word:
 
     def synonym(self) -> str:
         """Return a synonym of the word, by picking randomly into the Synset
-        data.
+        data. Drops any word with an underscore in it.
         Iterates several times in case the value returned is the same
         as the original word.
 
@@ -99,7 +99,7 @@ class Word:
             return self.word
         synonym = self.word
         counter = 0
-        while synonym == self.word:
+        while synonym == self.word or "_" in synonym:
             synonym = self.synset[random.randrange(len(self.synset))].lemmas()[
                 0].name()
             if counter <= len(self.synset):

@@ -14,3 +14,4 @@ StemmaBench is a Python package for quick generation of artificial, synthetic sc
 
 [] Add support for ancient languages (greek, hebrew mainly) => Will be done through using MACULA API
 [] Add the possibility to work with contamination
+[] Add support for missing manuscripts (new variable in stemma generation)

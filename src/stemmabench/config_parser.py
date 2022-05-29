@@ -20,12 +20,12 @@ class ProbabilisticConfig(BaseModel):
     """Model describing the configuration of a probabilistic law.
     """
     law: ProbabilisticLaw
-    rate: Optional[int]
+    rate: Optional[float]
     min: Optional[float]
     max: Optional[float]
     mean: Optional[float]
     sd: Optional[float]
-    args: Optional[Dict[str, Any]]
+    args: Dict[str, Any] = {}
 
     @root_validator(pre=True)
     def check_law_parameters(cls, values):
@@ -43,8 +43,9 @@ class ProbabilisticConfig(BaseModel):
                                       "a min and a max value")
         elif values["law"] == "Gaussian":
             if not (("mean" in values) and ("sd" in values)):
-                raise ValidationError("You asked for Gaussian"
-                                      "law but did not provide a mean and sd value")
+                raise ValidationError("You asked for Gaussian "
+                                      "law but did not provide "
+                                      "a mean and sd value")
         return values
 
 

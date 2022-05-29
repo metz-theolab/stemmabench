@@ -1,8 +1,6 @@
-from cgitb import text
 import random
 from typing import Any, Dict
 from stemmabench.config_parser import ProbabilisticConfig, VariantConfig
-from stemmabench.textual_units import sentence
 from stemmabench.textual_units.sentence import Sentence
 from stemmabench.textual_units.word import Word
 
@@ -126,7 +124,7 @@ class Text:
             edited_sentences.\
                 append(self.transform_sentence(sentence=sentence,
                                                sentence_config=sentence_config
-                                               )
+                                               ).capitalize()
                        )
         return " ".join(edited_sentences)
 
@@ -142,8 +140,9 @@ class Text:
         # Transform at word level
         sentence_edited_words = " "
         for sentence in text_edited_sentences.split(self.punc):
-            new_sentence = self.transform_words(sentence=sentence,
-                                                word_config=variant_config.words).capitalize()
+            new_sentence = self.transform_words(
+                sentence=sentence,
+                word_config=variant_config.words).capitalize()
             if new_sentence:
                 sentence_edited_words += new_sentence + self.punc + " "
         return sentence_edited_words.strip()
