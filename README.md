@@ -75,7 +75,7 @@ stemma:
 
 ### Interactive use
 
-See: ["./docs/quickstart.ipynb"]
+See: [jupyter quickstart](https://github.com/SphRbtHyk/stemmabench/blob/main/docs/quickstart.ipynb")
 
 ## To do list
 
