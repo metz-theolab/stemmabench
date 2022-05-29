@@ -80,6 +80,9 @@ See: [jupyter quickstart](https://github.com/SphRbtHyk/stemmabench/blob/main/doc
 ## To do list
 
 [] Add support for ancient languages (greek, hebrew mainly) => Will be done through using MACULA API
+
 [] Add the possibility to work with contamination
+
 [] Add support for missing manuscripts (new variable in stemma generation that will skip generations)
+
 [] Make vizualization more resiliant + a whole part of the package
