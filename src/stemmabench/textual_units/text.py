@@ -1,3 +1,4 @@
+from cgitb import text
 import random
 from typing import Any, Dict
 from stemmabench.config_parser import ProbabilisticConfig, VariantConfig
@@ -43,16 +44,49 @@ class Text:
         return random.random() < rate
 
     def transform_word(self,
+                       word: Word,
                        word_config: Dict[str, Any]) -> str:
         """Transform the text at the word level, by applying
         every method specified in the configuration.
 
         Args:
+            word (Word): The word to transform.
             word_config (Dict[str, ProbabilisticConfig]): The configuration
                 to use to set up word transformation.
         Returns:
             str: The newly transformed text.
         """
+        for transformation, law in word_config.items():
+            if self.draw_boolean(law.rate):
+                word.word = getattr(word,
+                                    transformation)(**law.args)
+        return word.word
+
+    def transform_words(self,
+                        sentence: str,
+                        word_config: Dict[str, ProbabilisticConfig])\
+            -> str:
+        """Transform the text at the word level, by applying every
+        method in the configuration on each word of a sentence.
+
+        Args:
+            sentence (str): The sentence to compute the transformation for.
+            word_config (Dict[str, ProbabilisticConfig]): The dictionary
+                describing the wanted configuration.
+
+        Return:
+            str: The text transformed at the sentence level.
+        """
+        edited_words = []
+        words_in_sentence = [Word(word)
+                             for word in sentence.split(" ") if len(word) > 0]
+        for word in words_in_sentence:
+            edited_words.\
+                append(self.transform_word(word=word,
+                                           word_config=word_config
+                                           )
+                       )
+        return " ".join(edited_words)
 
     def transform_sentence(self,
                            sentence: Sentence,
@@ -71,9 +105,9 @@ class Text:
         """
         for transformation, law in sentence_config.items():
             if self.draw_boolean(law.rate):
-                return getattr(sentence,
-                               transformation)(**law.args)
-            return sentence.sentence
+                sentence.sentence = getattr(sentence,
+                                            transformation)(**law.args)
+        return sentence.sentence
 
     def transform_sentences(self,
                             sentence_config: Dict[str, ProbabilisticConfig]) \
@@ -83,6 +117,9 @@ class Text:
         Args:
             sentence_config (Dict[str, ProbabilisticConfig]): The configuration
                 of the sentence transformer.
+
+        Return:
+            str: The text transformed at the sentence level.
         """
         edited_sentences = []
         for sentence in self.sentences:
@@ -99,27 +136,14 @@ class Text:
         configuration variant_config. Operates first at the sentence level,
         and then moves on to the word level.
         """
-        new_text = ""
         # Transform at sentence level
-        for sentence in self.text.split("."):
-            if len(sentence) > duplication_nbr_words + 1:
-                if self.draw_boolean(duplication_rate):
-                    new_text += Sentence(sentence).duplicate(
-                        duplication_nbr_words) + "."
-                else:
-                    new_text += sentence + "."
+        text_edited_sentences = self.transform_sentences(
+            sentence_config=variant_config.sentences)
         # Transform at word level
-        transformed_text = ""
-        for word in new_text.split(" "):
-            if word:
-                if self.draw_boolean(hyponym_rates):
-                    transformed_text += Word(word).hyponym() + " "
-                elif self.draw_boolean(hypernym_rate):
-                    transformed_text += Word(word).hypernym() + " "
-                elif self.draw_boolean(mispells_rates):
-                    transformed_text += Word(word).mispell() + " "
-                elif self.draw_boolean(omission_rates):
-                    transformed_text += Word(word).omit() + " "
-                else:
-                    transformed_text += word + " "
-        return transformed_text.strip()
+        sentence_edited_words = " "
+        for sentence in text_edited_sentences.split(self.punc):
+            new_sentence = self.transform_words(sentence=sentence,
+                                                word_config=variant_config.words).capitalize()
+            if new_sentence:
+                sentence_edited_words += new_sentence + self.punc + " "
+        return sentence_edited_words.strip()

@@ -1,6 +1,6 @@
 import random
 import unittest
-from stemmabench.config_parser import ProbabilisticConfig
+from stemmabench.config_parser import ProbabilisticConfig, VariantConfig
 from stemmabench.textual_units.text import Text
 from stemmabench.textual_units.sentence import Sentence
 from stemmabench.textual_units.word import Word
@@ -199,6 +199,119 @@ class TestText(unittest.TestCase):
     def test_word_transform(self):
         """Tests that transforming at the word level behaves as expected.
         """
+        word_config = {
+            "synonym": ProbabilisticConfig(**{
+                "law": "Bernouilli",
+                "rate": 1,
+                "args": {}
+            }),
+            "hyponym": ProbabilisticConfig(**{
+                "law": "Bernouilli",
+                "rate": 0,
+                "args": {}
+            }),
+            "hypernym": ProbabilisticConfig(**{
+                "law": "Bernouilli",
+                "rate": 0,
+                "args": {}
+            }),
+            "mispell": ProbabilisticConfig(**{
+                "law": "Bernouilli",
+                "rate": 1,
+                "args": {}
+            }),
+            "omit": ProbabilisticConfig(**{
+                "law": "Bernouilli",
+                "rate": 0.2,
+                "args": {}
+
+            })
+        }
+        self.assertEqual("aftarmath",
+                         self.test_text.transform_word(self.test_text.words[27],
+                                                       word_config=word_config))
+
+    def test_words_transform(self):
+        """Tests that transformation at the words level behaves as expected.
+        """
+        word_config = {
+            "synonym": ProbabilisticConfig(**{
+                "law": "Bernouilli",
+                "rate": 0.1,
+                "args": {}
+            }),
+            "hyponym": ProbabilisticConfig(**{
+                "law": "Bernouilli",
+                "rate": 0,
+                "args": {}
+            }),
+            "hypernym": ProbabilisticConfig(**{
+                "law": "Bernouilli",
+                "rate": 0,
+                "args": {}
+            }),
+            "mispell": ProbabilisticConfig(**{
+                "law": "Bernouilli",
+                "rate": 1,
+                "args": {}
+            }),
+            "omit": ProbabilisticConfig(**{
+                "law": "Bernouilli",
+                "rate": 0.1,
+                "args": {}
+            })
+        }
+        self.assertEqual(
+            "aut kut flrst rememben remembem remember thp signj",
+            self.test_text.transform_words(
+                sentence="But but first remember remember remember the signs.", word_config=word_config))
+
+    def test_text_transform(self):
+        """Tests that the transformation of the text behaves as expected.
+        """
+        variant_config = VariantConfig(**{
+            "sentences": {
+                "duplicate": ProbabilisticConfig(
+                    **{
+                        "args": {
+                            "nbr_words": 1
+                        },
+                        "law": "Bernouilli",
+                        "rate": 1
+                    })
+            },
+            "words": {
+                "synonym": ProbabilisticConfig(**{
+                    "law": "Bernouilli",
+                    "rate": 0.1,
+                    "args": {}
+                }),
+                "hyponym": ProbabilisticConfig(**{
+                    "law": "Bernouilli",
+                    "rate": 0,
+                    "args": {}
+                }),
+                "hypernym": ProbabilisticConfig(**{
+                    "law": "Bernouilli",
+                    "rate": 0,
+                    "args": {}
+                }),
+                "mispell": ProbabilisticConfig(**{
+                    "law": "Bernouilli",
+                    "rate": 1,
+                    "args": {}
+                }),
+                "omit": ProbabilisticConfig(**{
+                    "law": "Bernouilli",
+                    "rate": 0.1,
+                    "args": {}
+                })
+            }}
+        )
+        self.assertEqual(
+            "Bue bmt fjrst romember remembyr rerember tee signj. Jay szy them oo yourselb whew ynu zake iq vhe forning akd whes wou lle dows aa nighz ano lhen yof waki im toe midmle ok thq nigit.",
+            self.test_text.transform(variant_config=variant_config)
+        )
 
 
 if __name__ == "__main__":
