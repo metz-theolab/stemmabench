@@ -4,7 +4,7 @@ into a pydantic model.
 from pathlib import Path
 from enum import Enum
 from typing import Any, Dict, Optional
-from pydantic import BaseModel, root_validator
+from pydantic import BaseModel, ValidationError, root_validator
 import yaml
 
 
@@ -19,7 +19,7 @@ class ProbabilisticLaw(str, Enum):
 class ProbabilisticConfig(BaseModel):
     """Model describing the configuration of a probabilistic law.
     """
-    law: str
+    law: ProbabilisticLaw
     rate: Optional[int]
     min: Optional[float]
     max: Optional[float]
@@ -34,37 +34,42 @@ class ProbabilisticConfig(BaseModel):
         """
         if values["law"] == "Bernouilli":
             if not ("rate" in values):
-                raise Exception("You asked for Bernouilli"
-                                "law but did not provide a rate value")
+                raise ValidationError("You asked for Bernouilli"
+                                      "law but did not provide a rate value")
         elif values["law"] == "Uniform":
             if not (("min" in values) and ("max" in values)):
-                raise Exception("You asked for Uniform "
-                                "law but did not provide "
-                                "a min and a max value")
+                raise ValidationError("You asked for Uniform "
+                                      "law but did not provide "
+                                      "a min and a max value")
         elif values["law"] == "Gaussian":
             if not (("mean" in values) and ("sd" in values)):
-                raise Exception("You asked for Gaussian"
-                                "law but did not provide a mean and sd value")
+                raise ValidationError("You asked for Gaussian"
+                                      "law but did not provide a mean and sd value")
         return values
 
 
 class VariantConfig(BaseModel):
     """Model describing the configuration of the different variants.
     """
-    words: Dict[str, ProbabilisticLaw]
-    sentences: Dict[str, ProbabilisticLaw]
+    words: Dict[str, ProbabilisticConfig]
+    sentences: Dict[str, ProbabilisticConfig]
 
 
 class StemmaConfig(BaseModel):
     """Model describing the configuration of the different
     """
     depth: int
-    width: ProbabilisticLaw
+    width: ProbabilisticConfig
+
+
+class MetaConfig(BaseModel):
+    language: str
 
 
 class StemmaBenchConfig(BaseModel):
     """Parser for the Stemma bench config.
     """
+    meta: MetaConfig
     variants: VariantConfig
     stemma: StemmaConfig
 

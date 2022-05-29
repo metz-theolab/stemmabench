@@ -44,12 +44,14 @@ class Sentence:
         """
         if self.nbr_words > nbr_words + 1:
             random_location = random.randrange(self.nbr_words - nbr_words)
-            generated_sentence = " ".join(self.words[:random_location]
-                                          + self.words
-                                          [random_location:(nbr_words + 1)]
-                                          * 2
-                                          + self.words
-                                          [random_location + nbr_words:])
-            return f"{generated_sentence.capitalize()}."
+            generated_sentence = " ".\
+                join(
+                    self.words[:random_location]
+                    + self.words[random_location:random_location
+                                 + nbr_words]
+                    * 2
+                    + self.words[random_location + nbr_words:]
+                )
+            return f"{generated_sentence.strip().capitalize()}."
         else:
             return self.sentence

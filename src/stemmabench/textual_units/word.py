@@ -23,7 +23,7 @@ class Word:
     def __init__(self,
                  word: str,
                  language: str = "eng",
-                 pos: str = "NOUN") -> None:
+                 pos: str = "NA") -> None:
         """Initialize a class of type Word.
 
         Args:

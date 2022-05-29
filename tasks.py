@@ -22,7 +22,13 @@ def test(c):
 
 
 @task
+def typecheck(c):
+    """Check the type of the code using mypy.
+    """
+
+
+@task
 def lint(c):
     """Lint the package using flake8.
     """
-    c.run("flake8 ./src")
+    c.run("flake8 .\src\ --exclude=tests")

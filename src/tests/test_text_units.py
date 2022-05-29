@@ -1,5 +1,7 @@
 import random
 import unittest
+from stemmabench.config_parser import ProbabilisticConfig
+from stemmabench.textual_units.text import Text
 from stemmabench.textual_units.sentence import Sentence
 from stemmabench.textual_units.word import Word
 
@@ -12,7 +14,7 @@ class TestWord(unittest.TestCase):
         """Setup the unit test.
         """
         random.seed(5)
-        self.test_word = Word("dog")
+        self.test_word = Word("dog", pos="NOUN")
         self.test_word_no_synset = Word("toto")
 
     def test_init(self):
@@ -123,6 +125,80 @@ class TestSentence(unittest.TestCase):
 class TestText(unittest.TestCase):
     """Unit tests for the Text class.
     """
+
+    def setUp(self):
+        """Setup the unit testing by creating a test instance of the
+        text.
+        """
+        random.seed(15)
+        self.test_text = Text(
+            "But, first, remember, remember, remember the signs. "
+            "Say them to yourself when you wake in the morning "
+            "and when you lie down at night, "
+            "and when you wake in the middle of the night.")
+
+    def test_init(self):
+        """Tests that the initialization of the Text class behaves
+        as expected.
+        """
+        self.assertEqual(self.test_text.text,
+                         "But, first, remember, remember, remember the signs. "
+                         "Say them to yourself when you wake in the morning "
+                         "and when you lie down at night, "
+                         "and when you wake in the middle of the night.")
+        # Check that everything is ok for the first sentence
+        self.assertEqual(self.test_text.sentences[0].sentence,
+                         Sentence("But, first, remember, remember, remember the signs").sentence)
+        # Check that everything is ok for the second sentence
+        self.assertEqual(self.test_text.words[0].word,
+                         Word("but").word)
+
+    def test_sentence_transform(self):
+        """Tests that transformation for a sentence works as expected,
+        by transforming the first sentence.
+        """
+        test_config = {
+            "duplicate": ProbabilisticConfig(
+                **{
+                    "args": {
+                        "nbr_words": 1
+                    },
+                    "law": "Bernouilli",
+                    "rate": 1
+                })
+        }
+        transformed_sentence = self.test_text.transform_sentence(self.test_text.sentences[0],
+                                                                 sentence_config=test_config)
+        self.assertEqual(transformed_sentence,
+                         "But but first remember remember remember the signs.")
+
+    def test_sentences_transform(self):
+        """Tests that transformation for all the sentences of the text behaves
+        as expected.
+        """
+        test_config = {
+            "duplicate": ProbabilisticConfig(
+                **{
+                    "args": {
+                        "nbr_words": 1
+                    },
+                    "law": "Bernouilli",
+                    "rate": 1
+                })
+        }
+        transformed_sentences = self.test_text.transform_sentences(
+            sentence_config=test_config
+        )
+        self.assertEqual(
+            transformed_sentences,
+            "But but first remember remember remember the signs. "
+            "Say say them to yourself when you wake in the morning and when you lie "
+            "down at night and when you wake in the middle of the night."
+        )
+
+    def test_word_transform(self):
+        """Tests that transforming at the word level behaves as expected.
+        """
 
 
 if __name__ == "__main__":
