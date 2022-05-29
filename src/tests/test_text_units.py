@@ -1,6 +1,6 @@
 import random
 import unittest
-
+from stemmabench.textual_units.sentence import Sentence
 from stemmabench.textual_units.word import Word
 
 
@@ -13,7 +13,7 @@ class TestWord(unittest.TestCase):
         """
         random.seed(5)
         self.test_word = Word("dog")
-        self.test_word_single_synset = Word("below", pos="NA")
+        self.test_word_no_synset = Word("toto")
 
     def test_init(self):
         """Tests that class initialization behaves as expected,
@@ -40,9 +40,16 @@ class TestWord(unittest.TestCase):
         """
         self.assertEqual(self.test_word.synonym(), "frank")
 
-    def test_no_synonym(self):
-        """Tests that when there is no synonym, the word itself is returned.
+    def test_no_synset(self):
+        """Tests that when there is no synset, the word is always
+        returned.
         """
+        self.assertEqual(self.test_word_no_synset.synonym(),
+                         self.test_word_no_synset.word)
+        self.assertEqual(self.test_word_no_synset.hyponym(),
+                         self.test_word_no_synset.word)
+        self.assertEqual(self.test_word_no_synset.hypernym(),
+                         self.test_word_no_synset.word)
 
     def test_hyponym(self):
         """Tests that returnig a hyponym works as expected when there is no
@@ -53,6 +60,9 @@ class TestWord(unittest.TestCase):
     def test_no_hyponym(self):
         """Tests that when there is no hyponym, the word itself is returned.
         """
+        word_no_hyponym = Word("chocolate")
+        self.assertEqual(word_no_hyponym.hyponym(),
+                         word_no_hyponym.word)
 
     def test_hypernym(self):
         """Tests that returning a hypernym works as expected.
@@ -62,6 +72,9 @@ class TestWord(unittest.TestCase):
     def test_no_hypernym(self):
         """Tests that when there is no hypernym, the word itself is returned.
         """
+        word_no_hypernym = Word("behave")
+        self.assertEqual(word_no_hypernym.word,
+                         word_no_hypernym.hypernym())
 
     def test_mispell(self):
         """Tests that mispells behave as expected.
@@ -77,6 +90,34 @@ class TestWord(unittest.TestCase):
 class TestSentence(unittest.TestCase):
     """Unit tests for the Sentence class.
     """
+
+    def setUp(self):
+        """Set up the unit tests.
+        """
+        random.seed(5)
+        self.test_sentence = Sentence("The rabbit is blue.")
+
+    def test_init_sentence(self):
+        """Tests that the attributes computed at the sentence level
+        behave as expected.
+        """
+        self.assertEqual(self.test_sentence.sentence,
+                         "The rabbit is blue.")
+        self.assertListEqual(self.test_sentence.words,
+                             ["the", "rabbit", "is", "blue"])
+        self.assertEqual(self.test_sentence.nbr_words, 4)
+
+    def test_duplicate(self):
+        """Tests that duplicating the sentence behaves as expected.
+        """
+        # In the cae where the nbr of words is more than the requested
+        # switched sentence length
+        self.assertEqual(self.test_sentence.duplicate(nbr_words=2),
+                         "The rabbit is rabbit is blue.")
+        # In the case where the nbr of words is too high, simply return
+        # the sentence
+        self.assertEqual(self.test_sentence.duplicate(nbr_words=5),
+                         "The rabbit is blue.")
 
 
 class TestText(unittest.TestCase):

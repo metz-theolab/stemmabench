@@ -1,0 +1,31 @@
+# Demonstration configuration file for stemmabench
+variants:
+  words:
+    synonym:
+      law: bernouilli
+      rate: 0.2
+    hyponym:
+      law: bernouilli
+      rate: 0.2
+    hypernym:
+      law: bernouilli
+      rate: 0.2
+    mispell:
+      law: bernouilli
+      rate: 0.2
+    omit:
+      law: bernouilli
+      rate: 0.1
+  sentences:
+    duplicate:
+      args:
+        nbr_words: 2
+      law: bernouilli
+      rate: 0.1
+
+stemma:
+  depth: 4
+  width:
+    law: uniform
+    min: 2
+    max: 4

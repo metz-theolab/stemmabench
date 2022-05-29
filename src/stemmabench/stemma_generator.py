@@ -83,3 +83,7 @@ class VariantTree:
             remaining_depth -= 1
         # Return self
         return self
+
+    def vizualize(self):
+        """Vizualize the tree using DAG.
+        """
