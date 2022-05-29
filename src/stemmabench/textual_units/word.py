@@ -119,8 +119,10 @@ class Word:
         if not self.has_synset:
             return self.word
         hypernyms = self.synset[0].hypernyms()
-        if hypernyms:
-            return hypernyms[random.randrange(len(hypernyms))]\
+        hypernyms_no_hyphens = [
+            hypernym for hypernym in hypernyms if not "_" in hypernym.lemmas()[0].name()]
+        if hypernyms_no_hyphens:
+            return hypernyms_no_hyphens[random.randrange(len(hypernyms_no_hyphens))]\
                 .lemmas()[0].name()
         else:
             logger.warning(
@@ -137,8 +139,10 @@ class Word:
         if not self.has_synset:
             return self.word
         hyponyms = self.synset[0].hyponyms()
-        if hyponyms:
-            return hyponyms[random.randrange(len(hyponyms))].lemmas()[0].name()
+        hyponyms_no_hyphens = [
+            hyponym for hyponym in hyponyms if not "_" in hyponym.lemmas()[0].name()]
+        if hyponyms_no_hyphens:
+            return hyponyms_no_hyphens[random.randrange(len(hyponyms_no_hyphens))].lemmas()[0].name()
         else:
             logger.warning(f"No hyponym for word {self.word}, returning word.")
             return self.word
