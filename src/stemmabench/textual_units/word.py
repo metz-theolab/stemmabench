@@ -74,7 +74,7 @@ class Word:
         """
         try:
             return self.synsets()
-        except WordNetError:
+        except (WordNetError, LookupError):
             try:
                 logger.warning("Ooops, something went wrong, trying to download the\
                     right packages...")
@@ -83,7 +83,7 @@ class Word:
                 return self.synsets()
             except Exception:
                 logger.critical(
-                    f"Could not get synsets for word {self.word}, aborting...")
+                    f"Could not get wordnet, aborting...")
                 raise Exception("Could not get synsets.")
 
     def synonym(self) -> str:
