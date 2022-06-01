@@ -59,11 +59,17 @@ def typecheck(c):
 def lint(c):
     """Lint the package using flake8.
     """
-    c.run("flake8 .\src\ --exclude=tests")
+    virtualenv_cmd = get_virtualenv_cmd()
+    with c.prefix(virtualenv_cmd):
+        c.run("flake8 .\src\ --exclude=tests")
 
 
 @task
-def build(c):
+def build(c, output_dir=""):
     """Build the package wheel.
     """
-    c.run("flake8 .\src\ --exclude=tests")
+    output_dir_cmd = f" --outdir {output_dir}" if output_dir else ""
+    virtualenv_cmd = get_virtualenv_cmd()
+    with c.prefix(virtualenv_cmd):
+        c.run("pip install build --upgrade build")
+        c.run(f"python -m build{output_dir_cmd}")
