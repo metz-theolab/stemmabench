@@ -6,11 +6,18 @@ StemmaBench is a Python package for quick generation of artificial, synthetic sc
 
 ## Quickstart
 
-Installation can be done through `invoke`:
+### Install
 
+Install can be done through the `invoke` task manager:
+
+You first need to install invoke.
 `pip install invoke`
 
+Then run the command `install`, which wil create a virtual environment.
 `invoke install`
+
+You can run the tests:
+`invoke test`
 
 ### Command line
 
@@ -22,9 +29,12 @@ Usage: generate [OPTIONS] INPUT_TEXT OUTPUT_FOLDER CONFIGURATION
 
   Generate a tradition of manuscripts.
 
-  Args:     input_text (str): The text to give as input for the tradition.
-  output_folder (str): The output folder for the tradition.     configuration
-  (str): The configuration of the tradition.
+  Args:
+  input_text (str): The text to give as input for the tradition.
+
+  output_folder (str): The output folder for the tradition.
+
+  configuration (str): The configuration of the tradition.
 
 Arguments:
   INPUT_TEXT     [required]
