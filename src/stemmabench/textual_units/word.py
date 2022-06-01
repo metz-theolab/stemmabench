@@ -14,6 +14,9 @@ POS = {
     "NA": None
 }
 
+nltk.download('wordnet')
+nltk.download('omw-1.4')
+
 
 class Word:
     """The Word class defines several methods for variants at
