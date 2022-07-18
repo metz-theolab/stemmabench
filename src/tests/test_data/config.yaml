@@ -1,16 +1,10 @@
 # Demonstration configuration file for stemmabench
 meta:
-  language: eng
+  language: en
 
 variants:
   words:
     synonym:
-      law: Bernouilli
-      rate: 0.1
-    hyponym:
-      law: Bernouilli
-      rate: 0.1
-    hypernym:
       law: Bernouilli
       rate: 0.1
     mispell:

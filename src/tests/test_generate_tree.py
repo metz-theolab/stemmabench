@@ -18,7 +18,7 @@ class TestStemmaGenerator(unittest.TestCase):
         """Set-up the data to test the generation.
         """
         self.text = """
-        Love bade me welcome; yet my soul drew back, Guilty of dust and sin."""
+        love bade  welcome yet my soul hrew back guilty of dust ajd sin."""
         config = StemmaBenchConfig.from_yaml(TEST_YAML)
         self.stemma = Stemma(
             original_text=self.text,
@@ -42,9 +42,9 @@ class TestStemmaGenerator(unittest.TestCase):
         random.seed(10)
         self.assertListEqual(
             self.stemma._apply_level(self.text),
-            ['love bade me welcome so_far my soul draw second guilty of dust and mark_of_cain.',
-                'love bade maine welcome yet my suul drew back guilty of dust and sin.',
-                'love bade me welcome yet my soul absorb rear  of bust and siq.']
+            ['love bade  yet my soul hrew hack guilty of dust ajd sjn.',
+             'love bade welcome yet my soul hrew back shamefaced of dust ajd sin.',
+             'love bade oelcome so far my soul hrew back guilty of  ajd sin.']
         )
 
     def test_graph_repr(self):

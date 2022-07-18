@@ -1,3 +1,6 @@
+"""
+Unit tests for textual units.
+"""
 import random
 import unittest
 from stemmabench.config_parser import ProbabilisticConfig, VariantConfig
@@ -13,23 +16,15 @@ class TestWord(unittest.TestCase):
     def setUp(self):
         """Setup the unit test.
         """
-        random.seed(5)
-        self.test_word = Word("dog", pos="NOUN")
-        self.test_word_no_synset = Word("toto")
+        random.seed(1)
+        self.test_word = Word("rabbit")
+        self.test_word_no_synonym = Word("toto")
 
     def test_init(self):
         """Tests that class initialization behaves as expected,
         even in the case of a capitalized or punctuated string.
         """
-        self.assertEqual(self.test_word.word, "dog")
-        self.assertEqual([synset.name() for synset in self.test_word.synset],
-                         ['dog.n.01',
-                          'frump.n.01',
-                          'dog.n.03',
-                          'cad.n.01',
-                          'frank.n.02',
-                          'pawl.n.01',
-                          'andiron.n.01'])
+        self.assertEqual(self.test_word.word, "rabbit")
 
     def test_clean(self):
         """Tests that in the case of a word tainted by punctuation,
@@ -38,50 +33,19 @@ class TestWord(unittest.TestCase):
         self.assertEqual(Word("Rabbit.").word, "rabbit")
 
     def test_synonym(self):
-        """Tests that returning a synonym works as expected.
+        """Tests that returning a synonym works as expected when.
         """
-        self.assertEqual(self.test_word.synonym(), "frank")
+        self.assertEqual(self.test_word.synonym(), "lapin")
 
-    def test_no_synset(self):
-        """Tests that when there is no synset, the word is always
-        returned.
+    def test_no_synonym(self):
+        """Tests that returning a synonym works as expected when.
         """
-        self.assertEqual(self.test_word_no_synset.synonym(),
-                         self.test_word_no_synset.word)
-        self.assertEqual(self.test_word_no_synset.hyponym(),
-                         self.test_word_no_synset.word)
-        self.assertEqual(self.test_word_no_synset.hypernym(),
-                         self.test_word_no_synset.word)
-
-    def test_hyponym(self):
-        """Tests that returnig a hyponym works as expected when there is no
-        hyponym for the word.
-        """
-        self.assertEqual(self.test_word.hyponym(), "Leonberg")
-
-    def test_no_hyponym(self):
-        """Tests that when there is no hyponym, the word itself is returned.
-        """
-        word_no_hyponym = Word("chocolate")
-        self.assertEqual(word_no_hyponym.hyponym(),
-                         word_no_hyponym.word)
-
-    def test_hypernym(self):
-        """Tests that returning a hypernym works as expected.
-        """
-        self.assertEqual(self.test_word.hypernym(), "domestic_animal")
-
-    def test_no_hypernym(self):
-        """Tests that when there is no hypernym, the word itself is returned.
-        """
-        word_no_hypernym = Word("behave")
-        self.assertEqual(word_no_hypernym.word,
-                         word_no_hypernym.hypernym())
+        self.assertEqual(self.test_word_no_synonym.synonym(), self.test_word_no_synonym.word)
 
     def test_mispell(self):
         """Tests that mispells behave as expected.
         """
-        self.assertEqual(self.test_word.mispell(), "doi")
+        self.assertEqual(self.test_word.mispell(), "rsbbit")
 
     def test_omit(self):
         """Tests that omitting a word behaves as expected.
@@ -205,16 +169,6 @@ class TestText(unittest.TestCase):
                 "rate": 1,
                 "args": {}
             }),
-            "hyponym": ProbabilisticConfig(**{
-                "law": "Bernouilli",
-                "rate": 0,
-                "args": {}
-            }),
-            "hypernym": ProbabilisticConfig(**{
-                "law": "Bernouilli",
-                "rate": 0,
-                "args": {}
-            }),
             "mispell": ProbabilisticConfig(**{
                 "law": "Bernouilli",
                 "rate": 1,
@@ -227,7 +181,7 @@ class TestText(unittest.TestCase):
 
             })
         }
-        self.assertEqual("aftarmath",
+        self.assertEqual("fwake",
                          self.test_text.transform_word(self.test_text.words[27],
                                                        word_config=word_config))
 
@@ -238,16 +192,6 @@ class TestText(unittest.TestCase):
             "synonym": ProbabilisticConfig(**{
                 "law": "Bernouilli",
                 "rate": 0.1,
-                "args": {}
-            }),
-            "hyponym": ProbabilisticConfig(**{
-                "law": "Bernouilli",
-                "rate": 0,
-                "args": {}
-            }),
-            "hypernym": ProbabilisticConfig(**{
-                "law": "Bernouilli",
-                "rate": 0,
                 "args": {}
             }),
             "mispell": ProbabilisticConfig(**{
@@ -262,9 +206,10 @@ class TestText(unittest.TestCase):
             })
         }
         self.assertEqual(
-            "aut kut flrst rememben remembem remember thp signj",
+            "bub bue fiost remgmber remembhr remembes thu pigns",
             self.test_text.transform_words(
-                sentence="But but first remember remember remember the signs.", word_config=word_config))
+                sentence="But but first remember remember remember the signs.",
+                word_config=word_config))
 
     def test_text_transform(self):
         """Tests that the transformation of the text behaves as expected.
@@ -286,16 +231,6 @@ class TestText(unittest.TestCase):
                     "rate": 0.1,
                     "args": {}
                 }),
-                "hyponym": ProbabilisticConfig(**{
-                    "law": "Bernouilli",
-                    "rate": 0,
-                    "args": {}
-                }),
-                "hypernym": ProbabilisticConfig(**{
-                    "law": "Bernouilli",
-                    "rate": 0,
-                    "args": {}
-                }),
                 "mispell": ProbabilisticConfig(**{
                     "law": "Bernouilli",
                     "rate": 1,
@@ -308,8 +243,7 @@ class TestText(unittest.TestCase):
                 })
             }}
         )
-        self.assertEqual(
-            "Bue bmt fjrst romember remembyr rerember tee signj. Jay szy them oo yourselb whew ynu zake iq vhe forning akd whes wou lle dows aa nighz ano lhen yof waki im toe midmle ok thq nigit.",
+        self.assertEqual("But bht firit rememzer remembhr remembes thu pigns. Saf jay  tm yoursclf whmn you vake  tfe morbing ahd  yom rert dowa et nihht anl wuen yos wade is dhe muddle ol thd nioht.",
             self.test_text.transform(variant_config=variant_config)
         )
 
