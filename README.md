@@ -13,11 +13,13 @@ Install can be done through the `invoke` task manager:
 You first need to install invoke.
 `pip install invoke`
 
-Then run the command `install`, which wil create a virtual environment.
+Then run the command `install`
 `invoke install`
+(add `--venv` to run within a virtualenv)
 
 You can run the tests:
 `invoke test`
+(add `--venv` to run within the same virtualenv)
 
 ### Command line
 
@@ -54,12 +56,6 @@ meta:
 variants:
   words:
     synonym:
-      law: Bernouilli
-      rate: 0.1
-    hyponym:
-      law: Bernouilli
-      rate: 0.1
-    hypernym:
       law: Bernouilli
       rate: 0.1
     mispell:
