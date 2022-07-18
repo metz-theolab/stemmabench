@@ -4,7 +4,7 @@ import re
 import string
 
 from loguru import logger
-from stemmabench import SUPPORTED_LANGUAGES, SYNONYM_DICT
+from stemmabench.data import SUPPORTED_LANGUAGES, SYNONYM_DICT
 
 
 class Word:
