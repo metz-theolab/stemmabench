@@ -17,7 +17,7 @@ dependencies = [
 include-package-data = true
 
 [tool.setuptools.package-data]
-mypkg = ["*.json"]
+"*" = ["*.json"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
