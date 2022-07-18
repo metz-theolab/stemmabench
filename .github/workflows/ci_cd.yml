@@ -37,7 +37,7 @@ jobs:
         run: |
           invoke test --coverage
 
-      # Run the flake8 linting
-      - name: Run flake8 linter
+      # Run the linter
+      - name: Run linter
         run: |
-          flake8 . --exclude tests
+          invoke lint
