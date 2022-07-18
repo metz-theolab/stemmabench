@@ -164,7 +164,4 @@ def build(c, output_dir=""):
     """Build the package wheel.
     """
     output_dir_cmd = f" --outdir {output_dir}" if output_dir else ""
-    virtualenv_cmd = get_activate_venv()
-    with c.prefix(virtualenv_cmd):
-        c.run("pip install build --upgrade build")
-        c.run(f"python -m build{output_dir_cmd}")
+    c.run(f"python -m build{output_dir_cmd}")

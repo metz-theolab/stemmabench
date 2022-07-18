@@ -24,7 +24,7 @@ jobs:
       # Install invoke
       - name: Install setuptools, invoke and virtualenv
         run: |
-          python -m pip install --upgrade pip setuptools virtualenv wheel
+          python -m pip install --upgrade pip setuptools virtualenv wheel build
           python -m pip install invoke
 
       # Install the python package
