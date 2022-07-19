@@ -52,9 +52,9 @@ class Word:
             if len(synonyms):
                 return synonyms[random.randrange(len(synonyms))]
             else:
-                logger.warning(f"Could not find synonym for word {self.word}")
+                logger.debug(f"Could not find synonym for word {self.word}")
         except KeyError:
-            logger.warning(f"Could not find synonym for word {self.word}")
+            logger.debug(f"Could not find synonym for word {self.word}")
         return self.word
 
     def mispell(self) -> str:
