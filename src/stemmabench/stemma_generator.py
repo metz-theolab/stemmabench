@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from typing import Dict, List, Union
 from random import uniform, gauss
-from stemmabench.config_parser import StemmaBenchConfig, VariantConfig
+from stemmabench.config_parser import StemmaBenchConfig
 from stemmabench.textual_units.text import Text
 
 
@@ -60,8 +60,8 @@ class Stemma:
         Returns:
             str: The loaded text.
         """
-        with open(Path(path_to_text)) as f:
-            return f.read()
+        with open(Path(path_to_text), encoding="utf-8") as file:
+            return file.read()
 
     def dict(self) -> Dict[str, Union[List[str], Dict[str, List[str]]]]:
         """Return a dict representation of the tree.
@@ -114,15 +114,15 @@ class Stemma:
             new_level = {}
             # Gather values from last levels
             for values in self._levels[-1].values():
-                for ix, value in enumerate(values):
+                for i_index, value in enumerate(values):
                     new_variants = self._apply_level(value)
                     new_level[value] = new_variants
                     # Build text lookup by iterating over variants
-                    for jx, variant in enumerate(new_variants):
-                        self.texts_lookup[f"{level_name}:{ix}:{jx}"] = variant
+                    for j_index, variant in enumerate(new_variants):
+                        self.texts_lookup[f"{level_name}:{i_index}:{j_index}"] = variant
                         # Store graph edges
                         self.edges.append(
-                            (f"{level_name}:{ix}", f"{level_name}:{ix}:{jx}"))
+                            (f"{level_name}:{i_index}", f"{level_name}:{i_index}:{j_index}"))
             # Append new level
             self._levels.append(new_level)
             # Increase level name
