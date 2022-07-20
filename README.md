@@ -1,5 +1,8 @@
 # StemmaBench
 
+![Tests](https://github.com/metz-theolab/stemmabench/workflows/Unittests%20and%20lint/badge.svg)
+![Build](https://github.com/metz-theolab/stemmabench/workflows/Build/badge.svg)
+
 StemmaBench is a Python package for quick generation of artificial, synthetic scribal traditions. From an original text, it generates a series of witnesses based on a set of variable aiming at describing the different scribal behaviors.
 
 ## Motivation and theory
