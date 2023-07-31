@@ -20,6 +20,9 @@ Then run the command `install`
 `invoke install`
 (add `--venv` to run within a virtualenv)
 
+If you want to run the tests, install the package in test mode:
+`invoke install --extra test`
+
 You can run the tests:
 `invoke test`
 (add `--venv` to run within the same virtualenv)
@@ -47,40 +50,8 @@ Arguments:
   CONFIGURATION  [required]
 ```
 
-For example:
+For demonstration, go to the folder demo and run:
 `generate .\test_text.txt output_folder .\config.yaml`
-
-with `config.yaml` being:
-
-```yaml
-meta:
-  language: eng
-
-variants:
-  words:
-    synonym:
-      law: Bernouilli
-      rate: 0.1
-    mispell:
-      law: Bernouilli
-      rate: 0.05
-    omit:
-      law: Bernouilli
-      rate: 0.05
-  sentences:
-    duplicate:
-      args:
-        nbr_words: 2
-      law: Bernouilli
-      rate: 0.1
-
-stemma:
-  depth: 2
-  width:
-    law: Uniform
-    min: 2
-    max: 4
-```
 
 ### Interactive use
 

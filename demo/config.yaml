@@ -1,0 +1,27 @@
+meta:
+  language: eng
+
+variants:
+  words:
+    synonym:
+      law: Bernouilli
+      rate: 0.1
+    mispell:
+      law: Bernouilli
+      rate: 0.05
+    omit:
+      law: Bernouilli
+      rate: 0.05
+  sentences:
+    duplicate:
+      args:
+        nbr_words: 2
+      law: Bernouilli
+      rate: 0.1
+
+stemma:
+  depth: 2
+  width:
+    law: Uniform
+    min: 2
+    max: 4
