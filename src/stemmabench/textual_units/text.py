@@ -12,7 +12,6 @@ from stemmabench.config_parser import (
 )
 from stemmabench.textual_units.word import Word
 from stemmabench.textual_units.sentence import Sentence
-from stemmabench.textual_units.word import Word
 
 
 class Text:
