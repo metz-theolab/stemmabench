@@ -1,8 +1,14 @@
 import random
+import numpy as np
+from scipy.stats import binom, poisson
 from typing import Any, Dict
-from stemmabench.config_parser import ProbabilisticConfig, VariantConfig
-from stemmabench.textual_units.sentence import Sentence
+from stemmabench.config_parser import (
+    ProbabilisticConfig, 
+    FragmentationConfig, 
+    VariantConfig
+)
 from stemmabench.textual_units.word import Word
+from stemmabench.textual_units.sentence import Sentence
 
 
 class Text:
@@ -146,3 +152,63 @@ class Text:
             if new_sentence:
                 sentence_edited_words += new_sentence + self.punc + " "
         return sentence_edited_words.strip()
+
+    def fragment(self, 
+                 fragment_config: FragmentationConfig,
+                 sep: str=" ",
+                 random_state=None
+        ) -> str:
+        """
+        Fragment a given text by randomly removing words.
+
+        Args:
+            text (str): The input text to be fragmented.
+            fragment_config (FragmentConfig): The configuration of the fragment
+                transformer.
+            sep (str, optional): separator used to split the input text
+                into words. Default is " ".
+            random_state (int or None, optional): Seed for random number
+                generation. Default is None.
+
+        Returns:
+            str: fragmented text with words removed.
+        """
+        # # Check if the fragmentation rate is valid.
+        # if not 0 <= fragment_config.max_rate <= 1:
+        #     raise ValueError("Maximum fragmentation rate must be between "
+        #                      "0 and 1.")
+        # Initialize a random number generator.
+        rng = np.random.default_rng(random_state)
+
+        # Split the text into a list of words and get total word count.
+        words = self.text.split(sep)
+        n_words = len(words) 
+        indices = np.arange(n_words)
+
+        # Generate a distribution for fragmentation on word indices based on 
+        # the input law.
+        if fragment_config.distribution.law == "Uniform":
+            locations_dist = np.full(shape=n_words, fill_value=1/n_words)
+        elif fragment_config.distribution.law == "Binomial":
+            locations_dist = binom.pmf(k=indices, n=n_words, 
+                                        p=fragment_config.distribution.rate)
+        elif fragment_config.distribution.law == "Poisson":
+            locations_dist = poisson.pmf(k=indices, 
+                                         mu=fragment_config.distribution.rate)
+        else:
+            raise ValueError("Only 'Binomial', 'Uniform', and 'Poisson' laws \
+                            are supported.")
+        locations_dist /= locations_dist.sum()
+
+        # Calculate the number of fragment locations based on the fragment rate.
+        n_frag_loc = int(rng.uniform(0, fragment_config.max_rate) * n_words)
+
+        # Choose fragment locations according.
+        frag_locations = rng.choice(indices, size=n_frag_loc, replace=False, 
+                                    p=locations_dist)
+        
+        # Remove words at the selected fragment locations.
+        words = np.delete(words, frag_locations)
+        
+        # Join the remaining words to form the fragmented text.
+        return sep.join(words)

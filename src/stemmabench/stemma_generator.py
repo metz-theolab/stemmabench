@@ -34,6 +34,7 @@ class Stemma:
         else:
             self.config = StemmaBenchConfig.from_yaml(config_path)
         self.depth = self.config.stemma.depth
+        self.fragmentation_proba = self.config.stemma.fragmentation_proba
         self._levels: List[Dict[str, List[str]]] = []
         self.texts_lookup = {}
         self.edges = []
@@ -87,14 +88,31 @@ class Stemma:
         """String representation of the tree"""
         return "Tree(" + json.dumps(self.dict(), indent=2) + ")"
 
+    def _apply_fragmentation(self, manuscript: str) -> str:
+        """Apply fragmentation to a manuscript."""
+
+        # FIXME: Make the acces to the rate more flexible without
+        # using explicitely the string name (maybe create a class or add a
+        # method somewhere -> To be able to handle key naming error).
+
+        if Text.draw_boolean(self.fragmentation_proba):
+            return Text(manuscript).fragment(**self.config.variants.texts
+                                             .fragmentation)
+        return manuscript
+
     def _apply_level(self, manuscript: str) -> List[str]:
         """Apply transformation on a single generation"""
-        return [Text(manuscript).transform(self.config.variants) for _ in range(self.width)]
+        
+        return [self._apply_fragmentation(
+                    Text(manuscript).transform(self.config.variants))
+                        for _ in range(self.width)]
 
     def generate(self):
         """Fit the tree, I.E, generate variants"""
         # Empty levels
         self._levels = []
+        # Determine whether to fragment the original and apply if yes
+        self.original_text = self._apply_fragmentation(self.original_text)
         # Get first variants
         first_variants = self._apply_level(self.original_text)
         # Append first level

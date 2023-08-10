@@ -11,9 +11,12 @@ import yaml
 class ProbabilisticLaw(str, Enum):
     """Enumeration of the implemented probabilistic laws.
     """
+    UniformDiscrete: str = "Discrete Uniform"
     Bernouilli: str = "Bernouilli"
+    Binomial: str = "Binomial"
     Gaussian: str = "Gaussian"
     Uniform: str = "Uniform"
+    Poisson: str = "Poisson"
 
 
 class ProbabilisticConfig(BaseModel):
@@ -25,6 +28,7 @@ class ProbabilisticConfig(BaseModel):
     max: Optional[float]
     mean: Optional[float]
     sd: Optional[float]
+    n: Optional[int]
     args: Dict[str, Any] = {}
 
     @root_validator(pre=True)
@@ -32,10 +36,11 @@ class ProbabilisticConfig(BaseModel):
         """Check that depending on the selected law, the
         right parameters are given as input.
         """
-        if values["law"] == "Bernouilli":
+        if values["law"] in ("Bernouilli", "Binomial", "Poisson"):
             if not ("rate" in values):
-                raise ValidationError("You asked for Bernouilli"
-                                      "law but did not provide a rate value")
+                raise ValidationError("You asked for Bernouilli, Binomial or"
+                                      "Poisson law but did not provide a rate "
+                                      "value")
         elif values["law"] == "Uniform":
             if not (("min" in values) and ("max" in values)):
                 raise ValidationError("You asked for Uniform "
@@ -49,11 +54,36 @@ class ProbabilisticConfig(BaseModel):
         return values
 
 
+class FragmentationConfig(BaseModel):
+    """Model describing the configuration of a fragmentation operation.
+    """
+    max_rate: float
+    distribution: ProbabilisticConfig
+
+    @root_validator(pre=True)
+    def check_fragmentation_rate(cls, values):
+        """Check that the maximum fragmenation rate is between 0 and 1.
+        """
+        if not 0 <= values["max_rate"] <= 1:
+            raise ValueError(
+                "Maximum fragmentation rate should be between 0 and 1."
+            )
+        return values
+
+
+class TextConfig(BaseModel):
+    """Model describing the configuration of operations on text.
+    """
+    fragmentation: FragmentationConfig
+    # Contamination: ContaminationConfig ???
+
+
 class VariantConfig(BaseModel):
     """Model describing the configuration of the different variants.
     """
     words: Dict[str, ProbabilisticConfig]
     sentences: Dict[str, ProbabilisticConfig]
+    texts: TextConfig
 
 
 class StemmaConfig(BaseModel):
@@ -61,6 +91,8 @@ class StemmaConfig(BaseModel):
     """
     depth: int
     width: ProbabilisticConfig
+    fragmentation_proba: float
+    # manuscript_missingness_rate: float (simulate missing manuscript) ???
 
 
 class MetaConfig(BaseModel):
