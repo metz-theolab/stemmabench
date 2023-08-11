@@ -19,6 +19,12 @@ variants:
         nbr_words: 2
       law: Bernouilli
       rate: 0.1
+  texts:
+    fragmentation:
+      max_rate: 0.5
+      distribution:
+        law: Poisson
+        rate: 0.9
 
 stemma:
   depth: 2
@@ -26,3 +32,4 @@ stemma:
     law: Uniform
     min: 2
     max: 4
+  fragmentation_proba: 1

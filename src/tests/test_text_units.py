@@ -3,6 +3,7 @@ Unit tests for textual units.
 """
 import random
 import unittest
+import unittest.mock
 from stemmabench.config_parser import ProbabilisticConfig, VariantConfig
 from stemmabench.textual_units.text import Text
 from stemmabench.textual_units.sentence import Sentence
@@ -100,6 +101,7 @@ class TestText(unittest.TestCase):
             "Say them to yourself when you wake in the morning "
             "and when you lie down at night, "
             "and when you wake in the middle of the night.")
+        self.test_text2 = Text("word1, word2. word3, word4 word5.")
 
     def test_init(self):
         """Tests that the initialization of the Text class behaves
@@ -247,6 +249,20 @@ class TestText(unittest.TestCase):
             self.test_text.transform(variant_config=variant_config)
         )
 
+    @unittest.mock.patch('numpy.random.default_rng')
+    def test_fragment_deletion(self, mock_rng):
+        """Test fragmentation
+
+        Args:
+            mock_rng (_type_): random number generator mock.
+        """
+        mock_rng.return_value.choice.side_effcet = [1, 3]
+        fragmentconfig = {
+
+        }
+
+        self.assertEqual("word2. word4", 
+                         self.fragment(self.test_text2))
 
 if __name__ == "__main__":
     unittest.main()
