@@ -12,7 +12,7 @@ config = StemmaBenchConfig(**{
     },
 
     "stemma": {
-        "depth": 3,
+        "depth": 2,
         "width": {
             "law": "Uniform",
             "min": 2,
@@ -48,12 +48,12 @@ config = StemmaBenchConfig(**{
                 "args": {}
             }
         },
-        "text": {
+        "texts": {
             "fragmentation": {
                 "max_rate": 1,
                 "distribution": {
-                    "law": "Bernouilli",
-                    "rate": 0.5
+                    "law": "Poisson",
+                    "rate": 0.9
                 }
             }
         }
@@ -73,3 +73,5 @@ stemma = Stemma(original_text=DEMO_TEXT, config=config)
 
 # Generate a tradition.
 print(stemma.generate())
+
+print(stemma.texts_lookup)
