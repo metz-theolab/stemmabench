@@ -138,7 +138,8 @@ class Stemma:
         return mss_non_missing, edges_non_missing
 
     def generate(self):
-        """Fit the tree, I.E, generate variants"""
+        """Fit the tree, I.E, generate variants.
+        """
         # Empty levels
         self._levels = []
         # Determine whether to fragment the original and apply if yes
