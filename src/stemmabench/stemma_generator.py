@@ -90,11 +90,6 @@ class Stemma:
 
     def _apply_fragmentation(self, manuscript: str) -> str:
         """Apply fragmentation to a manuscript."""
-
-        # FIXME: Make the acces to the rate more flexible without
-        # using explicitely the string name (maybe create a class or add a
-        # method somewhere -> To be able to handle key naming error).
-
         if Text.draw_boolean(self.fragmentation_proba):
             return Text(manuscript).fragment(self.config.variants.texts
                                              .fragmentation)
@@ -108,7 +103,8 @@ class Stemma:
                         for _ in range(self.width)]
 
     def generate(self):
-        """Fit the tree, I.E, generate variants"""
+        """Fit the tree, I.E, generate variants.
+        """
         # Empty levels
         self._levels = []
         # Determine whether to fragment the original and apply if yes
