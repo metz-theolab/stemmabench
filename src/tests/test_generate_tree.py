@@ -78,6 +78,10 @@ class TestStemmaGenerator(unittest.TestCase):
         """Tests that representation as a graph works as expected.
         """
 
+    def _apply_fragmentation(self):
+        """_summary_
+        """
+
 
     def test_dict(self):
         """Tests the dict representation of the stemma.
