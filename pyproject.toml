@@ -3,7 +3,7 @@ name = "stemmabench"
 version = "0.0"
 description = "Package for benching stemmatology algorithms"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 license = { file = "LICENSE.txt" }
 dependencies = [
   "loguru==0.6.0",
