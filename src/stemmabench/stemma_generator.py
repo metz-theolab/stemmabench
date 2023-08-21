@@ -53,6 +53,7 @@ class Stemma:
         self._levels: List[Dict[str, List[str]]] = []
         self.texts_lookup = {}
         self.edges = []
+        self.random_state = random_state
 
     @property
     def width(self):
@@ -107,8 +108,8 @@ class Stemma:
     def _apply_fragmentation(self, manuscript: str) -> str:
         """Apply fragmentation to a manuscript."""
         if Text.draw_boolean(self.fragmentation_proba):
-            return Text(manuscript).fragment(self.config.variants.texts
-                                             .fragmentation)
+            return Text(manuscript, seed=self.random_state)\
+                    .fragment(self.config.variants.texts.fragmentation)
         return manuscript
 
     def _apply_level(self, manuscript: str) -> List[str]:
