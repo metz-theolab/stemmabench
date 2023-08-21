@@ -22,7 +22,8 @@ class TestStemmaGenerator(unittest.TestCase):
         config = StemmaBenchConfig.from_yaml(TEST_YAML)
         self.stemma = Stemma(
             original_text=self.text,
-            config=config
+            config=config,
+            random_state=10
         )
 
     def test_get_width(self):
@@ -42,16 +43,16 @@ class TestStemmaGenerator(unittest.TestCase):
         random.seed(10)
         self.assertListEqual(
             self.stemma._apply_level(self.text),
-            ['love bade  yet my soul hrew hack guilty of dust ajd sjn.',
-             'love bade welcome yet my soul hrew back shamefaced of dust ajd sin.',
-             'love bade oelcome so far my soul hrew back guilty of  ajd sin.']
+            ['hrew hack guilty of dust ajd sjn.',
+             'hrew  guilty of dust ajd sin.',
+             'hrew back guilty of  ajd sin.']
         )
 
     def test_graph_repr(self):
         """Tests that representation as a graph works as expected.
         """
 
-    def _apply_fragmentation(self):
+    def test_apply_fragmentation(self):
         """_summary_
         """
 
