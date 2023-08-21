@@ -4,7 +4,13 @@ Unit tests for textual units.
 import unittest
 import unittest.mock
 import numpy as np
-from stemmabench.config_parser import MetaConfig, ProbabilisticConfig, VariantConfig
+from stemmabench.config_parser import (
+    ProbabilisticConfig,
+    FragmentationConfig, 
+    VariantConfig, 
+    TextConfig,
+    MetaConfig
+)
 from stemmabench.textual_units.text import Text
 from stemmabench.textual_units.sentence import Sentence
 from stemmabench.textual_units.word import Word
@@ -239,14 +245,13 @@ class TestText(unittest.TestCase):
         meta_config = MetaConfig(**{"language": "en"})
         variant_config = VariantConfig(**{
             "sentences": {
-                "duplicate": ProbabilisticConfig(
-                    **{
-                        "args": {
-                            "nbr_words": 1
-                        },
-                        "law": "Bernouilli",
-                        "rate": 1
-                    })
+                "duplicate": ProbabilisticConfig(**{
+                    "args": {
+                        "nbr_words": 1
+                    },
+                    "law": "Bernouilli",
+                    "rate": 1
+                })
             },
             "words": {
                 "synonym": ProbabilisticConfig(**{
@@ -264,26 +269,34 @@ class TestText(unittest.TestCase):
                     "rate": 0.1,
                     "args": {}
                 })
-            }}
+             },
+             "texts": TextConfig(**{
+                 "fragmentation": FragmentationConfig(**{
+                     "max_rate": 0.5,
+                     "distribution": ProbabilisticConfig(**{
+                         "law": "Poisson",
+                         "rate": 0.9
+                     })
+                 })
+             })
+        })
+        self.assertEqual("But bht firit rememzer remembhr remembes thu pigns. Saf jay  tm yoursclf whmn you vake  tfe morbing ahd  yom rert dowa et nihht anl wuen yos wade is dhe muddle ol thd nioht.",
+            self.test_text.transform(variant_config=variant_config, meta_config=meta_config)
         )
-        result = self.test_text.transform(variant_config=variant_config, meta_config=meta_config)
-        expected_result = "Bwt  remenber rerember  wemember hhe figns. Smy mhem tc yoarself whef yog sake im thb mornini acd yhen  lde doen astatinz  dnd whec nou wawe vn the   tce nigwt."
-        self.assertEqual(expected_result, result)
 
-    @unittest.mock.patch('numpy.random.default_rng')
-    def test_fragment_deletion(self, mock_rng):
+    def test_fragment_deletion(self):
         """Test fragmentation
-
-        Args:
-            mock_rng (_type_): random number generator mock.
         """
-        mock_rng.return_value.choice.side_effcet = [1, 3]
-        fragmentconfig = {
+        fragment_config = FragmentationConfig(**{
+            "max_rate": 1,
+            "distribution": ProbabilisticConfig(**{
+                "law": "Poisson",
+                "rate": 0.9
+            })
+        })
 
-        }
-
-        self.assertEqual("word2. word4", 
-                         self.fragment(self.test_text2))
+        self.assertEqual(Text(self.test_text2.text, seed=15)
+                         .fragment(fragment_config),"word4 word5.")
 
 if __name__ == "__main__":
     unittest.main()

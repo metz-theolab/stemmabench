@@ -19,7 +19,7 @@ class Text:
     process.
     """
 
-    def __init__(self, text: str, punc: str = ".") -> None:
+    def __init__(self, text: str, punc: str = ".", seed=None) -> None:
         """Initializes an object of class Text, by wrapping a text into it.
 
         Args:
@@ -36,6 +36,7 @@ class Text:
         self.words = [Word(word) for word in text.split(" ") if word]
         # TODO: improve punctuation diversity
         self.punc = punc
+        self.rng = np.random.default_rng(seed)
 
     @staticmethod
     def draw_boolean(rate: float) -> bool:
@@ -162,8 +163,7 @@ class Text:
 
     def fragment(self, 
                  fragment_config: FragmentationConfig,
-                 sep: str=" ",
-                 random_state=None
+                 sep: str=" "
         ) -> str:
         """
         Fragment a given text by randomly removing words.
@@ -180,9 +180,6 @@ class Text:
         Returns:
             str: fragmented text with words removed.
         """
-        # Initialize a random number generator.
-        rng = np.random.default_rng(random_state)
-
         # Split the text into a list of words and get total word count.
         words = self.text.split(sep)
         n_words = len(words) 
@@ -196,7 +193,7 @@ class Text:
             locations_dist = binom.pmf(k=indices, n=n_words, 
                                         p=fragment_config.distribution.rate)
         elif fragment_config.distribution.law == "Poisson":
-            locations_dist = poisson.pmf(k=indices, 
+            locations_dist = poisson.pmf(k=indices,
                                          mu=fragment_config.distribution.rate)
         else:
             raise ValueError("Only 'Binomial', 'Uniform', and 'Poisson' laws \
@@ -204,10 +201,10 @@ class Text:
         locations_dist /= locations_dist.sum()
 
         # Calculate the number of fragment locations based on the fragment rate.
-        n_frag_loc = int(rng.uniform(0, fragment_config.max_rate) * n_words)
+        n_frag_loc = int(self.rng.uniform(0, fragment_config.max_rate) * n_words)
 
         # Choose fragment locations according.
-        frag_locations = rng.choice(indices, size=n_frag_loc, replace=False, 
+        frag_locations = self.rng.choice(indices, size=n_frag_loc, replace=False,
                                     p=locations_dist)
         
         # Remove words at the selected fragment locations.

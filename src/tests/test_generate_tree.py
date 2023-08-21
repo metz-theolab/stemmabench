@@ -23,7 +23,8 @@ class TestStemmaGenerator(unittest.TestCase):
         config = StemmaBenchConfig.from_yaml(TEST_YAML)
         self.stemma = Stemma(
             original_text=self.text,
-            config=config
+            config=config,
+            random_state=10
         )
         # Create the output folder
         os.mkdir(OUTPUT_FOLDER)
@@ -78,7 +79,7 @@ class TestStemmaGenerator(unittest.TestCase):
         """Tests that representation as a graph works as expected.
         """
 
-    def _apply_fragmentation(self):
+    def test_apply_fragmentation(self):
         """_summary_
         """
 

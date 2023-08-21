@@ -11,12 +11,12 @@ import yaml
 class ProbabilisticLaw(str, Enum):
     """Enumeration of the implemented probabilistic laws.
     """
-    UniformDiscrete: str = "Discrete Uniform"
-    Bernouilli: str = "Bernouilli"
-    Binomial: str = "Binomial"
-    Gaussian: str = "Gaussian"
-    Uniform: str = "Uniform"
-    Poisson: str = "Poisson"
+    DISCRETE_UNIFORM: str = "Discrete Uniform"
+    BERNOUILLI: str = "Bernouilli"
+    BINOMIAL: str = "Binomial"
+    GAUSSIAN: str = "Gaussian"
+    UNIFORM: str = "Uniform"
+    POISSON: str = "Poisson"
 
 
 class ProbabilisticConfig(BaseModel):
