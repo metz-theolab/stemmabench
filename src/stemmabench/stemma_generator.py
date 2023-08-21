@@ -19,7 +19,8 @@ class Stemma:
         config: StemmaBenchConfig = None,
         config_path: str = None,
         original_text: str = None,
-        path_to_text: str = None
+        path_to_text: str = None,
+        random_state: int = None
     ) -> None:
         """A class to perform variant generation.
         Use the .fit() method to actually perform variant generation.

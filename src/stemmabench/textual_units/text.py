@@ -19,7 +19,7 @@ class Text:
     process.
     """
 
-    def __init__(self, text: str, punc: str = ".", seed=None) -> None:
+    def __init__(self, text: str, punc: str = ".") -> None:
         """Initializes an object of class Text, by wrapping a text into it.
 
         Args:
@@ -37,7 +37,6 @@ class Text:
         self.words = [Word(word) for word in text.split(" ") if word]
         # TODO: improve punctuation diversity
         self.punc = punc
-        self.rng = np.random.default_rng(seed)
 
     @staticmethod
     def draw_boolean(rate: float) -> bool:
