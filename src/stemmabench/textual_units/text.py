@@ -53,7 +53,7 @@ class Text:
 
     def transform_word(self,
                        word: Word,
-                       word_config: Dict[str, Any]) -> str:
+                       word_config: Dict[str, ProbabilisticConfig]) -> str:
         """Transform the text at the word level, by applying
         every method specified in the configuration.
 
@@ -174,11 +174,14 @@ class Text:
                 transformer.
             sep (str, optional): separator used to split the input text
                 into words. Default is " ".
-            random_state (int or None, optional): Seed for random number
-                generation. Default is None.
 
         Returns:
             str: fragmented text with words removed.
+        
+        # TODO: Use the input `Poisson` `rate` to use it as a fraction of the 
+        # total number of words in the text and raise an Exception for values 
+        # below a certain threshold (e.g. 5%) in order to avoid full zero 
+        # distribution vector. 
         """
         # Split the text into a list of words and get total word count.
         words = self.text.split(sep)
@@ -187,7 +190,7 @@ class Text:
 
         # Generate a distribution for fragmentation on word indices based on 
         # the input law.
-        if fragment_config.distribution.law == "Uniform":
+        if fragment_config.distribution.law == "Discrete Uniform":
             locations_dist = np.full(shape=n_words, fill_value=1/n_words)
         elif fragment_config.distribution.law == "Binomial":
             locations_dist = binom.pmf(k=indices, n=n_words, 
@@ -196,12 +199,17 @@ class Text:
             locations_dist = poisson.pmf(k=indices,
                                          mu=fragment_config.distribution.rate)
         else:
-            raise ValueError("Only 'Binomial', 'Uniform', and 'Poisson' laws \
-                            are supported.")
+            raise ValueError("Only 'Binomial', 'Discrete Uniform', and" 
+                             "'Poisson' laws are supported.")
         locations_dist /= locations_dist.sum()
 
         # Calculate the number of fragment locations based on the fragment rate.
-        n_frag_loc = int(self.rng.uniform(0, fragment_config.max_rate) * n_words)
+        n_frag_loc = min(
+            # ensure n_frag_loc (sample size) is larger that the number of 
+            # non-zero entries in the distribution vector
+            np.sum(locations_dist!=0), 
+            int(self.rng.uniform(0, fragment_config.max_rate) * n_words)
+        )
 
         # Choose fragment locations according.
         frag_locations = self.rng.choice(indices, size=n_frag_loc, replace=False,
