@@ -70,7 +70,7 @@ def install(c,
             name .env. Defaults to False.
     """
     if venv:
-        venv_cmd = "virtualenv .env"
+        venv_cmd = "python -m venv .env"
         c.run(venv_cmd)
         activate_cmd = get_activate_venv()
         with c.prefix(activate_cmd):
@@ -151,7 +151,7 @@ def build(c,
     outdir_cmd = f" --outdir {outdir}" if outdir else ""
     install_through_proxies = f" --proxy {proxy}" if proxy else ""
     # Create Python venv and activate
-    c.run("virtualenv .env")
+    c.run("python -m venv .env")
     activate_cmd = get_activate_venv()
     with c.prefix(activate_cmd):
         c.run("pip install --upgrade build pip setuptools" + install_through_proxies)
@@ -160,8 +160,10 @@ def build(c,
 
 
 @task
-def build(c, output_dir=""):
+def build(c, output_dir="", docs=False):
     """Build the package wheel.
     """
     output_dir_cmd = f" --outdir {output_dir}" if output_dir else ""
     c.run(f"python -m build{output_dir_cmd}")
+    if docs:
+        c.run("python -m mkdocs build -d documentation")

@@ -1,16 +1,16 @@
 [project]
 name = "stemmabench"
-version = "0.0"
+version = "0.0.1"
 description = "Package for benching stemmatology algorithms"
 readme = "README.md"
 requires-python = ">=3.8"
-license = { file = "LICENSE.txt" }
+license = { file = "LICENSE" }
 dependencies = [
   "loguru==0.6.0",
   "pydantic==1.9.1",
   "PyYAML==6.0",
   "typer==0.4.1",
-  "wheel==0.41.0"
+  "wheel"
 ]
 
 [project.scripts]
@@ -27,3 +27,9 @@ where = ["src"]
 
 [project.optional-dependencies]
 test = ["pytest", "pytest-cov[all]", "pylint==2.14.5"]
+dev = ["build",
+       "twine",
+       "mkdocs==1.5.2",
+       "mkdocs-material==9.3.1",
+       "mkdocs-material-extensions==1.1.1", 
+       "mkdocs-section-index==0.3.7"]
