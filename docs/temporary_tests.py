@@ -158,3 +158,5 @@ w1, w2, w3 = variant_analyzer.array
 # print(variant_analyzer.fragment_rate(), 
 #       variant_analyzer.fragment_rate(strategy="mean"), 
 #       variant_analyzer.fragment_rate(normalize=False), )
+
+print(variant_analyzer.analysis_summary())
