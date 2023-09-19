@@ -1,4 +1,10 @@
 site_name: Stemmabench
+site_url: https://example.com/
+nav:
+  - Home: index.md
+  - Variant configuration: variants.md
+  - Outputs: outputs.md
+  - About: about.md
 
 theme:
   name: material
