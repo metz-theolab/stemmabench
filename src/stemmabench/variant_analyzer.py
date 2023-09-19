@@ -655,7 +655,7 @@ class VariantAnalyzer:
             # in the alignment table.
             return  count_fragment_location / n_readings
         return count_fragment_location
-
+    
     def fragment_rate(self,
                       missing: str = "-",
                       normalize: bool = True,
