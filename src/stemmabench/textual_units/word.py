@@ -1,10 +1,9 @@
-from pydoc import synopsis
 import random
 import re
 import string
 
 from loguru import logger
-from stemmabench.data import SUPPORTED_LANGUAGES, SYNONYM_DICT
+from stemmabench.data import SUPPORTED_LANGUAGES, SYNONYM_DICT, LETTERS
 
 
 class Word:
@@ -65,7 +64,7 @@ class Word:
         """
         random_location = random.randrange(len(self.word))
         return self.word[:random_location] + \
-            random.choice(string.ascii_lowercase) + \
+            random.choice(LETTERS[self.language]) + \
             self.word[random_location + 1:]
 
     def omit(self) -> str:

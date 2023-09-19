@@ -1,5 +1,5 @@
 meta:
-  language: eng
+  language: gr
 
 variants:
   words:
@@ -8,7 +8,7 @@ variants:
       rate: 0.1
     mispell:
       law: Bernouilli
-      rate: 0.05
+      rate: 0.5
     omit:
       law: Bernouilli
       rate: 0.05
