@@ -602,12 +602,12 @@ class VariantAnalyzer:
             # in the alignment table. 
             return  count_fragment_location / n_readings
         return count_fragment_location
-
+    
     def fragment_rate(self,
                       missing: str = "-", 
                       normalize: bool = True, 
                       strategy: str = "max",
-                      decimal: int = 4) -> float:
+                      decimals: int = 4) -> float:
         """
         Calculate the fragment rate for an alignment table based on a specified 
         strategy.
@@ -632,9 +632,56 @@ class VariantAnalyzer:
         fragment_counts = self.fragment_locations_count(missing=missing, 
                                                         normalize=normalize)
         if strategy == "mean":
-            return fragment_counts.mean().round(decimal)
+            return fragment_counts.mean().round(decimals)
         elif strategy == "max":
-            return fragment_counts.max().round(decimal)
+            return fragment_counts.max().round(decimals)
         else:
             raise ValueError(f"Only `mean` and `max` are supported." 
                              f"Input: `{strategy}`.")
+
+    def analysis_summary(self,
+                         include: List[str] = ["all"],
+                         decimals: int = 4) -> Dict[str, float]:
+        """
+        Calculate various rates of interest for an alignment table.
+
+        Args:
+            include (List[str], optional): A list of rates to include in the 
+                analysis. Defaults to ["all"], which includes all rates.
+                Available operations are:
+                    - "omit"
+                    - "mispell"
+                    - "synonym"
+                    - "fragment"
+            decimal (int, optional): The number of decimal places to round the
+                results to. Defaults to 4.
+
+        Returns:
+            Dict[str, float]: A dictionary containing the calculated rates for 
+                the specified analysis types.
+
+        # TODO: add the possibility to specify additional arguments for each
+        # type of transformation. `analysis_summary(..., **kwargs)`
+        # kwargs = {
+        #     "mispell": {"distance": "Levenshtein", "mispell_cutoff": 0.6},
+        #     "fragment": {"strategy": "max", "missing": "-"},
+        #     "omit": {},
+        #     "synonym": {}
+        # }
+        Then pass it as `...transfos_dict[trf_name](kwargs[trf_name])...`
+        """
+
+        # If "all" is specified, include all analysis types.
+        if include == ["all"]:
+            include = ["omit", "mispell", "synonym", "fragment", "undetermined"]
+        
+        # Define a dictionary of analysis functions.
+        transfos_dict = {"omit": self.omit_rate,
+                        "mispell": self.mispell_rate,
+                        "synonym": self.synonym_rate,
+                        "fragment": self.fragment_rate,
+                        "undetermined": self.undetermined_operation_rate,}
+        
+        # Calculate the specified rates.
+        return {trf_name: transfos_dict[trf_name](decimals=decimals) 
+                for trf_name in include}
