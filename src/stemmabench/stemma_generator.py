@@ -89,7 +89,9 @@ class Stemma:
 
     def _apply_level(self, manuscript: str) -> List[str]:
         """Apply transformation on a single generation"""
-        return [Text(manuscript).transform(self.config.variants) for _ in range(self.width)]
+        return [Text(manuscript).transform(self.config.variants,
+                                           meta_config=self.config.meta) 
+                                           for _ in range(self.width)]
 
     def generate(self):
         """Fit the tree, I.E, generate variants"""

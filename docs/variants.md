@@ -6,7 +6,7 @@ The parameters are specified into a YAML file, such as:
 
 ```yaml
 meta:
-  language: eng
+  language: en
 
 variants:
   words:
@@ -56,3 +56,11 @@ Possible variants are:
 ### Fragmentation
 
 ### Missing manuscripts
+
+
+## Supported languages
+Two languages are currently supported:
+- English;
+- Greek.
+
+Additional support for biblical Hebrew is underway.

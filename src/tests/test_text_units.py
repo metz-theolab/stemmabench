@@ -3,11 +3,11 @@ Unit tests for textual units.
 """
 import random
 import unittest
-from stemmabench.config_parser import ProbabilisticConfig, VariantConfig
+from stemmabench.config_parser import MetaConfig, ProbabilisticConfig, VariantConfig
 from stemmabench.textual_units.text import Text
 from stemmabench.textual_units.sentence import Sentence
 from stemmabench.textual_units.word import Word
-
+from stemmabench.data import LETTERS
 
 class TestWord(unittest.TestCase):
     """Unit tests for the Word class.
@@ -52,6 +52,24 @@ class TestWord(unittest.TestCase):
         """
         self.assertEqual(self.test_word.omit(), "")
 
+    def test_greek_mispell(self):
+        """Tests that working with greek characters behaves as expected by
+        using greek only characters.
+        """
+        test_word = Word("λειπω", language="gr")
+        self.assertFalse(
+            sum((letter not in LETTERS["gr"]) for letter in test_word.mispell())
+        )
+
+    def test_greek_synonym(self):
+        """Tests that working with greek characters behaves as expected when requesting greek
+        synonyms.
+        """
+        test_word = Word("λείπω", language="gr")
+        self.assertEqual(
+            test_word.synonym(),
+            "ἐκπρολείπω"
+        )
 
 class TestSentence(unittest.TestCase):
     """Unit tests for the Sentence class.
@@ -209,11 +227,13 @@ class TestText(unittest.TestCase):
             "bub bue fiost remgmber remembhr remembes thu pigns",
             self.test_text.transform_words(
                 sentence="But but first remember remember remember the signs.",
-                word_config=word_config))
+                word_config=word_config,
+                language="en"))
 
     def test_text_transform(self):
         """Tests that the transformation of the text behaves as expected.
         """
+        meta_config = MetaConfig(**{"language": "en"})
         variant_config = VariantConfig(**{
             "sentences": {
                 "duplicate": ProbabilisticConfig(
@@ -244,7 +264,7 @@ class TestText(unittest.TestCase):
             }}
         )
         self.assertEqual("But bht firit rememzer remembhr remembes thu pigns. Saf jay  tm yoursclf whmn you vake  tfe morbing ahd  yom rert dowa et nihht anl wuen yos wade is dhe muddle ol thd nioht.",
-            self.test_text.transform(variant_config=variant_config)
+            self.test_text.transform(variant_config=variant_config, meta_config=meta_config)
         )
 
 

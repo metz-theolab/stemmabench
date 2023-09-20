@@ -1,6 +1,6 @@
 import random
 from typing import Any, Dict
-from stemmabench.config_parser import ProbabilisticConfig, VariantConfig
+from stemmabench.config_parser import ProbabilisticConfig, VariantConfig, MetaConfig
 from stemmabench.textual_units.sentence import Sentence
 from stemmabench.textual_units.word import Word
 
@@ -62,7 +62,8 @@ class Text:
 
     def transform_words(self,
                         sentence: str,
-                        word_config: Dict[str, ProbabilisticConfig])\
+                        word_config: Dict[str, ProbabilisticConfig],
+                        language: str)\
             -> str:
         """Transform the text at the word level, by applying every
         method in the configuration on each word of a sentence.
@@ -71,12 +72,13 @@ class Text:
             sentence (str): The sentence to compute the transformation for.
             word_config (Dict[str, ProbabilisticConfig]): The dictionary
                 describing the wanted configuration.
+            language (str): The language used for word transformation.
 
         Return:
             str: The text transformed at the sentence level.
         """
         edited_words = []
-        words_in_sentence = [Word(word)
+        words_in_sentence = [Word(word, language=language)
                              for word in sentence.split(" ") if len(word) > 0]
         for word in words_in_sentence:
             edited_words.\
@@ -129,7 +131,8 @@ class Text:
         return " ".join(edited_sentences)
 
     def transform(self,
-                  variant_config: VariantConfig):
+                  variant_config: VariantConfig,
+                  meta_config: MetaConfig):
         """Transforms the test using the configuration specified in the
         configuration variant_config. Operates first at the sentence level,
         and then moves on to the word level.
@@ -142,7 +145,8 @@ class Text:
         for sentence in text_edited_sentences.split(self.punc):
             new_sentence = self.transform_words(
                 sentence=sentence,
-                word_config=variant_config.words).capitalize()
+                word_config=variant_config.words,
+                language=meta_config.language).capitalize()
             if new_sentence:
                 sentence_edited_words += new_sentence + self.punc + " "
         return sentence_edited_words.strip()
