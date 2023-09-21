@@ -296,7 +296,7 @@ class TestText(unittest.TestCase):
         })
 
         self.assertEqual(Text(self.test_text2.text, seed=15)
-                         .fragment(fragment_config),"word4 word5.")
+                         .fragment(fragment_config),"word1, word3,")
 
 if __name__ == "__main__":
     unittest.main()

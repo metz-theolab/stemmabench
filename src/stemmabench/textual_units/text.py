@@ -196,8 +196,10 @@ class Text:
             locations_dist = binom.pmf(k=indices, n=n_words, 
                                         p=fragment_config.distribution.rate)
         elif fragment_config.distribution.law == "Poisson":
-            locations_dist = poisson.pmf(k=indices,
-                                         mu=fragment_config.distribution.rate)
+            # The input rate is expressed as fraction of the number of words.
+            # Ensure having consistent distribution with enough non-zero values.
+            mu = fragment_config.distribution.rate * n_words
+            locations_dist = poisson.pmf(k=indices, mu=mu)
         else:
             raise ValueError("Only 'Binomial', 'Discrete Uniform', and" 
                              "'Poisson' laws are supported.")
