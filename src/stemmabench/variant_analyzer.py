@@ -146,7 +146,7 @@ class VariantAnalyzer:
 
     # OMIT
     @staticmethod
-    def is_omit(word1: str, word2: str, missing="-") -> bool:
+    def is_omit(word1: str, word2: str, missing: str = "-") -> bool:
         """
         Check if two words represent an omission based on a specified missing 
         character.
@@ -164,8 +164,9 @@ class VariantAnalyzer:
     
     # MISPELL
     @staticmethod
-    def is_mispell(word1: str, word2: str, 
-                   distance: str = "Levenshtein", 
+    def is_mispell(word1: str, 
+                   word2: str, 
+                   distance: str = "DamerauLevenshtein", 
                    mispell_cutoff: float = 0.4) -> bool:
         """
         Check if two words are considered a misspelling based on a specified 
@@ -174,8 +175,12 @@ class VariantAnalyzer:
         Args:
             word1 (str): The first word.
             word2 (str): The second word.
-            distance (str, optional): The distance metric to use 
-                (default: "Levenshtein").
+            distance (str, optional): The distance metric to use.
+                (default: "DamerauLevenshtein").
+                - "Levenshtein"
+                - "DamerauLevenshtein"
+                - "Hamming"
+                - "JaroWinkler"
             mispell_cutoff (float, optional): The cutoff score for considering 
                 two words as a misspelling (default: 0.4).
 
@@ -187,14 +192,18 @@ class VariantAnalyzer:
         """
         dist_funcs = {
             "Levenshtein": textdistance.Levenshtein().normalized_distance,
-            "DamerauLevenshtein": textdistance.DamerauLevenshtein().normalized_distance
+            "DamerauLevenshtein": (textdistance.DamerauLevenshtein()
+                                   .normalized_distance),
+            "Hamming": textdistance.Hamming().normalized_distance,
+            "JaroWinkler": textdistance.JaroWinkler().normalized_distance
         }
         if distance not in dist_funcs.keys():
-            raise ValueError(f"Distance {distance} is not supported. Choose one among {dist_funcs.keys()}")
+            raise ValueError(f"Distance {distance} is not supported. "
+                             f"Choose one among {dist_funcs.keys()}")
         norm_dist = dist_funcs[distance](str(word1), str(word2))
         # Mispell if distance > 0 (not exact match) 
         # but distance < cutoff (not too different)
-        return bool(0 < norm_dist < mispell_cutoff)
+        return bool(0 < norm_dist <= mispell_cutoff)
     
     # SYNONYMS
     @staticmethod
@@ -230,7 +239,7 @@ class VariantAnalyzer:
     @staticmethod
     def which_variant_type(word1: str, word2: str,
                            missing: str = "-",
-                           distance: str = "Levenshtein", # mispell
+                           distance: str = "DamerauLevenshtein", # mispell
                            mispell_cutoff: float = 0.4 # mispell
                            ) -> str:
         """
@@ -241,7 +250,7 @@ class VariantAnalyzer:
             missing (str, optional): The character representing missing or 
                 fragmented readings. Defaults to "-".
             distance (str, optional): The distance metric to use for mispell 
-                detection. Defaults to "Levenshtein".
+                detection. Defaults to "DamerauLevenshtein".
             mispell_cutoff (float, optional): The cutoff score for considering 
                 two words as a mispell. Defaults to 0.4.
 
@@ -254,7 +263,9 @@ class VariantAnalyzer:
         """
         if VariantAnalyzer.is_omit(word1, word2, missing=missing):
             return "O" # Omit
-        elif VariantAnalyzer.is_mispell(word1, word2, distance=distance,
+        elif VariantAnalyzer.is_mispell(word1, 
+                                        word2, 
+                                        distance=distance,
                                         mispell_cutoff=mispell_cutoff):
             return "M"  # Mispell
         elif VariantAnalyzer.is_synonym(word1, word2):
@@ -268,7 +279,7 @@ class VariantAnalyzer:
             witness2: List[str],
             variant_locations: List[bool]|None = None,
             missing: str = "-",
-            distance: str = "Levenshtein",
+            distance: str = "DamerauLevenshtein",
             mispell_cutoff: float = 0.4) -> List[str|bool]:
         """
         Determine the types of variants between two aligned witnesses (equal-
@@ -283,7 +294,7 @@ class VariantAnalyzer:
             missing (str, optional): The character representing missing or 
                 fragmented readings. Defaults to "-".
             distance (str, optional): The distance metric to use for mispell 
-                detection. Defaults to "Levenshtein".
+                detection. Defaults to "DamerauLevenshtein".
             mispell_cutoff (float, optional): The cutoff score for considering 
                 two words as a mispell (maximum normalized distance allowed). 
                 Defaults to 0.4.
@@ -321,24 +332,26 @@ class VariantAnalyzer:
             if var_loc:
                 # ...identify which variant type it is.
                 variant_types[idx] = VariantAnalyzer.which_variant_type(
-                    word1, word2, missing=missing, distance=distance, 
+                    word1, word2, 
+                    missing=missing, 
+                    distance=distance, 
                     mispell_cutoff=mispell_cutoff)
         return variant_types
     
     def variant_type_matrix(self,
                             missing: str = "-",
-                            distance: str = "Levenshtein",
+                            distance: str = "DamerauLevenshtein",
                             mispell_cutoff: float = 0.4) -> np.ndarray:
         """
         Create a matrix of variant types between pairs of witnesses in an 
         alignment table.
 
         Args:
-            # table (np.ndarray): 2D numpy array representing aligned witnesses.
+            #table (np.ndarray): 2D numpy array representing aligned witnesses.
             missing (str, optional): The character representing missing or 
                 fragmented readings. Defaults to "-".
             distance (str, optional): The distance metric to use for 
-                misspelling detection. Defaults to "Levenshtein".
+                misspelling detection. Defaults to "DamerauLevenshtein".
             mispell_cutoff (float, optional): The cutoff score for considering 
                 two words as a misspelling. Defaults to 0.4.
 
@@ -373,7 +386,7 @@ class VariantAnalyzer:
                              variant_type: str | None = None,
                              normalize: bool = False,
                              missing: str = "-",
-                             distance: str = "Levenshtein",
+                             distance: str = "DamerauLevenshtein",
                              mispell_cutoff: float = 0.4) -> np.ndarray:
         """
         Calculate a dissimilarity matrix based on variant types between pairs 
@@ -389,7 +402,7 @@ class VariantAnalyzer:
             missing (str, optional): The character representing missing or 
                 fragmented readings. Defaults to "-".
             distance (str, optional): The distance metric to use for misspell 
-                detection. Defaults to "Levenshtein".
+                detection. Defaults to "DamerauLevenshtein".
             mispell_cutoff (float, optional): The cutoff score for considering 
                 two words as a misspelling. Defaults to 0.4.
 
@@ -459,7 +472,7 @@ class VariantAnalyzer:
         # Calculate the mean of non-diagonal lower triangle.
         return np.round(nondiag.mean(), decimals=decimals)
     
-    def omit_rate(self, normalize=True, decimals=4) -> float:
+    def omit_rate(self, missing: str = "-", normalize=True, decimals=4) -> float:
         """
         Calculate the omit rate for an alignment table.
 
@@ -475,11 +488,16 @@ class VariantAnalyzer:
             float: The calculated omit rate, rounded to the specified number of
                 decimal places.
         """
-        return self.operation_rate(variant_type="O", normalize=normalize, 
-                                   decimals=decimals)
+        return self.operation_rate(variant_type="O",
+                                   normalize=normalize, 
+                                   decimals=decimals, 
+                                   missing=missing)
 
-    def mispell_rate(self, normalize=True, decimals=4, distance="Levenshtein", 
-                    mispell_cutoff=0.4) -> float:
+    def mispell_rate(self, 
+                     normalize: bool = True, 
+                     decimals: int = 4, 
+                     distance: str = "DamerauLevenshtein",
+                     mispell_cutoff: float = 0.4) -> float:
         """
         Calculate the misspelling rate for an alignment table.
 
@@ -491,7 +509,7 @@ class VariantAnalyzer:
             decimals (int, optional): The number of decimal places to round the
                 result to. Defaults to 4.
             distance (str, optional): The distance metric to use for 
-                misspelling detection. Defaults to "Levenshtein".
+                misspelling detection. Defaults to "DamerauLevenshtein".
             mispell_cutoff (float, optional): The cutoff score for considering 
                 two words as a misspelling (maximum normalized distance 
                 allowed). Defaults to 0.4.
@@ -506,7 +524,7 @@ class VariantAnalyzer:
                                    distance=distance, 
                                    mispell_cutoff=mispell_cutoff)
 
-    def synonym_rate(self, normalize=True, decimals=4):
+    def synonym_rate(self, normalize: bool = True, decimals: int = 4) -> float:
         """
         Calculate the synonym rate for an alignment table.
 
@@ -522,10 +540,13 @@ class VariantAnalyzer:
             float: The calculated synonym rate, rounded to the specified 
                 number of decimal places.
         """
-        return self.operation_rate(variant_type="S", normalize=normalize,
+        return self.operation_rate(variant_type="S", 
+                                   normalize=normalize,
                                    decimals=decimals)
 
-    def undetermined_operation_rate(self, normalize=True, decimals=4):
+    def undetermined_operation_rate(self, 
+                                    normalize: bool = True, 
+                                    decimals: int = 4) -> float:
         """
         Calculate the undetermined operation rate for an alignment table.
 
@@ -541,7 +562,8 @@ class VariantAnalyzer:
             float: The calculated undetermined operation rate, rounded to the 
                 specified number of decimal places.
         """
-        return self.operation_rate(variant_type="U", normalize=normalize,
+        return self.operation_rate(variant_type="U", 
+                                   normalize=normalize,
                                    decimals=decimals)
 
     #------------------------------------------------------------------------
@@ -609,7 +631,7 @@ class VariantAnalyzer:
                       strategy: str = "max",
                       decimals: int = 4) -> float:
         """
-        Calculate the fragment rate for an alignment table based on a specified 
+        Calculate the fragment rate for an alignment table based on a given 
         strategy.
 
         Args:
@@ -641,7 +663,13 @@ class VariantAnalyzer:
 
     def analysis_summary(self,
                          include: List[str] = ["all"],
-                         decimals: int = 4) -> Dict[str, float]:
+                         decimals: int = 4,
+                         normalize: bool = True,
+                         missing: str = "-",
+                         distance: str = "DamerauLevenshtein",
+                         mispell_cutoff: float = 0.4,
+                         frag_strategy: str = "max"
+                         ) -> Dict[str, float]:
         """
         Calculate various rates of interest for an alignment table.
 
@@ -659,16 +687,6 @@ class VariantAnalyzer:
         Returns:
             Dict[str, float]: A dictionary containing the calculated rates for 
                 the specified analysis types.
-
-        # TODO: add the possibility to specify additional arguments for each
-        # type of transformation. `analysis_summary(..., **kwargs)`
-        # kwargs = {
-        #     "mispell": {"distance": "Levenshtein", "mispell_cutoff": 0.6},
-        #     "fragment": {"strategy": "max", "missing": "-"},
-        #     "omit": {},
-        #     "synonym": {}
-        # }
-        Then pass it as `...transfos_dict[trf_name](kwargs[trf_name])...`
         """
 
         # If "all" is specified, include all analysis types.
@@ -676,12 +694,20 @@ class VariantAnalyzer:
             include = ["omit", "mispell", "synonym", "fragment", "undetermined"]
         
         # Define a dictionary of analysis functions.
-        transfos_dict = {"omit": self.omit_rate,
-                        "mispell": self.mispell_rate,
-                        "synonym": self.synonym_rate,
-                        "fragment": self.fragment_rate,
-                        "undetermined": self.undetermined_operation_rate,}
+        trf_dict = {"omit": [self.omit_rate, {"missing": missing}],
+                    "mispell": [self.mispell_rate, 
+                                {"distance": distance, 
+                                 "mispell_cutoff": mispell_cutoff}],
+                    "synonym": [self.synonym_rate, {}],
+                    "fragment": [self.fragment_rate, {"missing": missing, 
+                                                      "strategy": frag_strategy}],
+                    "undetermined": [self.undetermined_operation_rate, {}]
+                   }
         
+        rates = {}
+        for op_name in include:
+            op_func, kwargs = trf_dict[op_name]
+            rates[op_name] = op_func(decimals=decimals, 
+                                     normalize=normalize, **kwargs)
         # Calculate the specified rates.
-        return {trf_name: transfos_dict[trf_name](decimals=decimals) 
-                for trf_name in include}
+        return rates
