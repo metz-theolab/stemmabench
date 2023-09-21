@@ -12,6 +12,7 @@ from stemmabench.config_parser import (
 )
 from stemmabench.textual_units.word import Word
 from stemmabench.textual_units.sentence import Sentence
+from stemmabench.textual_units.word import Word
 
 
 class Text:
@@ -212,11 +213,9 @@ class Text:
             np.sum(locations_dist!=0), 
             int(self.rng.uniform(0, fragment_config.max_rate) * n_words)
         )
-
         # Choose fragment locations according.
         frag_locations = self.rng.choice(indices, size=n_frag_loc, replace=False,
-                                    p=locations_dist)
-        
+                                         p=locations_dist)
         # Remove words at the selected fragment locations.
         words = np.delete(words, frag_locations)
         
