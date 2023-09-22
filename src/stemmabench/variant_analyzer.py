@@ -9,9 +9,10 @@ import numpy as np
 import textdistance
 
 from loguru import logger
-from typing import List, Dict, Union
+from typing import List, Dict
 from itertools import combinations
-from collatex.core_classes import AlignmentTable, Token
+from collatex.core_classes import AlignmentTable
+import nltk; nltk.download("wordnet")
 from nltk.corpus import wordnet
 from nltk.stem import WordNetLemmatizer
 
