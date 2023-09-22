@@ -16,6 +16,7 @@ dependencies = [
   "collatex==2.2",
   "nltk==3.5",
   "textdistance==4.5.0",
+  "Levenshtein==0.21.1"
 ]
 
 [project.scripts]
