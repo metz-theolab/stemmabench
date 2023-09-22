@@ -13,6 +13,7 @@ from typing import List, Dict, Union
 from itertools import combinations
 from collatex.core_classes import AlignmentTable, Token
 from nltk.corpus import wordnet
+from nltk.stem import WordNetLemmatizer
 
 from stemmabench.data import SUPPORTED_LANGUAGES
 
@@ -21,7 +22,8 @@ class VariantAnalyzer:
 
     def __init__(self,
                  table: AlignmentTable,
-                 language: str = "en") -> None:
+                 language: str = "en",
+                 disable_synonym: bool = False) -> None:
         """_summary_
 
         Args:
@@ -39,6 +41,7 @@ class VariantAnalyzer:
             logger.critical(f"Unknown language {language}.")
             raise ValueError(f"Unknown language {language}.")
         self.language = language
+        self.disable_synonym = disable_synonym
 
     @property
     def witness_names(self) -> List[str]:
@@ -65,32 +68,12 @@ class VariantAnalyzer:
     # ------------ UTILITY METHODS ------------------------------------------
     #------------------------------------------------------------------------
     @staticmethod
-    def _iter_token(token: Union[List[Token], None]) -> List[Union[Token, None]]:
-        """Iterate over a single-element list of tokens.
+    def _get_token_strings(tokens_list: List[str | None], missing_reading:str="-"
+        ) -> List[str]:
+        """Extract token strings from a list of tokens or None values.
         """
-        if token and not isinstance(token, list):
-            raise AttributeError("`token` should be a `List[Token]` object.")
-        return token if token else [None]
-
-    @staticmethod
-    def _get_token_string(token: Token | None, 
-                        missing_reading: str = "-") -> str:
-        """
-        Get the token string from a Token object, or return a default value.
-
-        Args:
-            missing_reading (str, optional): The default string to return if 
-                the token is `None`. Defaults to "-".
-        """
-        return token.token_string if token else missing_reading
-
-    @staticmethod
-    def _get_token_strings_from_list(tokens: List[List[Token] | None]) -> List[str]:
-        """Extract token strings from a nested list of tokens or None values.
-        """
-        return [VariantAnalyzer._get_token_string(token) 
-                for token_ls in tokens 
-                for token in VariantAnalyzer._iter_token(token_ls)]
+        return [token_string.strip() if token_string else missing_reading 
+                    for token_string in tokens_list]
 
     ### CLASS METHODS
     @classmethod
@@ -107,8 +90,8 @@ class VariantAnalyzer:
                 - Columns (second dimension) correspond to the readings.
         """
         # Create a dictionary to store witness data.
-        witness_data = {row.header: cls._get_token_strings_from_list(row.to_list()) 
-                        for row in table.rows}
+        witness_data = {row.header: cls._get_token_strings(
+            row.to_list_of_strings()) for row in table.rows}
         # Get the list of row names (witness names).
         row_names = list(witness_data.keys())
         # Create an empty numpy array with the same shape as the alignment table.
@@ -160,6 +143,7 @@ class VariantAnalyzer:
         Returns:
             bool: True if the words represent an omission, False otherwise.
         """
+        
         return word1 != word2 and (word1 == missing or word2 == missing)
     
     # MISPELL
@@ -233,7 +217,7 @@ class VariantAnalyzer:
         Returns:
             bool: True if the words are synonyms, False otherwise.
         """
-        return word2.lower() in VariantAnalyzer.synonyms(word1)
+        return WordNetLemmatizer().lemmatize(word2.lower()) in VariantAnalyzer.synonyms(word1)
     
     # IDENTIFYING VARIANT TYPE
     @staticmethod
@@ -241,7 +225,7 @@ class VariantAnalyzer:
                            missing: str = "-",
                            distance: str = "DamerauLevenshtein", # mispell
                            mispell_cutoff: float = 0.4 # mispell
-                           ) -> str:
+                           ) -> str|bool:
         """
         Determine the type of variant between two words based on specified criteria.
 
@@ -255,23 +239,26 @@ class VariantAnalyzer:
                 two words as a mispell. Defaults to 0.4.
 
         Returns:
-            str: A string indicating the type of variant between the two words:
+            str|bool: A string indicating the type of variant between the two 
+                words or False if it's not a variant locations:
                 - "O" for omit
                 - "M" for mispell
                 - "S" for synonym
                 - "U" for undetermined
         """
-        if VariantAnalyzer.is_omit(word1, word2, missing=missing):
-            return "O" # Omit
-        elif VariantAnalyzer.is_mispell(word1, 
-                                        word2, 
-                                        distance=distance,
-                                        mispell_cutoff=mispell_cutoff):
-            return "M"  # Mispell
-        elif VariantAnalyzer.is_synonym(word1, word2):
-            return "S"  # Synonym
-        else:
-            return "U"  # Undetermined
+        if word1 != word2:
+            if VariantAnalyzer.is_omit(word1, word2, missing=missing):
+                return "O" # Omit
+            elif VariantAnalyzer.is_mispell(word1, 
+                                            word2, 
+                                            distance=distance,
+                                            mispell_cutoff=mispell_cutoff):
+                return "M"  # Mispell
+            elif VariantAnalyzer.is_synonym(word1, word2):
+                return "S"  # Synonym
+            else:
+                return "U"  # Undetermined
+        return False
         
     @staticmethod
     def which_variant_type_vectorize(
@@ -338,10 +325,10 @@ class VariantAnalyzer:
                     mispell_cutoff=mispell_cutoff)
         return variant_types
     
-    def variant_type_matrix(self,
-                            missing: str = "-",
-                            distance: str = "DamerauLevenshtein",
-                            mispell_cutoff: float = 0.4) -> np.ndarray:
+    def variant_type_pairwise_matrix(self,
+                                missing: str = "-",
+                                distance: str = "DamerauLevenshtein",
+                                mispell_cutoff: float = 0.4) -> np.ndarray:
         """
         Create a matrix of variant types between pairs of witnesses in an 
         alignment table.
@@ -363,13 +350,14 @@ class VariantAnalyzer:
         # variant_locations matrix mask.
         n, k = self.array.shape
         diff_matrix = np.full((n, n, k), fill_value=False, dtype=object)
-        var_locs_matrix = self.variant_locations_pairwise_matrix()
+        var_locs_matrix: np.ndarray[(n, n, k), bool] = self.variant_locations_pairwise_matrix()
         # Iterate through pairs of witnesses (rows).
         for id1, id2 in combinations(range(n), 2):
             # get variant location mask between id1 and id2
-            var_locs = var_locs_matrix[id1, id2]
+            var_locs: np.ndarray[(k,), bool] = var_locs_matrix[id1, id2]
             # get the two manuscripts (witness) content.
-            mss1, mss2 = self.array[id1], self.array[id2]
+            mss1: np.ndarray[(k,), str] = self.array[id1]
+            mss2: np.ndarray[(k,), str] = self.array[id2]
             # add their variant type indicator mask.  
             diff_matrix[id1, id2] = diff_matrix[id2, id1] = \
                 self.which_variant_type_vectorize(witness1=mss1,
@@ -414,7 +402,7 @@ class VariantAnalyzer:
             AttributeError: If an invalid value for `variant_type` is provided.
         """
         valid_variant_types = ["O", "M", "S", "U"]
-        diff_matrix = self.variant_type_matrix(missing=missing, 
+        diff_matrix = self.variant_type_pairwise_matrix(missing=missing, 
                                                distance=distance,
                                                mispell_cutoff=mispell_cutoff)
         if variant_type:
@@ -596,7 +584,7 @@ class VariantAnalyzer:
     
     def fragment_locations_count(self,
                                  missing: str = "-",
-                                 normalize: bool = False) -> List[bool]:
+                                 normalize: bool = False) -> np.ndarray[bool]:
         """
         Calculate the count of fragment locations for each witness in an 
         alignment table.
@@ -613,12 +601,11 @@ class VariantAnalyzer:
             List[bool]: A list of fragment counts for each witness, either
                 normalized or not.
         """
+        # Get the number of readings after alignment.
         n_readings = self.array.shape[1]
-        
         # Count fragment locations per witness.
-        count_fragment_location = self.fragment_locations_matrix(missing=missing
-        ).sum(axis=1)
-
+        count_fragment_location = self.fragment_locations_matrix(
+            missing=missing).sum(axis=1)
         if normalize:
             # Normalize by the number of reading per witness 
             # in the alignment table. 
@@ -692,6 +679,8 @@ class VariantAnalyzer:
         # If "all" is specified, include all analysis types.
         if include == ["all"]:
             include = ["omit", "mispell", "synonym", "fragment", "undetermined"]
+        if self.disable_synonym and ("synonym" in  include):
+            include.remove("synonym")
         
         # Define a dictionary of analysis functions.
         trf_dict = {"omit": [self.omit_rate, {"missing": missing}],
