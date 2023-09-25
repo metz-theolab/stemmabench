@@ -707,7 +707,7 @@ class VariantAnalyzer:
         return count_missings_per_reading
 
     def analysis_summary(self,
-                         include: Union[str, List[str]] = "all",
+                         include: Union[List[str], str] = "all",
                          decimals: int = 4,
                          normalize: bool = True,
                          missing: str = "-",
@@ -735,6 +735,8 @@ class VariantAnalyzer:
         """
 
         # If "all" is specified, include all analysis types.
+        # Allowed also ["all"] for compatibility with the typer in the CLI
+        # that does not support Union type and require default list for list.
         if include == "all":
             include = ["omit", "mispell", "synonym", "fragment", "undetermined"]
         if self.disable_synonym and ("synonym" in  include):
