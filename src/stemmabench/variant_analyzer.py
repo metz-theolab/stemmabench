@@ -14,10 +14,12 @@ import nltk
 # Check if WordNet is already downloaded
 if not nltk.data.find('corpora/wordnet.zip'):
     nltk.download('wordnet')
+
+from loguru import logger
 from nltk.corpus import wordnet
 from nltk.stem import WordNetLemmatizer
-from loguru import logger
 from collatex.core_classes import AlignmentTable
+
 from stemmabench.data import SUPPORTED_LANGUAGES
 
 
