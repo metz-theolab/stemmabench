@@ -14,7 +14,6 @@ import nltk
 # Check if WordNet is already downloaded
 # if not nltk.data.find('corpora/wordnet.zip'):
 nltk.download('wordnet')
-
 from loguru import logger
 from nltk.corpus import wordnet
 from nltk.stem import WordNetLemmatizer
