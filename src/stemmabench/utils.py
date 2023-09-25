@@ -1,8 +1,8 @@
 """Utility Functions
 """
-import json
 from typing import Dict, List
 from stemmabench.config_parser import StemmaBenchConfig
+
 
 # Define the configuration of the stemma.
 def make_stemmabench_config(
@@ -20,9 +20,8 @@ def make_stemmabench_config(
     omit_rate: float=0.01,
     language: str="en"
 ):
+    """Shortcut function to specify a configuration for generating a stemma. 
     """
-    """
-    
     config = StemmaBenchConfig(**{
         "meta": {
           "language": language
@@ -75,26 +74,36 @@ def make_stemmabench_config(
             }
         }
     })
-    
     return config
 
 
 def capitalize_sentences(text: str, sep=".") -> str:
+    """Capitalize each sentence in a text. A sentence is a group of words 
+    delimited by a comma.
+
+    Args:
+        text (str): The text given as input
+        sep (str, optional): Sentence separator. Defaults to ".".
+
+    Returns:
+        str: The input text where sentences has been capitalized. 
     """
-    Capitalize each sentence in a text.
-    
-    A sentence is a group of words delimited by a comma.
-    """
-    
     return (f"{sep} ".join([
         sentence.strip().capitalize() for sentence in text.split(sep)
     ])).strip()
 
 
-def format_tradition(tradition: Dict) -> Dict[str, List[Dict]]: 
+def format_tradition(tradition: Dict[str, str]) -> Dict[str, List[Dict[str, str]]]:
     """Format tradition to meet the input requirements for collatex collation.
+
+    Args:
+        tradition (Dict[str, str]): A dictionary formatted tradition with 
+            witness names as keys and witness content texts as values. 
+
+    Returns:
+        JSON(Dict[str, List[Dict[str, str]]]): A json formatted tradition that 
+            can be passed to collatex.
     """
-    traditions_json = {"witnesses": [{"id": witness_id, "content": content} 
-                                     for witness_id, content in tradition.items()]
-                      }
-    return json.dumps(traditions_json)
+    return {"witnesses": [{"id": witness_id, "content": content}
+                            for witness_id, content in tradition.items()]
+            }

@@ -5,38 +5,46 @@ estimates of the frequency and distribution of various types of transformation
 """
 
 # Import libraries.
+from typing import List, Dict, Union
+from itertools import combinations
+
 import numpy as np
 import textdistance
+import nltk
+# Check if WordNet is already downloaded
+if not nltk.data.find('corpora/wordnet.zip'):
+    nltk.download('wordnet')
 
 from loguru import logger
-from typing import List, Dict
-from itertools import combinations
-from collatex.core_classes import AlignmentTable
-import nltk; nltk.download("wordnet")
 from nltk.corpus import wordnet
 from nltk.stem import WordNetLemmatizer
-
+from collatex.core_classes import AlignmentTable
 from stemmabench.data import SUPPORTED_LANGUAGES
+
 
 # Define VariantAnalyzer class.
 class VariantAnalyzer:
+    """A class for variant analysis.
+    """
 
     def __init__(self,
                  table: AlignmentTable,
                  language: str = "en",
                  disable_synonym: bool = False) -> None:
-        """_summary_
+        """Initialize the `VariantAnalyzer`.
 
         Args:
-            table (AlignmentTable): _description_.
-            array (Union[np.ndarray[object], None], optional): _description_. 
-                Defaults to None.
-            language (str, optional): _description_. 
+            table (AlignmentTable): A collatex alignment table of a tradition.
+            array (np.ndarray[object], optional): A 2D-NumPy array representing
+                the alignment table.
+            language (str, optional): The language of the tradition. 
                 Defaults to "en".
+            disable_synonym (bool, optional): Do not use synonym in the 
+                analysis. Defaults to False.
         """
         # alignment table
         self.table = table
-        self.variant_locations: List[bool] = [col.variant for col in table.columns] 
+        self.variant_locations = [col.variant for col in table.columns]
         # language
         if language not in SUPPORTED_LANGUAGES:
             logger.critical(f"Unknown language {language}.")
@@ -53,7 +61,7 @@ class VariantAnalyzer:
                 rows.
         """
         return [row.header for row in self.table.rows]
-    
+
     @property
     def array(self) -> np.ndarray[np.ndarray]:
         """Get an array representing an input Collatex AlignmentTable. 
@@ -64,17 +72,17 @@ class VariantAnalyzer:
                 - Columns are readings.
         """
         return self.alignment_table_to_numpy(self.table)
-    
+
     #------------------------------------------------------------------------
     # ------------ UTILITY METHODS ------------------------------------------
     #------------------------------------------------------------------------
     @staticmethod
-    def _get_token_strings(tokens_list: List[str | None], missing_reading:str="-"
+    def _get_token_strings(tokens_list: List[str | None], missing_reading: str="-"
         ) -> List[str]:
         """Extract token strings from a list of tokens or None values.
         """
-        return [token_string.strip() if token_string else missing_reading 
-                    for token_string in tokens_list]
+        return [token_string.strip() if token_string else missing_reading
+                for token_string in tokens_list]
 
     ### CLASS METHODS
     @classmethod
@@ -95,11 +103,8 @@ class VariantAnalyzer:
             row.to_list_of_strings()) for row in table.rows}
         # Get the list of row names (witness names).
         row_names = list(witness_data.keys())
-        # Create an empty numpy array with the same shape as the alignment table.
-        alignment_array = np.empty(shape=(len(table.rows), len(table.columns)), 
-                                   dtype=object)
-        # Fill the numpy array with the token strings lists from the witness data.
-        alignment_array = np.array([witness_data[name] for name in row_names], 
+        # Create a NumPy array with the token strings lists from the witness data.
+        alignment_array = np.array([witness_data[name] for name in row_names],
                                    dtype=object)
         return alignment_array
 
@@ -107,7 +112,7 @@ class VariantAnalyzer:
     #------------------------------------------------------------------------
     # ------------ VARIANT LOCATIONS: IDENTIFY AND COUNT BY TYPE ------------
     #------------------------------------------------------------------------
-    def variant_locations_pairwise_matrix(self) -> np.ndarray: 
+    def variant_locations_pairwise_matrix(self) -> np.ndarray:
         """
         Create a symmetric Boolean matrix that identifies variant locations 
         for each pair of witnesses.
@@ -128,6 +133,7 @@ class VariantAnalyzer:
         """
         return np.expand_dims(self.array, axis=0) != np.expand_dims(self.array, axis=1)
 
+
     # OMIT
     @staticmethod
     def is_omit(word1: str, word2: str, missing: str = "-") -> bool:
@@ -144,14 +150,15 @@ class VariantAnalyzer:
         Returns:
             bool: True if the words represent an omission, False otherwise.
         """
-        
+
         return word1 != word2 and (word1 == missing or word2 == missing)
-    
+
+
     # MISPELL
     @staticmethod
-    def is_mispell(word1: str, 
-                   word2: str, 
-                   distance: str = "DamerauLevenshtein", 
+    def is_mispell(word1: str,
+                   word2: str,
+                   distance: str = "DamerauLevenshtein",
                    mispell_cutoff: float = 0.4) -> bool:
         """
         Check if two words are considered a misspelling based on a specified 
@@ -182,53 +189,74 @@ class VariantAnalyzer:
             "Hamming": textdistance.Hamming().normalized_distance,
             "JaroWinkler": textdistance.JaroWinkler().normalized_distance
         }
-        if distance not in dist_funcs.keys():
+        if distance not in dist_funcs:
             raise ValueError(f"Distance {distance} is not supported. "
                              f"Choose one among {dist_funcs.keys()}")
         norm_dist = dist_funcs[distance](str(word1), str(word2))
-        # Mispell if distance > 0 (not exact match) 
+        # Mispell if distance > 0 (not exact match)
         # but distance < cutoff (not too different)
         return bool(0 < norm_dist <= mispell_cutoff)
-    
+
+
     # SYNONYMS
     @staticmethod
-    def synonyms(word: str) -> set[str]:
+    def synonyms(word: str, language: str = "en", disable: bool = False
+        ) -> set[str]:
         """
         Get synonyms for a given word using WordNet.
 
         Args:
             word (str): The word for which synonyms are to be found.
+            language (str, optional): The language to consider. 
+                Defaults to "en".
+            disable (bool, optional): Do not use synonym.
+                Defaults to False.
 
         Returns:
             set[str]: A set of synonyms for the given word.
         """
-        return {lemma.lower() for syn in wordnet.synsets(word)
-                for lemma in syn.lemma_names()
-                    if lemma.lower() != word.lower()}
-    
+        if not disable:
+            if language == "en":
+                return {lemma.lower() for syn in wordnet.synsets(word)
+                        for lemma in syn.lemma_names()
+                            if lemma.lower() != word.lower()}
+        return {}
+
+
     @staticmethod
-    def is_synonym(word1: str, word2: str) -> bool:
+    def is_synonym(word1: str,
+                   word2: str,
+                   language: str = "en",
+                   disable: bool = False) -> bool:
         """
         Check if two words are synonyms.
 
         Args:
             word1 (str): The first word.
             word2 (str): The second word.
+            language (str, optional): The language to consider. 
+                Defaults to "en".
 
         Returns:
             bool: True if the words are synonyms, False otherwise.
         """
-        return WordNetLemmatizer().lemmatize(word2.lower()) in VariantAnalyzer.synonyms(word1)
-    
+        if language == "en":
+            return (WordNetLemmatizer().lemmatize(word2.lower()) in
+                VariantAnalyzer.synonyms(word1, disable=disable))
+        return False
+
+
     # IDENTIFYING VARIANT TYPE
     @staticmethod
     def which_variant_type(word1: str, word2: str,
-                           missing: str = "-",
+                           missing: str = "-", # omit
                            distance: str = "DamerauLevenshtein", # mispell
-                           mispell_cutoff: float = 0.4 # mispell
-                           ) -> str|bool:
+                           mispell_cutoff: float = 0.4, # mispell
+                           language: str = "en", # synonym
+                           synonym_disable: bool = False # synonym
+                           ) -> Union[str, bool]:
         """
-        Determine the type of variant between two words based on specified criteria.
+        Determine the type of variant between two words.
 
         Args:
             word1 (str), word2 (str): The two words to consider.
@@ -238,6 +266,10 @@ class VariantAnalyzer:
                 detection. Defaults to "DamerauLevenshtein".
             mispell_cutoff (float, optional): The cutoff score for considering 
                 two words as a mispell. Defaults to 0.4.
+            language (str, optional): The language to consider for synonym. 
+                Defaults to "en".
+            synonym_disable (bool, optional): Do not use synonym.
+                Defaults to False.
 
         Returns:
             str|bool: A string indicating the type of variant between the two 
@@ -250,17 +282,18 @@ class VariantAnalyzer:
         if word1 != word2:
             if VariantAnalyzer.is_omit(word1, word2, missing=missing):
                 return "O" # Omit
-            elif VariantAnalyzer.is_mispell(word1, 
-                                            word2, 
+            elif VariantAnalyzer.is_mispell(word1, word2,
                                             distance=distance,
                                             mispell_cutoff=mispell_cutoff):
                 return "M"  # Mispell
-            elif VariantAnalyzer.is_synonym(word1, word2):
+            elif VariantAnalyzer.is_synonym(word1, word2,
+                                            language=language,
+                                            disable=synonym_disable):
                 return "S"  # Synonym
             else:
                 return "U"  # Undetermined
         return False
-        
+
     @staticmethod
     def which_variant_type_vectorize(
             witness1: List[str],
@@ -268,7 +301,9 @@ class VariantAnalyzer:
             variant_locations: List[bool]|None = None,
             missing: str = "-",
             distance: str = "DamerauLevenshtein",
-            mispell_cutoff: float = 0.4) -> List[str|bool]:
+            mispell_cutoff: float = 0.4,
+            language: str = "en",
+            synonym_disable: bool = False) -> List[Union[str, bool]]:
         """
         Determine the types of variants between two aligned witnesses (equal-
         length lists of words) based on specified criteria.
@@ -286,10 +321,14 @@ class VariantAnalyzer:
             mispell_cutoff (float, optional): The cutoff score for considering 
                 two words as a mispell (maximum normalized distance allowed). 
                 Defaults to 0.4.
+            language (str, optional): The language to consider for synonym. 
+                Defaults to "en".
+            synonym_disable (bool, optional): Do not use synonym.
+                Defaults to False.
 
         Returns:
-            List[str|bool]: A list indicating the types of variants between the
-            two witnesses at each position:
+            List[Union[str, bool]]: A list indicating the types of variants 
+                between the two witnesses at each position:
                 - "O" for omit
                 - "M" for mispell
                 - "S" for synonym
@@ -301,35 +340,42 @@ class VariantAnalyzer:
                 variant_locations are not equal, or if variant_locations 
                 contains non-boolean values.
         """
-        # Check if variant_locations is provided and has the correct 
+        # Check if variant_locations is provided and has the correct
         # length and type.
         if variant_locations is not None:
             if len(witness1) != len(witness2) != len(variant_locations):
-                raise AttributeError("Length mismatch among witnesses and or "
-                                     "`variant_locations`.")
+                raise AttributeError(
+                    f"Different Length among witnesses and/or variant_locations."
+                     f"`witness1`: {len(witness1)}, `witness2`: {len(witness2)}"
+                     f"`variant_locations`: {len(variant_locations)}")
         # Get variant_locations between the two witnesses if not provided.
-        if variant_locations is None:
+        else:
             variant_locations = (np.array(witness1) != np.array(witness2))
         # Number of readings per witness; Initialize variant_types vector.
         k = len(variant_locations)
         variant_types = [False for _ in range(k)]
         # Loop through the witnesses' readings.
-        for idx, (word1, word2, var_loc) in enumerate(zip(witness1, witness2, 
+        for idx, (word1, word2, var_loc) in enumerate(zip(witness1, witness2,
                                                           variant_locations)):
             # If it's a variant location (i.e., a place where readings differ)...
             if var_loc:
                 # ...identify which variant type it is.
                 variant_types[idx] = VariantAnalyzer.which_variant_type(
-                    word1, word2, 
-                    missing=missing, 
-                    distance=distance, 
-                    mispell_cutoff=mispell_cutoff)
+                    word1, word2,
+                    missing=missing,
+                    distance=distance,
+                    mispell_cutoff=mispell_cutoff,
+                    language=language,
+                    synonym_disable=synonym_disable)
         return variant_types
-    
-    def variant_type_pairwise_matrix(self,
-                                missing: str = "-",
-                                distance: str = "DamerauLevenshtein",
-                                mispell_cutoff: float = 0.4) -> np.ndarray:
+
+
+    def variant_type_pairwise_matrix(
+            self,
+            missing: str = "-",
+            distance: str = "DamerauLevenshtein",
+            mispell_cutoff: float = 0.4
+            ) -> np.ndarray:
         """
         Create a matrix of variant types between pairs of witnesses in an 
         alignment table.
@@ -347,7 +393,7 @@ class VariantAnalyzer:
             np.ndarray: A 3D numpy array representing variant types between 
                 pairs of sequences.
         """
-        # Get the shape, initialize differences matrix mask and create 
+        # Get the shape, initialize differences matrix mask and create
         # variant_locations matrix mask.
         n, k = self.array.shape
         diff_matrix = np.full((n, n, k), fill_value=False, dtype=object)
@@ -359,15 +405,17 @@ class VariantAnalyzer:
             # get the two manuscripts (witness) content.
             mss1: np.ndarray[(k,), str] = self.array[id1]
             mss2: np.ndarray[(k,), str] = self.array[id2]
-            # add their variant type indicator mask.  
+            # add their variant type indicator mask.
             diff_matrix[id1, id2] = diff_matrix[id2, id1] = \
-                self.which_variant_type_vectorize(witness1=mss1,
-                                                  witness2=mss2,
-                                                  variant_locations=var_locs,
-                                                  missing=missing,
-                                                  distance=distance,
-                                                  mispell_cutoff=mispell_cutoff
-                                                  )
+                self.which_variant_type_vectorize(
+                    witness1=mss1,
+                    witness2=mss2,
+                    variant_locations=var_locs,
+                    missing=missing,
+                    distance=distance,
+                    mispell_cutoff=mispell_cutoff,
+                    language=self.language,
+                    synonym_disable=self.disable_synonym)
         return diff_matrix
 
     # DISSIMILIARITY MATRIX
@@ -403,22 +451,22 @@ class VariantAnalyzer:
             AttributeError: If an invalid value for `variant_type` is provided.
         """
         valid_variant_types = ["O", "M", "S", "U"]
-        diff_matrix = self.variant_type_pairwise_matrix(missing=missing, 
-                                               distance=distance,
-                                               mispell_cutoff=mispell_cutoff)
+        diff_matrix = self.variant_type_pairwise_matrix(
+            missing=missing, distance=distance, mispell_cutoff=mispell_cutoff
+        )
         if variant_type:
             if variant_type not in valid_variant_types:
-                raise AttributeError(f"Invalid value for `variant_type`: " 
+                raise AttributeError(f"Invalid value for `variant_type`: "
                                      f"{variant_type}. Valid in {valid_variant_types}")
-            # Create a mask for the input variant type.
-            count_mask = (diff_matrix == variant_type)
+            # Create a mask for the variant type specified.
+            count_mask = diff_matrix == variant_type
         else:  # variant_type is None
             # Create a mask for all variant locations regardless of the type.
-            count_mask = (diff_matrix != False)
+            count_mask = np.not_equal(diff_matrix, False)
         if normalize:  # Normalize by the number of readings.
             return np.sum(count_mask, axis=2) / self.array.shape[1]
         return np.sum(count_mask, axis=2)
-    
+
     # OPERATION RATE
     def operation_rate(self,
                        variant_type=None,
@@ -443,14 +491,14 @@ class VariantAnalyzer:
             decimals (int, optional): The number of decimal places to round the 
                 result to. Defaults to 4.
             **kwargs: Additional keyword arguments to pass to the 
-                dissimilarity_matrix function.
+                `dissimilarity_matrix` method (missing, distance, mispell_cutoff).
 
         Returns:
             float: The calculated operation rate for the specified variant type, 
                 rounded to the specified number of decimal places.
         """
         # Get the number of readings in the alignment table.
-        n, _ = self.array.shape
+        n = self.array.shape[0]
         # Calculate the dissimilarity matrix.
         dissim_matrix = self.dissimilarity_matrix(variant_type=variant_type,
                                                   normalize=normalize, **kwargs)
@@ -460,7 +508,7 @@ class VariantAnalyzer:
         nondiag = lower_triangle[np.tri(n, n, k=-1, dtype=bool)]
         # Calculate the mean of non-diagonal lower triangle.
         return np.round(nondiag.mean(), decimals=decimals)
-    
+
     def omit_rate(self, missing: str = "-", normalize=True, decimals=4) -> float:
         """
         Calculate the omit rate for an alignment table.
@@ -478,13 +526,13 @@ class VariantAnalyzer:
                 decimal places.
         """
         return self.operation_rate(variant_type="O",
-                                   normalize=normalize, 
-                                   decimals=decimals, 
+                                   normalize=normalize,
+                                   decimals=decimals,
                                    missing=missing)
 
-    def mispell_rate(self, 
-                     normalize: bool = True, 
-                     decimals: int = 4, 
+    def mispell_rate(self,
+                     normalize: bool = True,
+                     decimals: int = 4,
                      distance: str = "DamerauLevenshtein",
                      mispell_cutoff: float = 0.4) -> float:
         """
@@ -507,10 +555,10 @@ class VariantAnalyzer:
             float: The calculated misspelling rate, rounded to the specified 
                 number of decimal places.
         """
-        return self.operation_rate(variant_type="M", 
+        return self.operation_rate(variant_type="M",
                                    normalize=normalize,
-                                   decimals=decimals, 
-                                   distance=distance, 
+                                   decimals=decimals,
+                                   distance=distance,
                                    mispell_cutoff=mispell_cutoff)
 
     def synonym_rate(self, normalize: bool = True, decimals: int = 4) -> float:
@@ -529,12 +577,12 @@ class VariantAnalyzer:
             float: The calculated synonym rate, rounded to the specified 
                 number of decimal places.
         """
-        return self.operation_rate(variant_type="S", 
+        return self.operation_rate(variant_type="S",
                                    normalize=normalize,
                                    decimals=decimals)
 
-    def undetermined_operation_rate(self, 
-                                    normalize: bool = True, 
+    def undetermined_operation_rate(self,
+                                    normalize: bool = True,
                                     decimals: int = 4) -> float:
         """
         Calculate the undetermined operation rate for an alignment table.
@@ -551,7 +599,7 @@ class VariantAnalyzer:
             float: The calculated undetermined operation rate, rounded to the 
                 specified number of decimal places.
         """
-        return self.operation_rate(variant_type="U", 
+        return self.operation_rate(variant_type="U",
                                    normalize=normalize,
                                    decimals=decimals)
 
@@ -564,7 +612,7 @@ class VariantAnalyzer:
         """Identify fragment locations in a list of readings.
         """
         return np.array([reading == missing for reading in witness])
- 
+
     def fragment_locations_matrix(self, missing: str = "-") -> np.ndarray[bool]:
         """
         Identify (mask) fragment locations in an alignment table.
@@ -582,7 +630,7 @@ class VariantAnalyzer:
 
         return np.array([self.fragment_locations(witness, missing=missing)
                         for witness in self.array])
-    
+
     def fragment_locations_count(self,
                                  missing: str = "-",
                                  normalize: bool = False) -> np.ndarray[bool]:
@@ -608,14 +656,14 @@ class VariantAnalyzer:
         count_fragment_location = self.fragment_locations_matrix(
             missing=missing).sum(axis=1)
         if normalize:
-            # Normalize by the number of reading per witness 
-            # in the alignment table. 
+            # Normalize by the number of reading per witness
+            # in the alignment table.
             return  count_fragment_location / n_readings
         return count_fragment_location
-    
+
     def fragment_rate(self,
-                      missing: str = "-", 
-                      normalize: bool = True, 
+                      missing: str = "-",
+                      normalize: bool = True,
                       strategy: str = "max",
                       decimals: int = 4) -> float:
         """
@@ -639,18 +687,27 @@ class VariantAnalyzer:
             ValueError: If an unsupported strategy is provided.
         """
 
-        fragment_counts = self.fragment_locations_count(missing=missing, 
+        fragment_counts = self.fragment_locations_count(missing=missing,
                                                         normalize=normalize)
         if strategy == "mean":
             return fragment_counts.mean().round(decimals)
         elif strategy == "max":
             return fragment_counts.max().round(decimals)
         else:
-            raise ValueError(f"Only `mean` and `max` are supported." 
+            raise ValueError(f"Only `mean` and `max` are supported."
                              f"Input: `{strategy}`.")
 
+    def fragment_distribution(self) -> np.ndarray:
+        """Estimate fragmentation distribution in a text. 
+        """
+        count_missings_per_reading = np.float64(
+            self.fragment_locations(self.array).sum(axis=0)
+        )
+        count_missings_per_reading /= count_missings_per_reading.sum()
+        return count_missings_per_reading
+
     def analysis_summary(self,
-                         include: List[str] = ["all"],
+                         include: Union[str, List[str]] = "all",
                          decimals: int = 4,
                          normalize: bool = True,
                          missing: str = "-",
@@ -678,26 +735,26 @@ class VariantAnalyzer:
         """
 
         # If "all" is specified, include all analysis types.
-        if include == ["all"]:
+        if include == "all":
             include = ["omit", "mispell", "synonym", "fragment", "undetermined"]
         if self.disable_synonym and ("synonym" in  include):
             include.remove("synonym")
-        
+
         # Define a dictionary of analysis functions.
         trf_dict = {"omit": [self.omit_rate, {"missing": missing}],
                     "mispell": [self.mispell_rate, 
-                                {"distance": distance, 
+                                {"distance": distance,
                                  "mispell_cutoff": mispell_cutoff}],
                     "synonym": [self.synonym_rate, {}],
                     "fragment": [self.fragment_rate, {"missing": missing, 
                                                       "strategy": frag_strategy}],
                     "undetermined": [self.undetermined_operation_rate, {}]
                    }
-        
+
         rates = {}
         for op_name in include:
             op_func, kwargs = trf_dict[op_name]
-            rates[op_name] = op_func(decimals=decimals, 
+            rates[op_name] = op_func(decimals=decimals,
                                      normalize=normalize, **kwargs)
         # Calculate the specified rates.
         return rates
