@@ -19,7 +19,7 @@ dependencies = [
 ]
 
 [project.scripts]
-generate = "stemmabench.cli:app"
+stemmabench = "stemmabench.cli:app"
 
 [tool.setuptools]
 include-package-data = true
