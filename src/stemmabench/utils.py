@@ -9,7 +9,6 @@ import numpy as np
 from stemmabench.config_parser import StemmaBenchConfig
 
 
-
 def make_stemmabench_config(
     depth: int=1,
     width_min: int=2,
