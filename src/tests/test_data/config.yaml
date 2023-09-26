@@ -26,3 +26,6 @@ stemma:
     law: Uniform
     min: 2
     max: 4
+  missing_manuscripts:
+    law: Bernouilli
+    rate: 0
