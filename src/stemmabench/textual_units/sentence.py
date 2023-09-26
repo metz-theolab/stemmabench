@@ -1,3 +1,6 @@
+"""This module define a class `Sentence` whose methods apply transformations 
+at the sentence level.
+"""
 import random
 import re
 import string

@@ -1,3 +1,6 @@
+"""This module define the `Word` class whose methods apply transformations at 
+the word level.
+"""
 import random
 import re
 import string
@@ -62,10 +65,12 @@ class Word:
         Returns:
             str: The mispelled word.
         """
-        random_location = random.randrange(len(self.word))
-        return self.word[:random_location] + \
-            random.choice(LETTERS[self.language]) + \
-            self.word[random_location + 1:]
+        if len(self.word):
+            random_location = random.randrange(len(self.word))
+            return self.word[:random_location] + \
+                random.choice(LETTERS[self.language]) + \
+                self.word[random_location + 1:]
+        return self.word
 
     def omit(self) -> str:
         """Omit a word (ie: return an empty string).

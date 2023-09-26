@@ -1,3 +1,6 @@
+"""This module define a class `Text` whose methods apply transformations at 
+the text level.
+"""
 import random
 from typing import Any, Dict
 from stemmabench.config_parser import ProbabilisticConfig, VariantConfig, MetaConfig
