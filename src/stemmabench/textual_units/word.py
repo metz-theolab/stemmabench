@@ -1,10 +1,10 @@
 """This module define the `Word` class whose methods apply transformations at 
 the word level.
 """
-import random
 import re
 import string
 
+import numpy as np
 from loguru import logger
 from stemmabench.data import SUPPORTED_LANGUAGES, SYNONYM_DICT, LETTERS
 
@@ -52,9 +52,8 @@ class Word:
         try:
             synonyms = self.synonyms[self.word]
             if len(synonyms):
-                return synonyms[random.randrange(len(synonyms))]
-            else:
-                logger.debug(f"Could not find synonym for word {self.word}")
+                return synonyms[np.random.randint(0, len(synonyms))]
+            logger.debug(f"Could not find synonym for word {self.word}")
         except KeyError:
             logger.debug(f"Could not find synonym for word {self.word}")
         return self.word
@@ -66,9 +65,9 @@ class Word:
             str: The mispelled word.
         """
         if self.word:
-            random_location = random.randrange(len(self.word))
+            random_location = np.random.randint(0, len(self.word))
             return self.word[:random_location] + \
-                random.choice(LETTERS[self.language]) + \
+                np.random.choice(list(LETTERS[self.language])) + \
                 self.word[random_location + 1:]
         return self.word
 

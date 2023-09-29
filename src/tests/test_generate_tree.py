@@ -3,7 +3,8 @@
 
 import unittest
 from pathlib import Path
-import random
+
+import numpy as np
 from stemmabench.config_parser import StemmaBenchConfig
 from stemmabench.stemma_generator import Stemma
 
@@ -28,7 +29,7 @@ class TestStemmaGenerator(unittest.TestCase):
     def test_get_width(self):
         """Tests that getting the width of the tree behaves as expected.
         """
-        random.seed(10)
+        np.random.seed(10)
         self.assertEqual(self.stemma.width, 3)
 
     def test_generate(self):
@@ -39,12 +40,12 @@ class TestStemmaGenerator(unittest.TestCase):
     def test_apply_level(self):
         """Tests that applying on a single level behaves as expected.
         """
-        random.seed(10)
+        np.random.seed(10)
         self.assertListEqual(
             self.stemma._apply_level(self.text),
-            ['love bade  yet my soul hrew hack guilty of dust ajd sjn.',
-             'love bade welcome yet my soul hrew back shamefaced of dust ajd sin.',
-             'love bade oelcome so far my soul hrew back guilty of  ajd sin.']
+            ['Love bade welcome yet oy soul hrew back hangdog of dust bjd sin.', 
+             'love bade welcome yet my soulfulness hrew back guilty of dust ajd .', 
+             'love bade welcome yet my soul hbew back guilty of dust ajd sin.']
         )
 
     def test_graph_repr(self):

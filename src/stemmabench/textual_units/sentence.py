@@ -1,9 +1,9 @@
 """This module define a class `Sentence` whose methods apply transformations 
 at the sentence level.
 """
-import random
 import re
 import string
+import numpy as np
 
 
 class Sentence:
@@ -46,7 +46,7 @@ class Sentence:
             str: The newly generated sentence.
         """
         if self.nbr_words > nbr_words + 1:
-            random_location = random.randrange(self.nbr_words - nbr_words)
+            random_location = np.random.randint(self.nbr_words - nbr_words)
             generated_sentence = " ".\
                 join(
                     self.words[:random_location]

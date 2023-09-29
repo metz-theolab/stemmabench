@@ -3,7 +3,7 @@
 import json
 from pathlib import Path
 from typing import Dict, List, Tuple, Union
-from random import uniform, gauss
+
 import numpy as np
 from stemmabench.config_parser import StemmaBenchConfig
 from stemmabench.textual_units.text import Text
@@ -19,11 +19,23 @@ class Stemma:
         config: StemmaBenchConfig = None,
         config_path: str = None,
         original_text: str = None,
-        path_to_text: str = None,
-        random_state: int = None
+        path_to_text: str = None
     ) -> None:
         """A class to perform variant generation.
         Use the .fit() method to actually perform variant generation.
+
+        Args:
+            config (StemmaBenchConfig, optional): The configuration for the
+                stemma generation. Defaults to None.
+            config_path (str, optional): The path to a YAML file containing
+                the configuration. Defaults to None.
+            original_text (str, optional): The source text used to generate the
+                tradition. Defaults to None.
+            path_to_text (str, optional): The path to the source text used to
+                generate the tradition. Defaults to None.
+
+        Raises:
+            Exception: If no input text is specified.
         """
         if original_text:
             self.original_text = original_text
@@ -40,7 +52,6 @@ class Stemma:
         self._levels: List[Dict[str, List[str]]] = []
         self.texts_lookup = {}
         self.edges = []
-        self.random_state = random_state
 
     @property
     def width(self):
@@ -48,9 +59,11 @@ class Stemma:
         in the configuration file.
         """
         if self.config.stemma.width.law == "Uniform":
-            return int(uniform(self.config.stemma.width.min, self.config.stemma.width.max))
+            return int(np.random.uniform(self.config.stemma.width.min,
+                                         self.config.stemma.width.max))
         elif self.config.stemma.width.law == "Gaussian":
-            return int(gauss(self.config.stemma.width.mean, self.config.stemma.width.sd))
+            return int(np.random.normal(self.config.stemma.width.mean,
+                                        self.config.stemma.width.sd))
         else:
             raise ValueError("Only Gaussian and Uniform laws are supported.")
 
@@ -72,7 +85,7 @@ class Stemma:
         Dict is empty until tree is fitted (fitting can be done using .fit() method)
         """
         # Create dicts from bottom to top
-        _tree: Dict[str, Union[List[str], Dict[str, List[str]]]] = dict()
+        _tree: Dict[str, Union[List[str], Dict[str, List[str]]]] = {}
         # Iterate from bottom to top
         for level in reversed(self._levels):
             # Create tree using bottom values
@@ -100,13 +113,11 @@ class Stemma:
     def missing_manuscripts(self) -> Tuple[Dict[str, str], List[Tuple[str]]]:
         """Remove some manuscripts from the tradition.
         """
-        # Initialize a RNG.
-        rng = np.random.default_rng(self.random_state)
         # Compute the number of manuscripts to delete.
         n_mss_to_delete = int(self.missing_manuscripts_rate * len(self.texts_lookup))
         # Select the manuscripts to delete.
         mss_list = list(self.texts_lookup)
-        missing_mss = rng.choice(mss_list, n_mss_to_delete, replace=False)
+        missing_mss = np.random.choice(mss_list, n_mss_to_delete, replace=False)
         # Subset non-missing manuscripts and non-missing edges.
         mss_non_missing = {mss_id: mss_text
                            for mss_id, mss_text in self.texts_lookup.items()
