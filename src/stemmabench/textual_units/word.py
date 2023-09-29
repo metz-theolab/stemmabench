@@ -65,7 +65,7 @@ class Word:
         Returns:
             str: The mispelled word.
         """
-        if len(self.word):
+        if self.word:
             random_location = random.randrange(len(self.word))
             return self.word[:random_location] + \
                 random.choice(LETTERS[self.language]) + \
