@@ -28,7 +28,7 @@ class Stemma:
         elif path_to_text:
             self.original_text = self.load_text(path_to_text)
         else:
-            raise Exception("No input text specified.")
+            raise TypeError("No input text specified.")
         if config:
             self.config = config
         else:
@@ -48,7 +48,7 @@ class Stemma:
         elif self.config.stemma.width.law == "Gaussian":
             return int(gauss(self.config.stemma.width.mean, self.config.stemma.width.sd))
         else:
-            raise Exception("Only Gaussian and Uniform laws are supported.")
+            raise ValueError("Only Gaussian and Uniform laws are supported.")
 
     @staticmethod
     def load_text(path_to_text: str) -> str:
@@ -90,7 +90,7 @@ class Stemma:
     def _apply_level(self, manuscript: str) -> List[str]:
         """Apply transformation on a single generation"""
         return [Text(manuscript).transform(self.config.variants,
-                                           meta_config=self.config.meta) 
+                                           meta_config=self.config.meta)
                                            for _ in range(self.width)]
 
     def generate(self):
@@ -146,8 +146,8 @@ class Stemma:
         Path(folder).mkdir(exist_ok=True)
         for file_name, file_content in self.texts_lookup.items():
             file_path = Path(folder) / f"{file_name.replace(':', '_')}.txt"
-            with file_path.open("w") as f:
+            with file_path.open("w", encoding="utf-8") as f:
                 f.write(file_content)
-        with (Path(folder) / "edges.txt").open("w") as f:
+        with (Path(folder) / "edges.txt").open("w", encoding="utf-8") as f:
             for edge in self.edges:
                 f.write(f"{edge}\n")
