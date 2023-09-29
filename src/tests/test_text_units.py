@@ -6,8 +6,8 @@ import unittest.mock
 import numpy as np
 from stemmabench.config_parser import (
     ProbabilisticConfig,
-    FragmentationConfig, 
-    VariantConfig, 
+    FragmentationConfig,
+    VariantConfig,
     TextConfig,
     MetaConfig
 )
@@ -280,7 +280,8 @@ class TestText(unittest.TestCase):
                  })
              })
         })
-        self.assertEqual("But bht firit rememzer remembhr remembes thu pigns. Saf jay  tm yoursclf whmn you vake  tfe morbing ahd  yom rert dowa et nihht anl wuen yos wade is dhe muddle ol thd nioht.",
+        self.assertEqual("Bwt  remenber rerember  wemember hhe figns. "
+                         "Smy mhem tc yoarself whef yog sake im thb mornini acd yhen  lde doen astatinz  dnd whec nou wawe vn the   tce nigwt.",
             self.test_text.transform(variant_config=variant_config, meta_config=meta_config)
         )
 
@@ -295,8 +296,8 @@ class TestText(unittest.TestCase):
             })
         })
 
-        self.assertEqual(Text(self.test_text2.text, seed=15)
-                         .fragment(fragment_config),"word1, word3,")
+        self.assertEqual(Text(self.test_text2.text)
+                         .fragment(fragment_config),"word1,")
 
 if __name__ == "__main__":
     unittest.main()
