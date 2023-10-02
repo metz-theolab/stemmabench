@@ -2,8 +2,9 @@
 """
 import json
 from pathlib import Path
-from typing import Dict, List, Union
-from random import uniform, gauss
+from typing import Dict, List, Tuple, Union
+
+import numpy as np
 from stemmabench.config_parser import StemmaBenchConfig
 from stemmabench.textual_units.text import Text
 
@@ -18,10 +19,23 @@ class Stemma:
         config: StemmaBenchConfig = None,
         config_path: str = None,
         original_text: str = None,
-        path_to_text: str = None,
+        path_to_text: str = None
     ) -> None:
         """A class to perform variant generation.
         Use the .fit() method to actually perform variant generation.
+
+        Args:
+            config (StemmaBenchConfig, optional): The configuration for the
+                stemma generation. Defaults to None.
+            config_path (str, optional): The path to a YAML file containing
+                the configuration. Defaults to None.
+            original_text (str, optional): The source text used to generate the
+                tradition. Defaults to None.
+            path_to_text (str, optional): The path to the source text used to
+                generate the tradition. Defaults to None.
+
+        Raises:
+            Exception: If no input text is specified.
         """
         if original_text:
             self.original_text = original_text
@@ -34,6 +48,7 @@ class Stemma:
         else:
             self.config = StemmaBenchConfig.from_yaml(config_path)
         self.depth = self.config.stemma.depth
+        self.missing_manuscripts_rate = self.config.stemma.missing_manuscripts.rate
         self._levels: List[Dict[str, List[str]]] = []
         self.texts_lookup = {}
         self.edges = []
@@ -44,9 +59,11 @@ class Stemma:
         in the configuration file.
         """
         if self.config.stemma.width.law == "Uniform":
-            return int(uniform(self.config.stemma.width.min, self.config.stemma.width.max))
+            return int(np.random.uniform(self.config.stemma.width.min,
+                                         self.config.stemma.width.max))
         elif self.config.stemma.width.law == "Gaussian":
-            return int(gauss(self.config.stemma.width.mean, self.config.stemma.width.sd))
+            return int(np.random.normal(self.config.stemma.width.mean,
+                                        self.config.stemma.width.sd))
         else:
             raise ValueError("Only Gaussian and Uniform laws are supported.")
 
@@ -68,7 +85,7 @@ class Stemma:
         Dict is empty until tree is fitted (fitting can be done using .fit() method)
         """
         # Create dicts from bottom to top
-        _tree: Dict[str, Union[List[str], Dict[str, List[str]]]] = dict()
+        _tree: Dict[str, Union[List[str], Dict[str, List[str]]]] = {}
         # Iterate from bottom to top
         for level in reversed(self._levels):
             # Create tree using bottom values
@@ -92,6 +109,24 @@ class Stemma:
         return [Text(manuscript).transform(self.config.variants,
                                            meta_config=self.config.meta)
                                            for _ in range(self.width)]
+
+    def missing_manuscripts(self) -> Tuple[Dict[str, str], List[Tuple[str]]]:
+        """Remove some manuscripts from the tradition.
+        """
+        # Compute the number of manuscripts to delete.
+        n_mss_to_delete = int(self.missing_manuscripts_rate * len(self.texts_lookup))
+        # Select the manuscripts to delete.
+        mss_list = list(self.texts_lookup)
+        missing_mss = np.random.choice(mss_list, n_mss_to_delete, replace=False)
+        # Subset non-missing manuscripts and non-missing edges.
+        mss_non_missing = {mss_id: mss_text
+                           for mss_id, mss_text in self.texts_lookup.items()
+                           if mss_id not in missing_mss}
+        edges_non_missing = [
+            edge for edge in self.edges
+            if all(node not in missing_mss for node in edge)
+        ]
+        return mss_non_missing, edges_non_missing
 
     def generate(self):
         """Fit the tree, I.E, generate variants"""
@@ -140,8 +175,7 @@ class Stemma:
             - The corresponding tree structure
 
         Args:
-            folder (str): The folder where the text should be
-                written.
+            folder (str): The folder where the text should be written.
         """
         Path(folder).mkdir(exist_ok=True)
         for file_name, file_content in self.texts_lookup.items():
@@ -151,3 +185,16 @@ class Stemma:
         with (Path(folder) / "edges.txt").open("w", encoding="utf-8") as f:
             for edge in self.edges:
                 f.write(f"{edge}\n")
+
+        # Missing tradition.
+        if self.missing_manuscripts_rate > 0:
+            missing_tradition_folder = Path(folder) / "missing_tradition"
+            missing_tradition_folder.mkdir(exist_ok=True)
+            miss_texts_lookup, miss_edges = self.missing_manuscripts()
+            for file_name, file_content in miss_texts_lookup.items():
+                file_path = missing_tradition_folder / f"{file_name.replace(':', '_')}.txt"
+                with file_path.open("w", encoding="utf-8") as f:
+                    f.write(file_content)
+            with (missing_tradition_folder / "edges_missing.txt").open("w", encoding="utf-8") as f:
+                for edge in miss_edges:
+                    f.write(f"{edge}\n")

@@ -1,8 +1,9 @@
 """This module define a class `Text` whose methods apply transformations at 
 the text level.
 """
-import random
 from typing import Any, Dict
+
+import numpy as np
 from stemmabench.config_parser import ProbabilisticConfig, VariantConfig, MetaConfig
 from stemmabench.textual_units.sentence import Sentence
 from stemmabench.textual_units.word import Word
@@ -42,7 +43,7 @@ class Text:
         Returns:
             bool: The result of the draw
         """
-        return random.random() < rate
+        return np.random.random() < rate
 
     def transform_word(self,
                        word: Word,

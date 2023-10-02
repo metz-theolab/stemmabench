@@ -1,8 +1,8 @@
 """
 Unit tests for textual units.
 """
-import random
 import unittest
+import numpy as np
 from stemmabench.config_parser import MetaConfig, ProbabilisticConfig, VariantConfig
 from stemmabench.textual_units.text import Text
 from stemmabench.textual_units.sentence import Sentence
@@ -16,7 +16,7 @@ class TestWord(unittest.TestCase):
     def setUp(self):
         """Setup the unit test.
         """
-        random.seed(1)
+        np.random.seed(1)
         self.test_word = Word("rabbit")
         self.test_word_no_synonym = Word("toto")
 
@@ -35,7 +35,7 @@ class TestWord(unittest.TestCase):
     def test_synonym(self):
         """Tests that returning a synonym works as expected when.
         """
-        self.assertEqual(self.test_word.synonym(), "lapin")
+        self.assertEqual(self.test_word.synonym(), "hare")
 
     def test_no_synonym(self):
         """Tests that returning a synonym works as expected when.
@@ -45,7 +45,7 @@ class TestWord(unittest.TestCase):
     def test_mispell(self):
         """Tests that mispells behave as expected.
         """
-        self.assertEqual(self.test_word.mispell(), "rsbbit")
+        self.assertEqual(self.test_word.mispell(), "rabbil")
 
     def test_omit(self):
         """Tests that omitting a word behaves as expected.
@@ -78,7 +78,7 @@ class TestSentence(unittest.TestCase):
     def setUp(self):
         """Set up the unit tests.
         """
-        random.seed(5)
+        np.random.seed(5)
         self.test_sentence = Sentence("The rabbit is blue.")
 
     def test_init_sentence(self):
@@ -112,7 +112,7 @@ class TestText(unittest.TestCase):
         """Setup the unit testing by creating a test instance of the
         text.
         """
-        random.seed(15)
+        np.random.seed(15)
         self.test_text = Text(
             "But, first, remember, remember, remember the signs. "
             "Say them to yourself when you wake in the morning "
@@ -152,7 +152,7 @@ class TestText(unittest.TestCase):
         transformed_sentence = self.test_text.transform_sentence(self.test_text.sentences[0],
                                                                  sentence_config=test_config)
         self.assertEqual(transformed_sentence,
-                         "But but first remember remember remember the signs.")
+                         "But first remember remember remember remember the signs.")
 
     def test_sentences_transform(self):
         """Tests that transformation for all the sentences of the text behaves
@@ -173,8 +173,8 @@ class TestText(unittest.TestCase):
         )
         self.assertEqual(
             transformed_sentences,
-            "But but first remember remember remember the signs. "
-            "Say say them to yourself when you wake in the morning and when you lie "
+            "But first remember remember remember remember the signs. "
+            "Say them to yourself when you wake in the morning and when you lie "
             "down at night and when you wake in the middle of the night."
         )
 
@@ -199,7 +199,7 @@ class TestText(unittest.TestCase):
 
             })
         }
-        self.assertEqual("fwake",
+        self.assertEqual("home alive",
                          self.test_text.transform_word(self.test_text.words[27],
                                                        word_config=word_config))
 
@@ -224,7 +224,7 @@ class TestText(unittest.TestCase):
             })
         }
         self.assertEqual(
-            "bub bue fiost remgmber remembhr remembes thu pigns",
+            "hut onlx firmt  relember reiember hhe figns",
             self.test_text.transform_words(
                 sentence="But but first remember remember remember the signs.",
                 word_config=word_config,
@@ -233,6 +233,7 @@ class TestText(unittest.TestCase):
     def test_text_transform(self):
         """Tests that the transformation of the text behaves as expected.
         """
+        np.random.seed(15)
         meta_config = MetaConfig(**{"language": "en"})
         variant_config = VariantConfig(**{
             "sentences": {
@@ -263,9 +264,9 @@ class TestText(unittest.TestCase):
                 })
             }}
         )
-        self.assertEqual("But bht firit rememzer remembhr remembes thu pigns. Saf jay  tm yoursclf whmn you vake  tfe morbing ahd  yom rert dowa et nihht anl wuen yos wade is dhe muddle ol thd nioht.",
-            self.test_text.transform(variant_config=variant_config, meta_config=meta_config)
-        )
+        result = self.test_text.transform(variant_config=variant_config, meta_config=meta_config)
+        expected_result = "Bwt  remenber rerember  wemember hhe figns. Smy mhem tc yoarself whef yog sake im thb mornini acd yhen  lde doen astatinz  dnd whec nou wawe vn the   tce nigwt."
+        self.assertEqual(expected_result, result)
 
 
 if __name__ == "__main__":

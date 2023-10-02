@@ -10,7 +10,8 @@ dependencies = [
   "pydantic==1.9.1",
   "PyYAML==6.0",
   "typer==0.4.1",
-  "wheel"
+  "wheel",
+  "numpy==1.25.2"
 ]
 
 [project.scripts]

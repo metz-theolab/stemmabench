@@ -61,6 +61,7 @@ class StemmaConfig(BaseModel):
     """
     depth: int
     width: ProbabilisticConfig
+    missing_manuscripts: ProbabilisticConfig
 
 
 class MetaConfig(BaseModel):
