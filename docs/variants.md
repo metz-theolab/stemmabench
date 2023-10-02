@@ -32,6 +32,9 @@ stemma:
     law: Uniform
     min: 2
     max: 4
+  missing_manuscripts:
+    law: Bernouilli
+    rate: 0.5
 ```
 
 ## Scribal dependent variants
@@ -56,7 +59,11 @@ Possible variants are:
 ### Fragmentation
 
 ### Missing manuscripts
+In the StemmaBench package, the concept of missing manuscripts is modeled using a probabilistic process governed by a p-parameter Bernoulli distribution. After having generating the whole tradition, a proportion *p* of the manuscripts are selected (with equiprobability) and deleted from the tradition. This simulates the loss of certain manuscripts over time.
 
+> [!WARNING]
+> 
+> Currently, the missing manunscript feature is only available in command-line interface, not in RAM.
 
 ## Supported languages
 Two languages are currently supported:
