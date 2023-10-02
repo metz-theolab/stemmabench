@@ -343,9 +343,14 @@
 
 <h1 id="generated-outputs">Generated outputs</h1>
 <p>StemmaBench generates two outputs within the <code>output_folder</code> specified in the command line:</p>
-<ul>
+<ol>
 <li>A file <code>edge.txt</code> which represents the tree as a set of node.</li>
 <li>A set of file <code>*.txt</code> which contain the copied text and which number represent their hierarchy in the tree. <code>0</code> is the first text, then <code>0_0</code> and <code>0_1</code> are its descendants, then <code>0_0_0</code> and <code>0_0_1</code> are the descendants of <code>0_0</code> in a bifid tree fashion, etc.</li>
+</ol>
+<p>Furthermore, if the <code>rate</code> parameter of the <code>missing_manuscripts</code> option is greater than zero, an additional folder called <code>missing_tradition</code> is created within the <code>output_folder</code> specified in the command line. This folder includes:</p>
+<ul>
+<li>A file named <code>edge_missing.txt</code> containing the edges connecting the non-missing manuscripts still available.</li>
+<li>A collection of <code>*.txt</code> files with the remaining manuscripts in the tradition. These files exclude any manuscripts that were deleted during the process.</li>
 </ul>
 
 

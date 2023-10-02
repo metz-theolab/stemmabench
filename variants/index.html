@@ -531,6 +531,9 @@
 <a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="w">    </span><span class="nt">law</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Uniform</span>
 <a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="w">    </span><span class="nt">min</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
 <a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="w">    </span><span class="nt">max</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4</span>
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="w">  </span><span class="nt">missing_manuscripts</span><span class="p">:</span>
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a><span class="w">    </span><span class="nt">law</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Bernouilli</span>
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a><span class="w">    </span><span class="nt">rate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.5</span>
 </code></pre></div>
 <h2 id="scribal-dependent-variants">Scribal dependent variants</h2>
 <p>For now, the following possible variants are modelized using a Bernouilli law, meaning that each time a word is "generated" (<em>i.e.</em> each time a scribe "writes" a word) the word is modified with probability <em>p</em> (else it remains the same).</p>
@@ -548,6 +551,11 @@
 <h2 id="scribal-independent-variants">Scribal independent variants</h2>
 <h3 id="fragmentation">Fragmentation</h3>
 <h3 id="missing-manuscripts">Missing manuscripts</h3>
+<p>In the StemmaBench package, the concept of missing manuscripts is modeled using a probabilistic process governed by a p-parameter Bernoulli distribution. After having generating the whole tradition, a proportion <em>p</em> of the manuscripts are selected (with equiprobability) and deleted from the tradition. This simulates the loss of certain manuscripts over time.</p>
+<blockquote>
+<p>[!WARNING]</p>
+<p>Currently, the missing manunscript feature is only available in command-line interface, not in RAM.</p>
+</blockquote>
 <h2 id="supported-languages">Supported languages</h2>
 <p>Two languages are currently supported:
 - English;
