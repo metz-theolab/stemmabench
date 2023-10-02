@@ -166,7 +166,6 @@ class Stemma:
             level_name += f":{self.depth - remaining_depth - 1}"
             # Decrease remaining depth
             remaining_depth -= 1
-        # Missing manuscript.
         # Return self
         return self
 
@@ -176,8 +175,7 @@ class Stemma:
             - The corresponding tree structure
 
         Args:
-            folder (str): The folder where the text should be
-                written.
+            folder (str): The folder where the text should be written.
         """
         Path(folder).mkdir(exist_ok=True)
         for file_name, file_content in self.texts_lookup.items():

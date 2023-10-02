@@ -28,4 +28,4 @@ stemma:
     max: 4
   missing_manuscripts:
     law: Bernouilli
-    rate: 0
+    rate: 0.5
