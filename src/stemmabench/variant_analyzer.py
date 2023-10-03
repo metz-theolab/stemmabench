@@ -14,7 +14,7 @@ from loguru import logger
 from nltk.corpus import wordnet
 from nltk.stem import WordNetLemmatizer
 from collatex.core_classes import AlignmentTable
-from stemmabench.data import SUPPORTED_LANGUAGES
+from stemmabench.data import SUPPORTED_LANGUAGES, SUPPORTED_NLP_LANGUAGES, SYNONYM_DICT
 
 
 # Define VariantAnalyzer class.
@@ -24,8 +24,7 @@ class VariantAnalyzer:
 
     def __init__(self,
                  table: AlignmentTable,
-                 language: str = "en",
-                 disable_synonym: bool = False) -> None:
+                 language: str = "en") -> None:
         """Initialize the `VariantAnalyzer`.
 
         Args:
@@ -45,7 +44,6 @@ class VariantAnalyzer:
             logger.critical(f"Unknown language {language}.")
             raise ValueError(f"Unknown language {language}.")
         self.language = language
-        self.disable_synonym = disable_synonym
 
     @property
     def witness_names(self) -> List[str]:
@@ -67,6 +65,15 @@ class VariantAnalyzer:
                 - Columns are readings.
         """
         return self.alignment_table_to_numpy(self.table)
+
+    @property
+    def disable_synonym(self) -> bool:
+        """Do not use synonym in analysis.
+
+        Returns:
+            bool: wether to disable synonym in analysis. 
+        """
+        return self.language not in SUPPORTED_LANGUAGES
 
     #------------------------------------------------------------------------
     # ------------ UTILITY METHODS ------------------------------------------
@@ -145,7 +152,6 @@ class VariantAnalyzer:
         Returns:
             bool: True if the words represent an omission, False otherwise.
         """
-
         return word1 != word2 and (word1 == missing or word2 == missing)
 
 
@@ -195,8 +201,9 @@ class VariantAnalyzer:
 
     # SYNONYMS
     @staticmethod
-    def synonyms(word: str, language: str = "en", disable: bool = False
-        ) -> set[str]:
+    def auto_synonyms(word: str,
+                      language: str = "en",
+                      disabled: bool = False) -> set[str]:
         """
         Get synonyms for a given word using WordNet.
 
@@ -210,7 +217,7 @@ class VariantAnalyzer:
         Returns:
             set[str]: A set of synonyms for the given word.
         """
-        if not disable:
+        if not disabled:
             if language == "en":
                 return {lemma.lower() for syn in wordnet.synsets(word)
                         for lemma in syn.lemma_names()
@@ -219,10 +226,35 @@ class VariantAnalyzer:
 
 
     @staticmethod
+    def dict_synonyms(word: str,
+                      language: str = "en",
+                      disabled: bool = False) -> set[str]:
+        """
+        Get synonyms for a given word using dictionary file.
+
+        Args:
+            word (str): The word for which synonyms are to be found.
+            language (str, optional): The language to consider. 
+                Defaults to "en".
+            disable (bool, optional): Do not use synonym.
+                Defaults to False.
+
+        Returns:
+            set[str]: A set of synonyms for the given word.
+        """
+        if not disabled:
+            SYNONYM_DICT_LANG = SYNONYM_DICT[language]
+            if word in SYNONYM_DICT_LANG.keys():
+                synonyms = SYNONYM_DICT_LANG[word]
+                return set(synonyms) if len(synonyms) else {}
+        return {}
+
+
+    @staticmethod
     def is_synonym(word1: str,
                    word2: str,
                    language: str = "en",
-                   disable: bool = False) -> bool:
+                   disabled: bool = False) -> bool:
         """
         Check if two words are synonyms.
 
@@ -235,9 +267,16 @@ class VariantAnalyzer:
         Returns:
             bool: True if the words are synonyms, False otherwise.
         """
-        if language == "en":
-            return (WordNetLemmatizer().lemmatize(word2.lower()) in
-                VariantAnalyzer.synonyms(word1, disable=disable))
+        if language in SUPPORTED_NLP_LANGUAGES:
+            if language == "en":
+                return (WordNetLemmatizer().lemmatize(word2.lower()) in
+                    VariantAnalyzer.auto_synonyms(word1, 
+                                                  language=language,
+                                                  disabled=disabled))
+        if language in SUPPORTED_LANGUAGES:
+            return word2 in VariantAnalyzer.dict_synonyms(word=word1, 
+                                                          language=language, 
+                                                          disabled=disabled)
         return False
 
 
@@ -248,7 +287,7 @@ class VariantAnalyzer:
                            distance: str = "DamerauLevenshtein", # mispell
                            mispell_cutoff: float = 0.4, # mispell
                            language: str = "en", # synonym
-                           synonym_disable: bool = False # synonym
+                           disable_synonym: bool = False # synonym
                            ) -> Union[str, bool]:
         """
         Determine the type of variant between two words.
@@ -277,17 +316,17 @@ class VariantAnalyzer:
         if word1 != word2:
             if VariantAnalyzer.is_omit(word1, word2, missing=missing):
                 return "O" # Omit
-            elif VariantAnalyzer.is_mispell(word1, word2,
+            if VariantAnalyzer.is_mispell(word1, word2,
                                             distance=distance,
                                             mispell_cutoff=mispell_cutoff):
                 return "M"  # Mispell
-            elif VariantAnalyzer.is_synonym(word1, word2,
+            if VariantAnalyzer.is_synonym(word1, word2,
                                             language=language,
-                                            disable=synonym_disable):
+                                            disabled=disable_synonym):
                 return "S"  # Synonym
-            else:
-                return "U"  # Undetermined
+            return "U"  # Undetermined
         return False
+
 
     @staticmethod
     def which_variant_type_vectorize(
@@ -298,7 +337,7 @@ class VariantAnalyzer:
             distance: str = "DamerauLevenshtein",
             mispell_cutoff: float = 0.4,
             language: str = "en",
-            synonym_disable: bool = False) -> List[Union[str, bool]]:
+            disable_synonym: bool = False) -> List[Union[str, bool]]:
         """
         Determine the types of variants between two aligned witnesses (equal-
         length lists of words) based on specified criteria.
@@ -361,7 +400,7 @@ class VariantAnalyzer:
                     distance=distance,
                     mispell_cutoff=mispell_cutoff,
                     language=language,
-                    synonym_disable=synonym_disable)
+                    disable_synonym=disable_synonym)
         return variant_types
 
 
@@ -410,8 +449,9 @@ class VariantAnalyzer:
                     distance=distance,
                     mispell_cutoff=mispell_cutoff,
                     language=self.language,
-                    synonym_disable=self.disable_synonym)
+                    disable_synonym=self.disable_synonym)
         return diff_matrix
+
 
     # DISSIMILIARITY MATRIX
     def dissimilarity_matrix(self,
@@ -462,6 +502,7 @@ class VariantAnalyzer:
             return np.sum(count_mask, axis=2) / self.array.shape[1]
         return np.sum(count_mask, axis=2)
 
+
     # OPERATION RATE
     def operation_rate(self,
                        variant_type=None,
@@ -504,6 +545,7 @@ class VariantAnalyzer:
         # Calculate the mean of non-diagonal lower triangle.
         return np.round(nondiag.mean(), decimals=decimals)
 
+
     def omit_rate(self, missing: str = "-", normalize=True, decimals=4) -> float:
         """
         Calculate the omit rate for an alignment table.
@@ -524,6 +566,7 @@ class VariantAnalyzer:
                                    normalize=normalize,
                                    decimals=decimals,
                                    missing=missing)
+
 
     def mispell_rate(self,
                      normalize: bool = True,
@@ -556,6 +599,7 @@ class VariantAnalyzer:
                                    distance=distance,
                                    mispell_cutoff=mispell_cutoff)
 
+
     def synonym_rate(self, normalize: bool = True, decimals: int = 4) -> float:
         """
         Calculate the synonym rate for an alignment table.
@@ -575,6 +619,7 @@ class VariantAnalyzer:
         return self.operation_rate(variant_type="S",
                                    normalize=normalize,
                                    decimals=decimals)
+
 
     def undetermined_operation_rate(self,
                                     normalize: bool = True,
@@ -597,6 +642,7 @@ class VariantAnalyzer:
         return self.operation_rate(variant_type="U",
                                    normalize=normalize,
                                    decimals=decimals)
+
 
     #------------------------------------------------------------------------
     # ------------ FRAGMENTATION --------------------------------------------
@@ -625,6 +671,7 @@ class VariantAnalyzer:
 
         return np.array([self.fragment_locations(witness, missing=missing)
                         for witness in self.array])
+
 
     def fragment_locations_count(self,
                                  missing: str = "-",
@@ -655,6 +702,7 @@ class VariantAnalyzer:
             # in the alignment table.
             return  count_fragment_location / n_readings
         return count_fragment_location
+
 
     def fragment_rate(self,
                       missing: str = "-",
@@ -692,6 +740,7 @@ class VariantAnalyzer:
             raise ValueError(f"Only `mean` and `max` are supported."
                              f"Input: `{strategy}`.")
 
+
     def fragment_distribution(self) -> np.ndarray:
         """Estimate fragmentation distribution in a text. 
         """
@@ -700,6 +749,7 @@ class VariantAnalyzer:
         )
         count_missings_per_reading /= count_missings_per_reading.sum()
         return count_missings_per_reading
+
 
     def analysis_summary(self,
                          include: Union[List[str], str] = "all",
@@ -734,7 +784,7 @@ class VariantAnalyzer:
         # that does not support Union type and require default list for list.
         if include == "all":
             include = ["omit", "mispell", "synonym", "fragment", "undetermined"]
-        if self.disable_synonym and ("synonym" in  include):
+        if self.disable_synonym and ("synonym" in include):
             include.remove("synonym")
 
         # Define a dictionary of analysis functions.
