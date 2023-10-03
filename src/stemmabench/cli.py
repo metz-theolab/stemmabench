@@ -40,7 +40,6 @@ def analyze_tradition(input_folder: str,
                       sep: str=".",
                       # Initialize VariantAnalyzer
                       language: str = "en",
-                      disable_synonym: bool = False,
                       # Analysis summary
                       include = "all", # List[str] | str
                       decimals: int = 4,
@@ -107,8 +106,7 @@ def analyze_tradition(input_folder: str,
 
     # Perform analysis.
     variant_analyzer = VariantAnalyzer(
-        alignment_table, language=language, disable_synonym=disable_synonym
-    )
+        alignment_table, language=language)
     # ---- Analysis summary.
     analysis_summary = variant_analyzer.analysis_summary(
         include=include,

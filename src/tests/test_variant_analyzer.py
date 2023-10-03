@@ -6,6 +6,7 @@ from unittest.mock import Mock, patch
 import numpy as np
 from collatex.core_classes import AlignmentTable, Token, Column, Row
 from stemmabench.variant_analyzer import VariantAnalyzer
+from stemmabench.data import SYNONYM_DICT
 
 
 # ----------------------------------------------------------------------------
@@ -36,7 +37,7 @@ class TestVariantAnalyzerProperties(unittest.TestCase):
         row22.to_list_of_strings.return_value = ["token12", None]
         self.mock_table2.rows = [row21, row22]
         # Create a VariantAnalyzer instance for testing
-        self.analyzer = VariantAnalyzer(self.mock_table, language="en", disable_synonym=False)
+        self.analyzer = VariantAnalyzer(self.mock_table, language="en")
 
     def test_variant_locations_property(self):
         """Test `variant_locations` property.
@@ -71,6 +72,15 @@ class TestVariantAnalyzerProperties(unittest.TestCase):
             mock_to_numpy.assert_called_once_with(self.mock_table2)
         # Check if the array property is set after calling it.
         self.assertIsNotNone(self.analyzer.array)
+
+    def test_disable_synonym(self):
+        """Test `disable_synonym` property.
+        """
+        # Test default language (English > not disable)
+        self.assertFalse(self.analyzer.disable_synonym)
+        # Test a fake language (hence non-supported)
+        self.analyzer.language = "fake_language"
+        self.assertTrue(self.analyzer.disable_synonym)
 
     def test_get_token_strings_static_method(self):
         """Test `_get_token_strings` static method.
@@ -147,18 +157,30 @@ class TestVariantAnalyzerMethods(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.analyzer.is_mispell("truth", "truht", distance="fake_distance")
 
-    @patch('stemmabench.variant_analyzer.VariantAnalyzer.synonyms', return_value={
+    @patch('stemmabench.variant_analyzer.VariantAnalyzer.auto_synonyms', return_value={
         'altogether', 'completely', 'entirely', 'totally', 'whole', 'wholly'})
-    def test_synonyms(self, mock_synonyms):
-        """Test `is_mispell` static method.
+    def test_auto_synonyms(self, mock_synonyms):
+        """Test `auto_synonyms` static method.
         """
         # Call the synonyms method
-        result = self.analyzer.synonyms("all")
+        result = self.analyzer.auto_synonyms("all")
         # Check if the result matches the expected set of synonyms
         expected_synonyms = mock_synonyms.return_value
         self.assertEqual(result, expected_synonyms)
 
-    @patch('stemmabench.variant_analyzer.VariantAnalyzer.synonyms')
+
+    def test_dict_synonyms(self):
+        """Test `dict_synonyms` static method.
+        """
+        SYNONYM_DICT_GR = SYNONYM_DICT["gr"]
+        greek_word = list(SYNONYM_DICT_GR.keys())[0]
+        synonyms = set(SYNONYM_DICT_GR[greek_word])
+        # Call the synonyms method
+        result = self.analyzer.dict_synonyms(greek_word, language="gr")
+        self.assertEqual(result, synonyms)
+
+
+    @patch('stemmabench.variant_analyzer.VariantAnalyzer.auto_synonyms')
     def test_is_synonym(self, mock_synonyms):
         """Test `is_synonym` static method.
         """
@@ -167,6 +189,12 @@ class TestVariantAnalyzerMethods(unittest.TestCase):
         # Test cases for is_synonym
         self.assertTrue(self.analyzer.is_synonym('all', 'TOTALLY'))
         self.assertFalse(self.analyzer.is_synonym('all', 'nothing'))
+
+        # Test synonym for greek (supported language but not nlp model)
+        SYNONYM_DICT_GR = SYNONYM_DICT["gr"]
+        greek_word = list(SYNONYM_DICT_GR.keys())[0]
+        one_greek_word_synonym = SYNONYM_DICT_GR[greek_word][0]
+        self.assertTrue(self.analyzer.is_synonym(greek_word, one_greek_word_synonym, language="gr"))
 
     def test_which_variant_type(self):
         """Test `which_variant_type` static method.
@@ -265,7 +293,7 @@ class TestFragmentMethods(unittest.TestCase):
             Mock(header="Witness2", to_list_of_strings=lambda: self.witness2),
         ]
         # Create a VariantAnalyzer instance for testing
-        self.analyzer = VariantAnalyzer(self.mock_table, language="en", disable_synonym=False)
+        self.analyzer = VariantAnalyzer(self.mock_table, language="en")
 
     def test_fragment_locations(self):
         """Test `fragment_locations` method.
@@ -325,7 +353,7 @@ class TestFragmentMethods(unittest.TestCase):
             self.assertAlmostEqual(result[key], value, places=4)
 
         # update disable_synonym
-        self.analyzer.disable_synonym = True
+        self.analyzer.language = "hb" # > disable_synonym
         expected_output = {
             "omit": 3/6,
             "mispell": 1/6,

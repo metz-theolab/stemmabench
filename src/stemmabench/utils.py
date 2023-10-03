@@ -17,6 +17,7 @@ def make_stemmabench_config(
     frag_max_rate: float=0,
     frag_dist_law: str="Discrete Uniform",
     frag_dist_rate: str=0.5,
+    missing_manuscripts_rate: float = 0,
     duplicate_nbr_words: int=1,
     duplicate_rate: float=0.01,
     synonym_rate: float=0.05,
@@ -37,6 +38,10 @@ def make_stemmabench_config(
                 "law": "Uniform",
                 "min": width_min,
                 "max": width_max
+            },
+            "missing_manuscripts": {
+                "law": "Bernouilli",
+                "rate": missing_manuscripts_rate
             },
             "fragmentation_proba": frag_proba
         },
@@ -73,7 +78,7 @@ def make_stemmabench_config(
                     "distribution": {
                         "law": frag_dist_law,
                         "rate": frag_dist_rate,
-                        "n": 1000 # just for conformity (not used)
+                        "n": 1000 # just for consistency (not used)
                     }
                 }
             }
