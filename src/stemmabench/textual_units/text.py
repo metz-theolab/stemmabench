@@ -161,6 +161,7 @@ class Text:
                 sentence_edited_words += new_sentence + self.punc + " "
         return sentence_edited_words.strip()
 
+
     def fragment(self,
                  fragment_config: FragmentationConfig,
                  sep: str=" "

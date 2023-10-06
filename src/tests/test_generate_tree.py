@@ -1,6 +1,7 @@
 """Unit tests for the stemma generator.
 """
 import unittest
+from unittest.mock import patch
 import os
 import shutil
 from pathlib import Path
@@ -46,6 +47,7 @@ class TestStemmaGenerator(unittest.TestCase):
     def test_generate(self):
         """Tests that generating the stemma behaves as expected.
         """
+        np.random.seed(10)
         # Test if stemma generation works well.
         print(self.stemma.generate())
         # Sanity check for the number of manuscripts.
@@ -62,15 +64,13 @@ class TestStemmaGenerator(unittest.TestCase):
     def test_apply_level(self):
         """Tests that applying on a single level behaves as expected.
         """
-        expected_result = ['Love bade welcome yet oy soul hrew back hangdog of', 
-                           'love bade welcome so far my soul back guilty  ajd', 
-                           'love bade  yet my  hrew sin.']
+        expected_result = ['Love bade welcome yet oy soul hrew back hangdog of dust bjd sin.',
+                           'love bade welcome yet my soulfulness hrew back guilty of dust ajd .',
+                           'love bade welcome yet my soul hbew back guilty of dust ajd sin.']
         np.random.seed(10)
-        self.assertListEqual(
-            self.stemma._apply_level(self.text),
-            expected_result
-        )
-
+        result = self.stemma._apply_level(self.text)
+        print("APPLY LEVEL", result)
+        self.assertListEqual(result, expected_result)
 
     def test_graph_repr(self):
         """Tests that representation as a graph works as expected.
@@ -79,6 +79,36 @@ class TestStemmaGenerator(unittest.TestCase):
     def test_apply_fragmentation(self):
         """_summary_
         """
+
+
+    @patch("stemmabench.stemma_generator.Stemma._apply_fragmentation")
+    def test_fragmentation(self, mock_apply_fragmentation):
+        """Test the `fragmentation` method in the stemma.
+        """
+        mock_apply_fragmentation.return_value = "VARIANT"
+        # Define test objects.
+        texts_lookup: dict[str, str] = {
+            "0": "text0", "0:0": "text0:0", "0:1": "text0:1", 
+            "0:0:0": "text0:0:0", "0:1:0": "text0:1:0"
+        }
+        edges: dict[tuple[str, str]] = [
+            ("0", "0:0"), ("0", "0:1"), ("0:0", "0:0:0"), ("0:1", "0:1:0")
+        ]
+        levels: list[dict[str, list[str]]] = [
+            {"text0": ["text0:0", "text0:1"]}, 
+            {"text0:0": ["text0:0:0"], "text0:1": ["text0:1:0"]}
+        ]
+        expected_text_lookup = {key: "VARIANT" for key, value in texts_lookup.items()}
+        expected_levels = [{'VARIANT': ['VARIANT', 'VARIANT']}, 
+                           {'VARIANT': ['VARIANT'], 'VARIANT': ['VARIANT']}]
+        # Update properties.
+        self.stemma.texts_lookup = texts_lookup
+        self.stemma._levels = levels
+        self.stemma.edges = edges
+        # Apply fragmentation and tests update properties.
+        self.stemma.fragmentation()
+        self.assertEqual(self.stemma.texts_lookup, expected_text_lookup)
+        self.assertEqual(self.stemma._levels, expected_levels)
 
 
     def test_dict(self):

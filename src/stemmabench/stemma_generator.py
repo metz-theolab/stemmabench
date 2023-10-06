@@ -111,12 +111,41 @@ class Stemma:
                                              .fragmentation)
         return manuscript
 
+
+    def fragmentation(self) \
+        -> Tuple[Dict[str, str], List[Dict[str, List[str]]]]:
+        """Apply fragmentation to all manuscripts of a stemma after the 
+        generation process is completed. 
+        
+        The function updates the properties `texts_lookup` and `_levels` of 
+        the stemma. 
+        """
+        # Fragement manuscripts, update lookup dictionary.
+        self.texts_lookup = {
+            id_mss: self._apply_fragmentation(mss)
+            for id_mss, mss in self.texts_lookup.items()
+        }
+        # Update `_levels` = [{str: List[str]}, {str, List[str]}]
+        new_levels = []
+        level_part2 = {}
+        for id_mss, mss in self.texts_lookup.items():
+            # Get the texts of the manuscript's children.
+            children_texts = [self.texts_lookup[edge[1]]
+                                for edge in self.edges if id_mss == edge[0]]
+            if children_texts:
+                if id_mss == "0":
+                    new_levels.append({mss: children_texts})
+                else:
+                    level_part2[mss] = children_texts
+        new_levels.append(level_part2)
+        self._levels = new_levels
+        return self
+
     def _apply_level(self, manuscript: str) -> List[str]:
         """Apply transformation on a single generation"""
-        return [self._apply_fragmentation(
-                    Text(manuscript).transform(self.config.variants,
-                                               meta_config=self.config.meta))
-                    for _ in range(self.width)]
+        return [Text(manuscript).transform(self.config.variants,
+                                           meta_config=self.config.meta)
+                for _ in range(self.width)]
 
     def missing_manuscripts(self) -> Tuple[Dict[str, str], List[Tuple[str]]]:
         """Remove some manuscripts from the tradition.
@@ -177,6 +206,9 @@ class Stemma:
             level_name += f":{self.depth - remaining_depth - 1}"
             # Decrease remaining depth
             remaining_depth -= 1
+
+        # Apply fragmentation.
+        self.fragmentation()
         # Return self
         return self
 
