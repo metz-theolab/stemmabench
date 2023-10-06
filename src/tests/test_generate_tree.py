@@ -24,8 +24,7 @@ class TestStemmaGenerator(unittest.TestCase):
         config = StemmaBenchConfig.from_yaml(TEST_YAML)
         self.stemma = Stemma(
             original_text=self.text,
-            config=config,
-            random_state=10
+            config=config
         )
         # Create the output folder
         os.mkdir(OUTPUT_FOLDER)
