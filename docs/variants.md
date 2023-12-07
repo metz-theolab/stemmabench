@@ -54,7 +54,7 @@ Possible variants are:
 
 - **Word mispell**: A random letter location is drawn according to a uniform law across the whole word. The letter is then replace with a randomly drawn letter from the alphabet.
 - **Word omission**: The word is omitted.
-- **Synonym**: A synonym is randomly drawn from NLTK semantic net.
+- **Synonym**: A synonym is randomly drawn from a hard-coded dictionary.
 
 ### At the sentence level
 
@@ -85,3 +85,53 @@ Two languages are currently supported:
 - Greek.
 
 Additional support for biblical Hebrew is underway.
+
+
+
+# Variant analyzer
+
+The `variant_analyzer` module is designed for **analyzing text variants**. It identifies variant positions and types for manuscript comparisons and estimates operation probabilities like omission and misspelling rates. This module utilizes a class that takes a `collatex` alignment table as input, converting it into a NumPy array for analysis.
+
+The `utils` module provides convenient functions for **loading traditions from folders** and **formatting them** similar to the `Stemma` class's `texts_lookup` method. These tools simplify variant analysis in your text data.
+
+Methods are provided to identify variant locations between pairs of witnesses, determine the type of variant between two words, and calculate the dissimilarity matrix and operation rates for different types of variants. Additional methods are provided to analyze fragmentation in the alignment table, including identifying fragment locations, calculating fragment rates, and estimating the fragmentation distribution.
+
+- The method `variant_locations_pairwise_matrix()` creates a boolean symmetric 3D array, which is a matrix composed of mask vectors (vectors of booleans). This matrix signifies, for each pair of manuscripts, whether each corresponding reading represents a variant location or not.
+- The method `variant_type_pairwise_matrix()` identifies the type of variant for each variant location within the variant_locations_pairwise_matrix result, using the following labels: "O" for omit, "M" for misspell, "S" for synonym, "U" for undetermined, and False for locations that are not variant.
+- The method `dissimilarity_matrix()` generates a dissimilarity matrix between manuscripts, considering a specific variant type.
+- For fragmentation analysis, the computation is performed at the individual manuscript level by identifying missing readings. The function `fragment_locations_matrix()` produces a 2D array with manuscripts as rows and columns, containing booleans to indicate if a reading is missing or not. Additionally, the function `fragment_locations_count()` returns a vector indicating the number of missing readings for each manuscript.
+- The methods `omit_rate()`, `misspell_rate()`, `synonym_rate()`, `undetermined_rate()`, and `fragment_rate()` provide estimates of the occurrence rates across manuscripts estimates. For all operations except fragmentation, the rates are computed as the average rate across pairs of manuscripts. In the case of fragmentation, the default behaviour is to use the maximum rate of fragmentation to maintain consistency with the implementation of fragmentation in the generation process. However, it also allows for using the "mean" rate if needed.
+- `analysis_summary()` return a dictionary with the estimated rate. It is possible to select only a subset of the operation. Also, if the `disable_synonyms` property of the `VariantAnalyzer`  is set to `True` then synonym rate is never return. The latter `disable_synonyms` property depends on whether the language is supported.
+
+
+```python
+# Assuming your have all your witnesses (as .txt file) in a folder named "input_folder".
+
+# Load tradition from the input file.
+tradition = load_tradition(input_folder="input_folder")
+# Format tradition as input for collatex collation and alignment table.
+tradition_formatted = format_tradition(tradition=tradition)
+# Create alignment table
+collation = collatex.Collation().create_from_dict(tradition_formatted)
+alignment_table = collatex.collate(
+    collation, segmentation=False, near_match=True, layout="vertical"
+)
+# Create a VariantAnalyzer object
+analyzer = VariantAnalyzer(alignment_table, language="en")
+# Calculate the omit rate
+omit_rate = analyzer.omit_rate()
+# Calculate the misspelling rate
+mispell_rate = analyzer.mispell_rate()
+# Calculate the synonym rate
+synonym_rate = analyzer.synonym_rate()
+# Calculate the fragment rate
+fragment_rate = analyzer.fragment_rate()
+# Get the fragment distribution
+fragment_distribution = analyzer.fragment_distribution()
+```
+
+
+- #TODO: 
+- [ ] Allow for using directly a numpy array as input (requiring the rows to be the witnesses and the columns to be the readings). 
+
+

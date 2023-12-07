@@ -183,6 +183,10 @@ class VariantAnalyzer:
         Raises:
             ValueError: If an unsupported distance metric is provided.
         """
+        word1, word2 = str(word1), str(word2)
+        # TODO: Create a class DistanceMetrics where each distance metric is
+        # implemented as a method. Then call this method in the dictionary
+        # below.
         dist_funcs = {
             "Levenshtein": textdistance.Levenshtein().normalized_distance,
             "DamerauLevenshtein": (textdistance.DamerauLevenshtein()
@@ -193,7 +197,7 @@ class VariantAnalyzer:
         if distance not in dist_funcs:
             raise ValueError(f"Distance {distance} is not supported. "
                              f"Choose one among {dist_funcs.keys()}")
-        norm_dist = dist_funcs[distance](str(word1), str(word2))
+        norm_dist = dist_funcs[distance](word1, word2)
         # Mispell if distance > 0 (not exact match)
         # but distance < cutoff (not too different)
         return bool(0 < norm_dist <= mispell_cutoff)
@@ -243,9 +247,9 @@ class VariantAnalyzer:
             set[str]: A set of synonyms for the given word.
         """
         if not disabled:
-            SYNONYM_DICT_LANG = SYNONYM_DICT[language]
-            if word in SYNONYM_DICT_LANG.keys():
-                synonyms = SYNONYM_DICT_LANG[word]
+            synonym_dict_lang = SYNONYM_DICT[language]
+            if word in synonym_dict_lang.keys():
+                synonyms = synonym_dict_lang[word]
                 return set(synonyms) if len(synonyms) else {}
         return {}
 
@@ -270,12 +274,12 @@ class VariantAnalyzer:
         if language in SUPPORTED_NLP_LANGUAGES:
             if language == "en":
                 return (WordNetLemmatizer().lemmatize(word2.lower()) in
-                    VariantAnalyzer.auto_synonyms(word1, 
+                    VariantAnalyzer.auto_synonyms(word1,
                                                   language=language,
                                                   disabled=disabled))
         if language in SUPPORTED_LANGUAGES:
-            return word2 in VariantAnalyzer.dict_synonyms(word=word1, 
-                                                          language=language, 
+            return word2 in VariantAnalyzer.dict_synonyms(word=word1,
+                                                          language=language,
                                                           disabled=disabled)
         return False
 
