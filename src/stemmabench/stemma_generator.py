@@ -19,7 +19,7 @@ class Stemma:
         config: StemmaBenchConfig = None,
         config_path: str = None,
         original_text: str = None,
-        path_to_text: str = None
+        path_to_text: str = None,
     ) -> None:
         """A class to perform variant generation.
         Use the .fit() method to actually perform variant generation.
@@ -107,8 +107,7 @@ class Stemma:
     def _apply_fragmentation(self, manuscript: str) -> str:
         """Apply fragmentation to a manuscript."""
         if Text.draw_boolean(self.fragmentation_proba):
-            return Text(manuscript).fragment(self.config.variants.texts
-                                             .fragmentation)
+            return Text(manuscript).fragment(self.config.variants.texts.fragmentation)
         return manuscript
 
 

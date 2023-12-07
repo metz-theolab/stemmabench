@@ -32,8 +32,8 @@ You can run the tests:
 A possible way to generate a tradition is running the `generate` command:
 
 ```bash
-generate --help
-Usage: generate [OPTIONS] INPUT_TEXT OUTPUT_FOLDER CONFIGURATION
+stemmabench generate-tradition --help
+Usage: stemmabench generate-tradition [OPTIONS] INPUT_TEXT OUTPUT_FOLDER CONFIGURATION
 
   Generate a tradition of manuscripts.
 
@@ -50,8 +50,8 @@ Arguments:
   CONFIGURATION  [required]
 ```
 
-For demonstration, go to the folder demo and run:
-`generate .\test_text.txt output_folder .\config.yaml`
+For demonstration, go to the folder _demo_ and run:
+`stemmabench generate-tradition .\test_text.txt output_folder .\config.yaml`
 
 ### Interactive use
 
@@ -59,12 +59,10 @@ See: [jupyter quickstart](https://github.com/SphRbtHyk/stemmabench/blob/main/doc
 
 ## To do list
 
-[] Add support for ancient languages (greek, hebrew mainly) => Will be done through using MACULA API
+- [ ] Add support for ancient languages (greek, hebrew mainly) => Will be done through using MACULA API
 
-[] Add the possibility to work with contamination:
-  [] Model contamination
-  [] Create new contaminated text
+- [ ] Add the possibility to work with contamination:
+  - [ ] Model contamination
+  - [ ] Create new contaminated text
 
-[] Add support for missing manuscripts (new variable in stemma generation that will skip a generations): we do not have access to some heuristics.
-
-[] Make vizualization more resiliant + a whole part of the package
+- [ ] Make vizualization more resiliant + a whole part of the package

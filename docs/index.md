@@ -23,7 +23,7 @@ StemmaBench requires two items:
 Once you have your wanted text and wanted configuration file, you can run the command:
 
 ```shell
-generate input.txt output_folder config.yaml
+stemmabench generate-tradition input.txt output_folder config.yaml
 ```
 
 This will output the generated text as well as the tree structure in the folder `output_folder`.
