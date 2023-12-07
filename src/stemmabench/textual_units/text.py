@@ -1,12 +1,17 @@
 """This module define a class `Text` whose methods apply transformations at 
 the text level.
 """
-from typing import Any, Dict
-
+from typing import Dict
 import numpy as np
-from stemmabench.config_parser import ProbabilisticConfig, VariantConfig, MetaConfig
-from stemmabench.textual_units.sentence import Sentence
+from scipy.stats import binom, poisson
+from stemmabench.config_parser import (
+    ProbabilisticConfig,
+    FragmentationConfig,
+    VariantConfig,
+    MetaConfig
+)
 from stemmabench.textual_units.word import Word
+from stemmabench.textual_units.sentence import Sentence
 
 
 class Text:
@@ -19,8 +24,9 @@ class Text:
 
         Args:
             text (str): The content of the text.
-            punc (str): The standard punctuation to use
-                as separator between sentences.
+            punc (str): The standard punctuation to use as separator between 
+                sentences.
+            seed (int): Seed for random number generator.
 
         # FIXME: deal with punctuations
         # FIXME: become more flexible in terms of modelization.
@@ -47,7 +53,7 @@ class Text:
 
     def transform_word(self,
                        word: Word,
-                       word_config: Dict[str, Any]) -> str:
+                       word_config: Dict[str, ProbabilisticConfig]) -> str:
         """Transform the text at the word level, by applying
         every method specified in the configuration.
 
@@ -154,3 +160,64 @@ class Text:
             if new_sentence:
                 sentence_edited_words += new_sentence + self.punc + " "
         return sentence_edited_words.strip()
+
+
+    def fragment(self,
+                 fragment_config: FragmentationConfig,
+                 sep: str=" "
+        ) -> str:
+        """
+        Fragment a given text by randomly removing words.
+
+        Args:
+            text (str): The input text to be fragmented.
+            fragment_config (FragmentConfig): The configuration of the fragment
+                transformer.
+            sep (str, optional): separator used to split the input text
+                into words. Default is " ".
+
+        Returns:
+            str: fragmented text with words removed.
+        
+        # TODO: Use the input `Poisson` `rate` to use it as a fraction of the 
+        # total number of words in the text and raise an Exception for values 
+        # below a certain threshold (e.g. 5%) in order to avoid full zero 
+        # distribution vector. 
+        """
+        # Split the text into a list of words and get total word count.
+        words = self.text.split(sep)
+        n_words = len(words)
+        indices = np.arange(n_words)
+
+        # Generate a distribution for fragmentation on word indices based on
+        # the input law.
+        if fragment_config.distribution.law == "Discrete Uniform":
+            locations_dist = np.full(shape=n_words, fill_value=1/n_words)
+        elif fragment_config.distribution.law == "Binomial":
+            locations_dist = binom.pmf(k=indices, n=n_words,
+                                        p=fragment_config.distribution.rate)
+        elif fragment_config.distribution.law == "Poisson":
+            # The input rate is expressed as fraction of the number of words.
+            # Ensure having consistent distribution with enough non-zero values.
+            mu = fragment_config.distribution.rate * n_words
+            locations_dist = poisson.pmf(k=indices, mu=mu)
+        else:
+            raise ValueError("Only 'Binomial', 'Discrete Uniform', and"
+                             "'Poisson' laws are supported.")
+        locations_dist /= locations_dist.sum()
+
+        # Calculate the number of fragment locations based on the fragment rate.
+        n_frag_loc = min(
+            # ensure n_frag_loc (sample size) is larger that the number of
+            # non-zero entries in the distribution vector
+            np.sum(locations_dist!=0),
+            int(np.random.uniform(0, fragment_config.max_rate) * n_words)
+        )
+        # Choose fragment locations according.
+        frag_locations = np.random.choice(indices, size=n_frag_loc, replace=False,
+                                         p=locations_dist)
+        # Remove words at the selected fragment locations.
+        words = np.delete(words, frag_locations)
+
+        # Join the remaining words to form the fragmented text.
+        return sep.join(words)

@@ -2,8 +2,15 @@
 Unit tests for textual units.
 """
 import unittest
+import unittest.mock
 import numpy as np
-from stemmabench.config_parser import MetaConfig, ProbabilisticConfig, VariantConfig
+from stemmabench.config_parser import (
+    ProbabilisticConfig,
+    FragmentationConfig,
+    VariantConfig,
+    TextConfig,
+    MetaConfig
+)
 from stemmabench.textual_units.text import Text
 from stemmabench.textual_units.sentence import Sentence
 from stemmabench.textual_units.word import Word
@@ -118,6 +125,7 @@ class TestText(unittest.TestCase):
             "Say them to yourself when you wake in the morning "
             "and when you lie down at night, "
             "and when you wake in the middle of the night.")
+        self.test_text2 = Text("word1, word2. word3, word4 word5.")
 
     def test_init(self):
         """Tests that the initialization of the Text class behaves
@@ -237,14 +245,13 @@ class TestText(unittest.TestCase):
         meta_config = MetaConfig(**{"language": "en"})
         variant_config = VariantConfig(**{
             "sentences": {
-                "duplicate": ProbabilisticConfig(
-                    **{
-                        "args": {
-                            "nbr_words": 1
-                        },
-                        "law": "Bernouilli",
-                        "rate": 1
-                    })
+                "duplicate": ProbabilisticConfig(**{
+                    "args": {
+                        "nbr_words": 1
+                    },
+                    "law": "Bernouilli",
+                    "rate": 1
+                })
             },
             "words": {
                 "synonym": ProbabilisticConfig(**{
@@ -262,12 +269,35 @@ class TestText(unittest.TestCase):
                     "rate": 0.1,
                     "args": {}
                 })
-            }}
+             },
+             "texts": TextConfig(**{
+                 "fragmentation": FragmentationConfig(**{
+                     "max_rate": 0.5,
+                     "distribution": ProbabilisticConfig(**{
+                         "law": "Poisson",
+                         "rate": 0.9
+                     })
+                 })
+             })
+        })
+        self.assertEqual("Bwt  remenber rerember  wemember hhe figns. "
+                         "Smy mhem tc yoarself whef yog sake im thb mornini acd yhen  lde doen astatinz  dnd whec nou wawe vn the   tce nigwt.",
+            self.test_text.transform(variant_config=variant_config, meta_config=meta_config)
         )
-        result = self.test_text.transform(variant_config=variant_config, meta_config=meta_config)
-        expected_result = "Bwt  remenber rerember  wemember hhe figns. Smy mhem tc yoarself whef yog sake im thb mornini acd yhen  lde doen astatinz  dnd whec nou wawe vn the   tce nigwt."
-        self.assertEqual(expected_result, result)
 
+    def test_fragment_deletion(self):
+        """Test fragmentation
+        """
+        fragment_config = FragmentationConfig(**{
+            "max_rate": 1,
+            "distribution": ProbabilisticConfig(**{
+                "law": "Poisson",
+                "rate": 0.9
+            })
+        })
+
+        self.assertEqual(Text(self.test_text2.text)
+                         .fragment(fragment_config),"word1,")
 
 if __name__ == "__main__":
     unittest.main()

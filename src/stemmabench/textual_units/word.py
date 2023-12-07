@@ -22,7 +22,7 @@ class Word:
         Args:
             word (str): The word to wrap the class around.
             language (str, optional): The language to perform the variant in.
-                Defaults to "eng".
+                Defaults to "en".
         """
         self.word = self.clean(word)
         if language not in SUPPORTED_LANGUAGES:

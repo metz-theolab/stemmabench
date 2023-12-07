@@ -19,7 +19,7 @@ class Stemma:
         config: StemmaBenchConfig = None,
         config_path: str = None,
         original_text: str = None,
-        path_to_text: str = None
+        path_to_text: str = None,
     ) -> None:
         """A class to perform variant generation.
         Use the .fit() method to actually perform variant generation.
@@ -49,6 +49,7 @@ class Stemma:
             self.config = StemmaBenchConfig.from_yaml(config_path)
         self.depth = self.config.stemma.depth
         self.missing_manuscripts_rate = self.config.stemma.missing_manuscripts.rate
+        self.fragmentation_proba = self.config.stemma.fragmentation_proba
         self._levels: List[Dict[str, List[str]]] = []
         self.texts_lookup = {}
         self.edges = []
@@ -61,11 +62,10 @@ class Stemma:
         if self.config.stemma.width.law == "Uniform":
             return int(np.random.uniform(self.config.stemma.width.min,
                                          self.config.stemma.width.max))
-        elif self.config.stemma.width.law == "Gaussian":
+        if self.config.stemma.width.law == "Gaussian":
             return int(np.random.normal(self.config.stemma.width.mean,
                                         self.config.stemma.width.sd))
-        else:
-            raise ValueError("Only Gaussian and Uniform laws are supported.")
+        raise ValueError("Only Gaussian and Uniform laws are supported.")
 
     @staticmethod
     def load_text(path_to_text: str) -> str:
@@ -104,11 +104,47 @@ class Stemma:
         """String representation of the tree"""
         return "Tree(" + json.dumps(self.dict(), indent=2) + ")"
 
+    def _apply_fragmentation(self, manuscript: str) -> str:
+        """Apply fragmentation to a manuscript."""
+        if Text.draw_boolean(self.fragmentation_proba):
+            return Text(manuscript).fragment(self.config.variants.texts.fragmentation)
+        return manuscript
+
+
+    def fragmentation(self) \
+        -> Tuple[Dict[str, str], List[Dict[str, List[str]]]]:
+        """Apply fragmentation to all manuscripts of a stemma after the 
+        generation process is completed. 
+        
+        The function updates the properties `texts_lookup` and `_levels` of 
+        the stemma. 
+        """
+        # Fragement manuscripts, update lookup dictionary.
+        self.texts_lookup = {
+            id_mss: self._apply_fragmentation(mss)
+            for id_mss, mss in self.texts_lookup.items()
+        }
+        # Update `_levels` = [{str: List[str]}, {str, List[str]}]
+        new_levels = []
+        level_part2 = {}
+        for id_mss, mss in self.texts_lookup.items():
+            # Get the texts of the manuscript's children.
+            children_texts = [self.texts_lookup[edge[1]]
+                                for edge in self.edges if id_mss == edge[0]]
+            if children_texts:
+                if id_mss == "0":
+                    new_levels.append({mss: children_texts})
+                else:
+                    level_part2[mss] = children_texts
+        new_levels.append(level_part2)
+        self._levels = new_levels
+        return self
+
     def _apply_level(self, manuscript: str) -> List[str]:
         """Apply transformation on a single generation"""
         return [Text(manuscript).transform(self.config.variants,
                                            meta_config=self.config.meta)
-                                           for _ in range(self.width)]
+                for _ in range(self.width)]
 
     def missing_manuscripts(self) -> Tuple[Dict[str, str], List[Tuple[str]]]:
         """Remove some manuscripts from the tradition.
@@ -129,9 +165,12 @@ class Stemma:
         return mss_non_missing, edges_non_missing
 
     def generate(self):
-        """Fit the tree, I.E, generate variants"""
+        """Fit the tree, I.E, generate variants.
+        """
         # Empty levels
         self._levels = []
+        # Determine whether to fragment the original and apply if yes
+        self.original_text = self._apply_fragmentation(self.original_text)
         # Get first variants
         first_variants = self._apply_level(self.original_text)
         # Append first level
@@ -166,6 +205,9 @@ class Stemma:
             level_name += f":{self.depth - remaining_depth - 1}"
             # Decrease remaining depth
             remaining_depth -= 1
+
+        # Apply fragmentation.
+        self.fragmentation()
         # Return self
         return self
 
