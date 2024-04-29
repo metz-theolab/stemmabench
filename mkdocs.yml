@@ -4,6 +4,7 @@ nav:
   - Home: index.md
   - Variant configuration: variants.md
   - Outputs: outputs.md
+  - Algorithms: algorithms.md
   - About: about.md
 
 theme:
