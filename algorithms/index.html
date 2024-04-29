@@ -8,13 +8,13 @@
       
       
       
-        <link rel="canonical" href="https://example.com/outputs/">
+        <link rel="canonical" href="https://example.com/algorithms/">
       
       
-        <link rel="prev" href="../variants/">
+        <link rel="prev" href="../outputs/">
       
       
-        <link rel="next" href="../algorithms/">
+        <link rel="next" href="../about/">
       
       
       <link rel="icon" href="../assets/images/favicon.png">
@@ -22,7 +22,7 @@
     
     
       
-        <title>Outputs - Stemmabench</title>
+        <title>Algorithms - Stemmabench</title>
       
     
     
@@ -76,11 +76,6 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
-        
-        <a href="#generated-outputs" class="md-skip">
-          Skip to content
-        </a>
-      
     </div>
     <div data-md-component="announce">
       
@@ -113,7 +108,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Outputs
+              Algorithms
             
           </span>
         </div>
@@ -264,18 +259,9 @@
       
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../outputs/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -284,7 +270,6 @@
   
 
       </a>
-      
     </li>
   
 
@@ -293,9 +278,16 @@
       
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="../algorithms/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -304,6 +296,7 @@
   
 
       </a>
+      
     </li>
   
 
@@ -344,8 +337,6 @@
   
   
   
-    
-  
   
 </nav>
                   </div>
@@ -360,17 +351,9 @@
                   
 
 
-<h1 id="generated-outputs">Generated outputs</h1>
-<p>StemmaBench generates two outputs within the <code>output_folder</code> specified in the command line:</p>
-<ol>
-<li>A file <code>edge.txt</code> which represents the tree as a set of node.</li>
-<li>A set of file <code>*.txt</code> which contain the copied text and which number represent their hierarchy in the tree. <code>0</code> is the first text, then <code>0_0</code> and <code>0_1</code> are its descendants, then <code>0_0_0</code> and <code>0_0_1</code> are the descendants of <code>0_0</code> in a bifid tree fashion, etc.</li>
-</ol>
-<p>Furthermore, if the <code>rate</code> parameter of the <code>missing_manuscripts</code> option is greater than zero, an additional folder called <code>missing_tradition</code> is created within the <code>output_folder</code> specified in the command line. This folder includes:</p>
-<ul>
-<li>A file named <code>edge_missing.txt</code> containing the edges connecting the non-missing manuscripts still available.</li>
-<li>A collection of <code>*.txt</code> files with the remaining manuscripts in the tradition. These files exclude any manuscripts that were deleted during the process.</li>
-</ul>
+  <h1>Algorithms</h1>
+
+
 
 
 
