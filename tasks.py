@@ -102,7 +102,7 @@ def test(c, coverage=True, venv=False, report=""):
     """
     cov = f"--cov={SRC_FOLDER}" if coverage else ""
     report_cmd = f" --cov-report {report} " if report else ""
-    test_cmd = f"pytest {cov}{report_cmd} --cov-report term-missing {SRC_FOLDER}/tests"
+    test_cmd = f"pytest {cov}{report_cmd} --cov-report term-missing tests"
     if venv:
         activate_cmd = get_activate_venv()
         with c.prefix(activate_cmd):
