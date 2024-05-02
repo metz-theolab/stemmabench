@@ -59,11 +59,11 @@ Possible variants are:
 ### Fragmentation
 
 ### Missing manuscripts
-In the StemmaBench package, the concept of missing manuscripts is modeled using a probabilistic process governed by a p-parameter Bernoulli distribution. After having generating the whole tradition, a proportion *p* of the manuscripts are selected (with equiprobability) and deleted from the tradition. This simulates the loss of certain manuscripts over time.
+In the StemmaBench package, the concept of missing manuscripts is modeled using a probabilistic process governed by a p-parameter Bernoulli distribution. After having generated the whole tradition, a proportion *p* of the manuscripts are selected (with equiprobability) and deleted from the tradition. This simulates the loss of certain manuscripts over time.
 
-> [!WARNING]
+> [!WARNING IN RAM]
 > 
-> Currently, the missing manunscript feature is only available in command-line interface, not in RAM.
+> Currently, the missing manuscript feature is only available after dumping the stemma to a folder using the *dump()* method.
 
 ## Supported languages
 Two languages are currently supported:
