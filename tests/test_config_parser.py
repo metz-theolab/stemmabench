@@ -30,19 +30,72 @@ class TestBenchConfigParser(unittest.TestCase):
         with self.assertRaises(ValidationError):
             ProbabilisticConfig(**wrong_bernouilli)
         # Check for wrongly specified Uniform
-        wrong_uniform = {
+        wrong_uniform_parametre = {
             "law": "Uniform",
             "rate": .3
         }
         with self.assertRaises(ValidationError):
-            ProbabilisticConfig(**wrong_uniform)
+            ProbabilisticConfig(**wrong_uniform_parametre)
+
+        wrong_uniform_min_max = {
+            "law": "Uniform",
+            "min": 5,
+            "max": 3
+        }
+        with self.assertRaises(ValidationError):
+            ProbabilisticConfig(**wrong_uniform_min_max)
+            
         # Check for wrongly specified Gaussian
-        wrong_gaussian = {
+        wrong_gaussian_parameter = {
             "law": "Gaussian",
             "rate": .3
         }
         with self.assertRaises(ValidationError):
-            ProbabilisticConfig(**wrong_gaussian)
+            ProbabilisticConfig(**wrong_gaussian_parameter)
+        
+
+        # Check for wrongly specified Gaussian
+        wrong_gaussian_sd = {
+            "law": "Gaussian",
+            "mean": 2,
+            "sd": -1
+        }
+        with self.assertRaises(ValidationError):
+            ProbabilisticConfig(**wrong_gaussian_sd)
+
+        wrong_poisson_parameter = {
+            "law": "Poisson",
+            "rate": .5
+        }
+        # Check for wrongly specified Poisson
+        with self.assertRaises(ValidationError):
+            ProbabilisticConfig(**wrong_poisson_parameter)
+
+        wrong_poisson_negative = {
+            "law": "Poisson",
+            "lambda_": -8
+        }
+                # Check for wrongly specified Poisson
+        with self.assertRaises(ValidationError):
+            ProbabilisticConfig(**wrong_poisson_negative)
+
+        wrong_binomial = {
+            "law": "Binomial",
+            "min": 0.5,
+        }
+        # Check for wrongly specified Binomial
+        with self.assertRaises(ValidationError):
+            ProbabilisticConfig(**wrong_binomial)
+
+        wrong_binomial_n = {
+            "law": "Binomial",
+            "rate": 0.5,
+            "n": -2
+        }
+        # Check for wrongly specified Binomial
+        with self.assertRaises(ValidationError):
+            ProbabilisticConfig(**wrong_binomial_n)
+
 
 
 if __name__ == "__main__":

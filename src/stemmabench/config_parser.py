@@ -14,6 +14,8 @@ class ProbabilisticLaw(str, Enum):
     Bernouilli: str = "Bernouilli"
     Gaussian: str = "Gaussian"
     Uniform: str = "Uniform"
+    Poisson: str = "Poisson"
+    Binomial: str = "Binomial"
 
 
 class ProbabilisticConfig(BaseModel):
@@ -25,6 +27,8 @@ class ProbabilisticConfig(BaseModel):
     max: Optional[float]
     mean: Optional[float]
     sd: Optional[float]
+    lambda_: Optional[float]
+    n: Optional[float]
     args: Dict[str, Any] = {}
 
     @root_validator(pre=True)
@@ -41,11 +45,36 @@ class ProbabilisticConfig(BaseModel):
                 raise ValidationError("You asked for Uniform "
                                       "law but did not provide "
                                       "a min and a max value")
+            if (values["min"] > values["max"]):
+                raise ValidationError("In a uniform distribution"
+                                      "the maximum must be greater than the minimum"
+                                      )
         elif values["law"] == "Gaussian":
             if not (("mean" in values) and ("sd" in values)):
                 raise ValidationError("You asked for Gaussian "
                                       "law but did not provide "
                                       "a mean and sd value")
+            if values["sd"] < 0:              
+                raise ValueError("Gaussian law"
+                                      "requires a positive standard deviation value")
+            
+        elif values["law"] == "Poisson":
+            if not ("lambda_" in values):
+                raise ValidationError("You asked for Poisson"
+                                      "Law but did not provide a lambda value")
+            if (values["lambda_"] < 0):
+                raise ValueError("Poisson law "
+                                      "requires a positive lambda value")
+        
+        elif values["law"] == "Binomial":
+            if not (("rate" in values) and ("n" in values)):
+                raise ValidationError("You asked for Binomial"
+                                      "Law but did not provide a n or rate value")
+            if (values["n"] <= 0):
+                raise ValueError("Binomial law"
+                                "requires a positive value for n")
+            
+        
         return values
 
 
