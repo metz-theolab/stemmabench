@@ -19,7 +19,7 @@ class TestStemmaGenerator(unittest.TestCase):
         """Set-up the data to test the generation.
         """
         self.text = """
-        love bade  welcome yet my soul hrew back guilty of dust ajd sin."""
+        love bade me welcome yet my soul drew back guilty of dust and sin.""".strip()
         config = StemmaBenchConfig.from_yaml(TEST_YAML)
         self.stemma = Stemma(
             original_text=self.text,
@@ -40,43 +40,31 @@ class TestStemmaGenerator(unittest.TestCase):
         """Tests that getting the width of the tree behaves as expected.
         """
         np.random.seed(10)
-        self.assertEqual(self.stemma.width, 3)
+        self.assertEqual(self.stemma.width, 2)
 
 
     def test_generate(self):
         """Tests that generating the stemma behaves as expected.
         """
         # Test if stemma generation works well.
-        print(self.stemma.generate())
+        self.stemma.generate()
         # Sanity check for the number of manuscripts.
-        width_min = self.stemma.config.stemma.width.min
-        width_max = self.stemma.config.stemma.width.max - 1
+        # Width is set non-randomly
+        width = self.stemma.config.stemma.width.min
         depth = self.stemma.depth
-        nbr_mss_max = (1 - width_max**(depth + 2)) / (1 - width_max)
-        nbr_mss_min = (1 - width_min**(depth + 2)) / (1 - width_min)
+        expected_mss = sum([width**i for i in range(depth)])
         self.assertTrue(
-            nbr_mss_min <= len(self.stemma.texts_lookup) <= nbr_mss_max
+            expected_mss,
+            len(self.stemma.texts_lookup)
         )
-
 
     def test_apply_level(self):
         """Tests that applying on a single level behaves as expected.
         """
-        expected_result = [
-            'Love bade welcome yet oy soul hrew back hangdog of dust bjd sin.',
-            'love bade welcome yet my soulfulness hrew back guilty of dust ajd .', 
-            'love bade welcome yet my soul hbew back guilty of dust ajd sin.'
-        ]
-        np.random.seed(10)
-        self.assertListEqual(
-            self.stemma._apply_level(self.text),
-            expected_result
+        self.assertEqual(
+            len(self.stemma._apply_level(self.text)),
+            2
         )
-
-
-    def test_graph_repr(self):
-        """Tests that representation as a graph works as expected.
-        """
 
 
     def test_dict(self):

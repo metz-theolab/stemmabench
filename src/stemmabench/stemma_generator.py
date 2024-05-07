@@ -49,9 +49,12 @@ class Stemma:
             self.config = StemmaBenchConfig.from_yaml(config_path)
         self.depth = self.config.stemma.depth
         self.missing_manuscripts_rate = self.config.stemma.missing_manuscripts.rate
-        self._levels: List[Dict[str, List[str]]] = []
-        self.texts_lookup = {}
-        self.edges = []
+        
+        self.tree = {}
+        self._levels = [[]]  # Initialize the levels with an empty list
+        self.texts_lookup = {}  # Dictionary to store manuscripts with their IDs
+        self.edges = []  # List to store edges in the tree
+        self.next_id = 1  # Next available ID
 
     @property
     def width(self):
@@ -64,8 +67,7 @@ class Stemma:
         elif self.config.stemma.width.law == "Gaussian":
             return int(np.random.normal(self.config.stemma.width.mean,
                                         self.config.stemma.width.sd))
-        else:
-            raise ValueError("Only Gaussian and Uniform laws are supported.")
+        raise ValueError("Only Gaussian and Uniform laws are supported.")
 
     @staticmethod
     def load_text(path_to_text: str) -> str:
@@ -80,25 +82,11 @@ class Stemma:
         with open(Path(path_to_text), encoding="utf-8") as file:
             return file.read()
 
-    def dict(self) -> Dict[str, Union[List[str], Dict[str, List[str]]]]:
+    def dict(self) -> Dict[str, List[str]]:
         """Return a dict representation of the tree.
         Dict is empty until tree is fitted (fitting can be done using .fit() method)
         """
-        # Create dicts from bottom to top
-        _tree: Dict[str, Union[List[str], Dict[str, List[str]]]] = {}
-        # Iterate from bottom to top
-        for level in reversed(self._levels):
-            # Create tree using bottom values
-            if not _tree:
-                _tree.update(level)
-            else:
-                # Create new tree
-                _tree = {
-                    key: {subkey: _tree[subkey]
-                          for subkey in values}  # type: ignore[misc]
-                    for key, values in level.items()
-                }
-        return _tree
+        return self.tree
 
     def __repr__(self) -> str:
         """String representation of the tree"""
@@ -108,16 +96,18 @@ class Stemma:
         """Apply transformation on a single generation"""
         return [Text(manuscript).transform(self.config.variants,
                                            meta_config=self.config.meta)
-                                           for _ in range(self.width)]
+                for _ in range(self.width)]
 
     def missing_manuscripts(self) -> Tuple[Dict[str, str], List[Tuple[str]]]:
         """Remove some manuscripts from the tradition.
         """
         # Compute the number of manuscripts to delete.
-        n_mss_to_delete = int(self.missing_manuscripts_rate * len(self.texts_lookup))
+        n_mss_to_delete = int(
+            self.missing_manuscripts_rate * len(self.texts_lookup))
         # Select the manuscripts to delete.
         mss_list = list(self.texts_lookup)
-        missing_mss = np.random.choice(mss_list, n_mss_to_delete, replace=False)
+        missing_mss = np.random.choice(
+            mss_list, n_mss_to_delete, replace=False)
         # Subset non-missing manuscripts and non-missing edges.
         mss_non_missing = {mss_id: mss_text
                            for mss_id, mss_text in self.texts_lookup.items()
@@ -128,45 +118,31 @@ class Stemma:
         ]
         return mss_non_missing, edges_non_missing
 
+    def add_manuscript(self, text):
+        """
+        Add a manuscript to the tree.
+        """
+        manuscript_id = self.next_id
+        self.texts_lookup[str(manuscript_id)] = text
+        self.next_id += 1
+        level = len(self._levels) - 1
+        self._levels[level].append(manuscript_id)
+        return manuscript_id
+
     def generate(self):
         """Fit the tree, I.E, generate variants"""
-        # Empty levels
-        self._levels = []
-        # Get first variants
-        first_variants = self._apply_level(self.original_text)
-        # Append first level
-        self._levels.append({self.original_text: first_variants})
-        self.texts_lookup["0"] = self.original_text
-        self.texts_lookup.update(
-            {f"0:{ix}": first_variants[ix] for ix in range(len(first_variants))})
-        self.edges.extend([("0", f"0:{ix}")
-                          for ix in range(len(first_variants))])
-        level_name = "0"
-        # Keep track of remaining depth
-        remaining_depth = self.depth - 1
-
-        # Loop while there is reamining depth
-        while remaining_depth >= 0:
-            # Initialize new level
-            new_level = {}
-            # Gather values from last levels
-            for values in self._levels[-1].values():
-                for i_index, value in enumerate(values):
-                    new_variants = self._apply_level(value)
-                    new_level[value] = new_variants
-                    # Build text lookup by iterating over variants
-                    for j_index, variant in enumerate(new_variants):
-                        self.texts_lookup[f"{level_name}:{i_index}:{j_index}"] = variant
-                        # Store graph edges
-                        self.edges.append(
-                            (f"{level_name}:{i_index}", f"{level_name}:{i_index}:{j_index}"))
-            # Append new level
-            self._levels.append(new_level)
-            # Increase level name
-            level_name += f":{self.depth - remaining_depth - 1}"
-            # Decrease remaining depth
-            remaining_depth -= 1
-        # Return self
+        self.add_manuscript(self.original_text)
+        for depth in range(self.depth-1):
+            self._levels.append([])
+            for manuscript_id in self._levels[depth]:
+                text = self.texts_lookup[str(manuscript_id)]
+                transformed_texts = self._apply_level(text)
+                for transformed_text in transformed_texts:
+                    transformed_manuscript_id = self.add_manuscript(
+                        transformed_text)
+                    self.edges.append(
+                        (manuscript_id, transformed_manuscript_id))
+                self.tree[text] = transformed_texts
         return self
 
     def dump(self, folder: str) -> None:
@@ -192,7 +168,8 @@ class Stemma:
             missing_tradition_folder.mkdir(exist_ok=True)
             miss_texts_lookup, miss_edges = self.missing_manuscripts()
             for file_name, file_content in miss_texts_lookup.items():
-                file_path = missing_tradition_folder / f"{file_name.replace(':', '_')}.txt"
+                file_path = missing_tradition_folder / \
+                    f"{file_name.replace(':', '_')}.txt"
                 with file_path.open("w", encoding="utf-8") as f:
                     f.write(file_content)
             with (missing_tradition_folder / "edges_missing.txt").open("w", encoding="utf-8") as f:
