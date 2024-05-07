@@ -1,4 +1,4 @@
-from stemma.manuscript_base import ManuscriptBase
+from .manuscript_base import ManuscriptBase
 
 
 class ManuscriptMissing(ManuscriptBase):

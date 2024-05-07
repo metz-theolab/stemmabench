@@ -1,6 +1,6 @@
 from pathlib import Path ######################## Remove
 from stemma.manuscript_base import ManuscriptBase
-from utils import load_text
+from src.utils import load_text
 
 
 class Manuscript(ManuscriptBase):
@@ -13,7 +13,8 @@ class Manuscript(ManuscriptBase):
                  text: str,
                  parent: "Manuscript",
                  children: list["ManuscriptBase"] = None,
-                 edges: list[float] = None) -> None:
+                 edges: list[float] = None,
+                 recursive: list[list[str, str],list[str, str]] = None) -> None:
         """A class representing the Manuscripts that make up the nodes of a stemma.
 
         Args:
@@ -25,10 +26,16 @@ class Manuscript(ManuscriptBase):
             children (list, optional): A list of this Manuscripts children.
             edges (list, Optional): A list representing the distance between the edges. 
             In the same order as the children array.
+            recursive (list[str], Optional): If different than None will buil all the children of the manuscript
+            from the given list. 
 
         Raises:
             Exception: If no input text is specified.
         """
+        if recursive:
+            super().__init__(self, parent, recursive)
+            return
+
         super().__init__(self, label, parent, children, edges)
         
         if text_path:
@@ -60,3 +67,24 @@ class Manuscript(ManuscriptBase):
         if isinstance(value, Manuscript):
             return value.text == self.text
         return False
+
+    def dump(self, 
+             folder_path: str,  
+             recurcive: bool = False) -> None:
+        """Writes the manuscripts contents to a txt file in the given folder.
+            If file already exists will overwrite file.
+            If the folder does not exist it will be created.
+            If the edge file does not existe it will be created.
+            Will look through edge file if it exists to check that edge is alredy present in edge file. 
+            If True will not wirte individual edge to file.
+        
+        Args:
+            folder_path (str, Required): The path the folder where the text file will be writen.
+            recurcive (bool, Otional): Indicates if the dump should be propagated to all children recursively.
+        """
+
+        Path(folder_path).mkdir(exist_ok=True)
+        file_path = Path(folder_path) / f"{self.label.replace(':', '_')}.txt"
+        file_path.open("r+", encoding="utf-8").write(self.text)
+        super().dump(folder_path, recurcive=recurcive) # Edge files are dumped here
+        

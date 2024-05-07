@@ -1,5 +1,5 @@
 meta:
-  language: gr
+  language: en
 
 variants:
   words:
@@ -11,7 +11,7 @@ variants:
       rate: 0.5
     omit:
       law: Bernouilli
-      rate: 0.05
+      rate: 0.5
   sentences:
     duplicate:
       args:
@@ -20,7 +20,7 @@ variants:
       rate: 0.1
 
 stemma:
-  depth: 2
+  depth: 1
   width:
     law: Uniform
     min: 2
