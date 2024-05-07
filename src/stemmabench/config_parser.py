@@ -55,7 +55,7 @@ class ProbabilisticConfig(BaseModel):
                                       "law but did not provide "
                                       "a mean and sd value")
             if values["sd"] < 0:              
-                raise ValueError("Gaussian law"
+                raise ValidationError("Gaussian law"
                                       "requires a positive standard deviation value")
             
         elif values["law"] == "Poisson":
@@ -63,7 +63,7 @@ class ProbabilisticConfig(BaseModel):
                 raise ValidationError("You asked for Poisson"
                                       "Law but did not provide a lambda value")
             if (values["lambda_"] < 0):
-                raise ValueError("Poisson law "
+                raise ValidationError("Poisson law "
                                       "requires a positive lambda value")
         
         elif values["law"] == "Binomial":
@@ -71,10 +71,8 @@ class ProbabilisticConfig(BaseModel):
                 raise ValidationError("You asked for Binomial"
                                       "Law but did not provide a n or rate value")
             if (values["n"] <= 0):
-                raise ValueError("Binomial law"
+                raise ValidationError("Binomial law"
                                 "requires a positive value for n")
-            
-        
         return values
 
 
