@@ -7,7 +7,52 @@ from stemmabench.config_parser import MetaConfig, ProbabilisticConfig, VariantCo
 from stemmabench.textual_units.text import Text
 from stemmabench.textual_units.sentence import Sentence
 from stemmabench.textual_units.word import Word
+from stemmabench.textual_units.letter import Letter
 from stemmabench.data import LETTERS
+
+class TestLetter(unittest.TestCase):
+    """Unit tests for the Letter class.
+    """
+
+    def setUp(self):
+        self.test_letter = Letter("a")
+        self.rate = 0.1
+        self.specific_rates = {
+            "a": {'b': 0.3, 'c': 0.2, 'd': 0.025},
+            "b": {'d': 0.1}
+        }
+        self.alphabet = ["a", "b", "c", "d"]
+
+    def test_init(self):
+        """Tests that the initialization of the Letter class behaves as expected.
+        """
+        self.assertEqual(self.test_letter.letter, "a")
+
+    def test_build_probability_matrix(self):
+        """Tests that the probability matrix is built as expected.
+        """
+        probability_matrix = self.test_letter.build_probability_matrix(
+            rate=self.rate,
+            specific_rates=self.specific_rates,
+            alphabet=self.alphabet
+        )
+        self.assertDictEqual(
+            probability_matrix,
+            {"a": {'a': 0.475, 'b': 0.3, 'c': 0.2, 'd': 0.025},
+             "b": {'a': 0.025, 'b': 0.85, 'c': 0.025, 'd': 0.1},
+             "c": {'a': 0.025, 'b': 0.025, 'c': 0.925, 'd': 0.025},
+             'd': {'a': 0.025, 'b': 0.025, 'c': 0.025, 'd': 0.925},
+             })
+
+    def test_mispell(self):
+        """Tests that mispelling a letter behaves as expected.
+        """
+        np.random.seed(1)
+        self.assertEqual(self.test_letter.mispell(
+            rate=self.rate,
+            specific_rates=self.specific_rates
+        ), "c")
+
 
 class TestWord(unittest.TestCase):
     """Unit tests for the Word class.
@@ -40,7 +85,8 @@ class TestWord(unittest.TestCase):
     def test_no_synonym(self):
         """Tests that returning a synonym works as expected when.
         """
-        self.assertEqual(self.test_word_no_synonym.synonym(), self.test_word_no_synonym.word)
+        self.assertEqual(self.test_word_no_synonym.synonym(),
+                         self.test_word_no_synonym.word)
 
     def test_mispell(self):
         """Tests that mispells behave as expected.
@@ -58,7 +104,8 @@ class TestWord(unittest.TestCase):
         """
         test_word = Word("λειπω", language="gr")
         self.assertFalse(
-            sum((letter not in LETTERS["gr"]) for letter in test_word.mispell())
+            sum((letter not in LETTERS["gr"])
+                for letter in test_word.mispell())
         )
 
     def test_greek_synonym(self):
@@ -70,6 +117,7 @@ class TestWord(unittest.TestCase):
             test_word.synonym(),
             "ἐκπρολείπω"
         )
+
 
 class TestSentence(unittest.TestCase):
     """Unit tests for the Sentence class.
@@ -230,10 +278,64 @@ class TestText(unittest.TestCase):
                 word_config=word_config,
                 language="en"))
 
+    def test_letter_transform(self):
+        """Tests that transforming a sentence at the letter level behaves as expected.
+        """
+        np.random.seed(15)
+        letter_config = {
+            "mispell": ProbabilisticConfig(**{
+                "law": "Bernouilli",
+                "rate": 1,
+                "args": {
+                    "specific_rates": {
+                        "a": {
+                            "b": 0.01,
+                            "c": 0.02,
+                            "d": 0.025
+                        },
+                }
+            }})
+        }
+        self.assertEqual(
+            "h",
+            self.test_text.transform_letter(
+                letter=Letter("a"),
+                letter_config=letter_config,
+            )
+        )
+
+    def test_letters_transform(self):
+        """
+        Tests that transforming a sentence at the letter level behaves as expected.
+        """
+        np.random.seed(12)
+        letter_config = {
+            "mispell": ProbabilisticConfig(**{
+                "law": "Bernouilli",
+                "rate": 0.2,
+                "args": {
+                    "specific_rates": {
+                        "a": {
+                            "b": 0.01,
+                            "c": 0.02,
+                            "d": 0.025
+                        },
+                }
+            }})
+        }
+        self.assertEqual(
+            "but, first, remembsr, remember, remember the silns.",
+            self.test_text.transform_letters(
+                sentence="But, first, remember, remember, remember the signs.",
+                letter_config=letter_config,
+                language="en"
+            )
+        )
+
     def test_text_transform(self):
         """Tests that the transformation of the text behaves as expected.
         """
-        np.random.seed(15)
+        np.random.seed(3)
         meta_config = MetaConfig(**{"language": "en"})
         variant_config = VariantConfig(**{
             "sentences": {
@@ -252,20 +354,28 @@ class TestText(unittest.TestCase):
                     "rate": 0.1,
                     "args": {}
                 }),
-                "mispell": ProbabilisticConfig(**{
-                    "law": "Bernouilli",
-                    "rate": 1,
-                    "args": {}
-                }),
                 "omit": ProbabilisticConfig(**{
                     "law": "Bernouilli",
                     "rate": 0.1,
                     "args": {}
                 })
+            },
+            "letters": {
+                "mispell": ProbabilisticConfig(**{
+                    "law": "Bernouilli",
+                    "rate": 0.3,
+                    "args": {
+                        "specific_rates": {
+                            "a": {
+                                "d": 0.025
+                            },
+                    }
+                }})
             }}
         )
-        result = self.test_text.transform(variant_config=variant_config, meta_config=meta_config)
-        expected_result = "Bwt  remenber rerember  wemember hhe figns. Smy mhem tc yoarself whef yog sake im thb mornini acd yhen  lde doen astatinz  dnd whec nou wawe vn the   tce nigwt."
+        result = self.test_text.transform(
+            variant_config=variant_config, meta_config=meta_config)
+        expected_result = "But  first remember remember remzmser  signs. Lay them to yourself  you wake qn  she mornfng axd when you lie down atomic number 85  ant when you wake in tee middle of ghq ."
         self.assertEqual(expected_result, result)
 
 
