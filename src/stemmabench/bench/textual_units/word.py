@@ -6,7 +6,7 @@ import string
 
 import numpy as np
 from loguru import logger
-from stemmabench.data import SUPPORTED_LANGUAGES, SYNONYM_DICT, LETTERS
+from stemmabench.bench.data import SUPPORTED_LANGUAGES, SYNONYM_DICT, LETTERS
 
 
 class Word:
