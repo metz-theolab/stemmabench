@@ -4,8 +4,10 @@ into a pydantic model.
 from pathlib import Path
 from enum import Enum
 from typing import Any, Dict, Optional
-from pydantic import BaseModel, ValidationError, root_validator
+from pydantic import BaseModel, ValidationError, root_validator, validator
 import yaml
+from stemmabench.bench.data import SUPPORTED_LANGUAGES
+
 
 
 class ProbabilisticLaw(str, Enum):
@@ -54,7 +56,7 @@ class VariantConfig(BaseModel):
     """
     words: Dict[str, ProbabilisticConfig]
     sentences: Dict[str, ProbabilisticConfig]
-
+    letters: Dict[str, ProbabilisticConfig]
 
 class StemmaConfig(BaseModel):
     """Model describing the configuration of the stemma.
@@ -68,6 +70,14 @@ class MetaConfig(BaseModel):
     """Model describing the configuration of the language.
     """
     language: str
+
+    @validator("language")
+    def language_is_supported(cls, value):
+        """Check that the language is supported.
+        """
+        if value not in SUPPORTED_LANGUAGES:
+            raise ValueError("The language is not supported.")
+        return value
 
 
 class StemmaBenchConfig(BaseModel):
