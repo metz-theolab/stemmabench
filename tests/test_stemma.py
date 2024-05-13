@@ -11,7 +11,6 @@ class TestStemma(unittest.TestCase):
     def setUp(self) -> None:
         """Setup the unit test.
         """
-<<<<<<< HEAD
         self.stemma_empty = Stemma()
 
         
@@ -35,9 +34,4 @@ class TestStemma(unittest.TestCase):
     def test_stemma_generation_info_generation(self):
         """Checks that the generation_info is initialized to None."""
         self.assertIsNone(self.stemma_empty.generation_info)
-=======
-        self.stemma = Stemma()
-
-    #def test_stemma_tree(self):
->>>>>>> 4ce44198e0d51d3b8995d9d072d2c70a8aaeee09
         
