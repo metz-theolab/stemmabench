@@ -81,12 +81,13 @@ class Stemma:
     def lookup(self):
         return self._lookup
     
+    @property
+    def generation_info(self):
+        return self._generation_info
+    
     def get_edges():
         """Return array of all the edges."""
-        pass
-
-    def lookup_manuscript(self):
-        return {self.root.lookup()}
+        raise NotImplemented
 
     def dict(self, include_edges = False) -> Dict[str, Union[List[str], Dict[str, List[str]]]]:
         """Return a dict representation of the tree.
