@@ -1,19 +1,13 @@
 import json
 from pathlib import Path
 from typing import Dict, List, Tuple, Union
-import os
-# from stemmabench.config_parser import StemmaBenchConfig
-# from stemmabench.textual_units.text import Text as text_util
-#import src.utils
-from stemma.manuscript_base import ManuscriptBase
 from stemmabench.algorithms.manuscript import Manuscript
-from stemmabench.algorithms.utils import dict_from_edge, load_text
+from stemmabench.algorithms.utils import Utils
 
 class Stemma:
     
     def __init__(
         self,
-        #root: ManuscriptBase = None, 
         path_to_folder: str = None,
         edge_file: str = None,
         generation_info: dict = None) -> None:
@@ -34,14 +28,6 @@ class Stemma:
             has_ground_truth: Boolean indicating if the true tree is known. If false the path_to_original attribute will indicate the 
             estimated original text.
         """
-        #if root:
-        #    self._root = root
-        #    self._lookup = {}
-        #    self.root.lookup(self._lookup)
-        #    self._fitted = True
-        #else:
-        #    self._fitted = False
-
         if path_to_folder:
             self._path_to_folder = path_to_folder
 
@@ -51,6 +37,7 @@ class Stemma:
         if generation_info:
             self._generation_info = generation_info
 
+        self._root = None
         self._lookup = {}
         self._fitted = False
 
@@ -75,12 +62,13 @@ class Stemma:
     def lookup(self):
         return self._lookup
     
+    @property
+    def generation_info(self):
+        return self._generation_info
+    
     def get_edges():
         """Return array of all the edges."""
-        pass
-
-    def lookup_manuscript(self):
-        return {self.root.lookup()}
+        raise NotImplemented
 
     def dict(self, include_edges = False) -> Dict[str, Union[List[str], Dict[str, List[str]]]]:
         """Return a dict representation of the tree.
@@ -145,14 +133,14 @@ class Stemma:
         if edge_file:
             # TODO: Construct stemma from edge file. (Used mainly for building the original.)
             # Build tree
-            self._root = Manuscript(parent= None, recursive=dict_from_edge(edge_file))
+            self._root = Manuscript(parent= None, recursive=Utils.dict_from_edge(edge_file))
             # Set lookup
             # TODO: Check if passed by reference
             self.root.build_lookup(self._lookup)
             # Set texts
             # TODO: Check that text can be accesed in this way
             for text in self.lookup.values():
-                text.text = load_text(self.path_to_folder + "/" + text.label + ".txt")
+                text.text = Utils.load_text(self.path_to_folder + "/" + text.label + ".txt")
             self._fitted = True
             self._edge_file = edge_file
         elif algo:

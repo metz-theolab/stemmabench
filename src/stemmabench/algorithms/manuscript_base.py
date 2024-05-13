@@ -1,7 +1,5 @@
 from pathlib import Path
 import re
-from stemma.manuscript import Manuscript
-from typing import Dict, List, Tuple, Union
 
 class ManuscriptBase:
     """Base class for representing manuscripts in a stemma tree.
@@ -11,8 +9,8 @@ class ManuscriptBase:
                  label: str,
                  parent: "ManuscriptBase",
                  children: list["ManuscriptBase"] = None,
-                 edges: list[float] = None,
-                 recursive: dict[str:dict,str:dict] = None) -> None:
+                 edges: list[float] = None
+                 ) -> None:
         """Base class for representing manuscripts.
 
         Args:
@@ -27,7 +25,26 @@ class ManuscriptBase:
         Raises:
             TypeError: If no Manuscript label specified.
         """
-        raise NotImplemented
+        if label:
+                self._label = label
+        else:
+            raise ValueError("No Manuscript label specified.")
+        if parent:
+                self._parent = parent
+        else:
+            raise ValueError("No Manuscript parent specified.")
+        if children:
+                self._children = children
+        else:
+            raise ValueError("No Manuscript children specified.")
+        if edges:
+                if not children:
+                    raise ValueError("The children array must be specified in order to have edges.")
+                elif len(children) != len(edges):
+                    raise RuntimeError("The edges array must be of same length as the children array.")
+                else:
+                    self._edges = edges
+
 
     @property
     def parent(self):
@@ -99,7 +116,7 @@ class ManuscriptBase:
             for child in self.children:
                 child.dump(folder_path, recurcive = True)
 
-    def build_lookup(self, lookup: dict["ManuscriptBase"]) -> None:
+    def build_lookup(self, lookup: dict) -> None:
         """Used to instantiate the stemmas lookup attribute.
 
         Args:

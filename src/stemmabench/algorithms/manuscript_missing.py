@@ -1,5 +1,4 @@
-from .manuscript_base import ManuscriptBase
-
+from stemmabench.algorithms.manuscript_base import ManuscriptBase
 
 class ManuscriptMissing(ManuscriptBase):
     """Class for the representation of a missing manuscript in a stemma tree.
@@ -19,7 +18,7 @@ class ManuscriptMissing(ManuscriptBase):
             edges (list, Optional): A list representing the distance between the edges. 
             In the same order as the children array.
         """
-        super().__init__(label, parent, children, edges)
+        raise NotImplemented
         
     def __eq__(self, value: object) -> bool:
         """Returns True if both texts are missing.

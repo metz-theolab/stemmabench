@@ -1,6 +1,5 @@
 from pathlib import Path ######################## Remove
-from stemma.manuscript_base import ManuscriptBase
-
+from stemmabench.algorithms.manuscript_base import ManuscriptBase
 
 class Manuscript(ManuscriptBase):
     """Class for the representation of an existing manuscript in a stemma tree.
@@ -8,7 +7,6 @@ class Manuscript(ManuscriptBase):
 
     def __init__(self,
                  label: str,
-                 #text_path: str, text_path (str, reqired): The path to the folder containing the manuscript .txt files.
                  parent: "ManuscriptBase",
                  children: list["ManuscriptBase"] = None,
                  edges: list[float] = None,
@@ -29,39 +27,25 @@ class Manuscript(ManuscriptBase):
         Raises:
             ValueError: If no label or.
         """
-        self._text = text
-
+        if text:
+            self._text = text
+        
         if recursive:
-            self._label = list(recursive.keys())[0]
-            
             # End recursion if list of keys is empty
             if list(recursive[self.label]) == []:
-                return
+                return None
+            super().__init__(list(recursive.keys())[0], parent, [], edges)
             # Initialize children list
-            self.children = []
+            #children = []
             # Else for each key value add a new Manuscript with dict contense
             for lab in recursive[self.label].keys():
-                self.children.append(Manuscript(parent = self, recursive = {lab:recursive[self._label][lab]}))
+                super()._children.append(Manuscript(parent=self, recursive={lab:recursive[self._label][lab]}))
+            
         else:
-            if label:
-                self._label = label
-            else:
-                raise ValueError("No Manuscript label specified.")
+            super().__init__(label, parent, children, edges)
 
-            self._parent = parent
 
-            if children:
-                self._children = children
-
-            if edges:
-                if not children:
-                    raise ValueError("The children array must be specified in order to have edges.")
-                elif len(children) != len(edges):
-                    raise RuntimeError("The edges array must be of same length as the children array.")
-                else:
-                    self._edges = edges
-            if text:
-                self._text
+            
 
     # Getters
     #@property
