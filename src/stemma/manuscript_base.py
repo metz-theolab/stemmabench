@@ -1,5 +1,8 @@
 from pathlib import Path
 import re
+from stemma.manuscript_missing import ManuscriptMissing
+from stemma.manuscript import Manuscript
+from typing import Dict, List, Tuple, Union
 
 
 class ManuscriptBase:
@@ -21,11 +24,14 @@ class ManuscriptBase:
             edges (list, Optional): A list representing the distance between the edges. 
             In the same order as the children array.
             recursive (dict, Optional): If different than None will ignore all other parameters except parent
-            and will build all the children of the manuscript from the given list. 
+            and will build all the children of the manuscript from the given list.
+
+        Raises:
+            TypeError: If no Manuscript label specified.
         """
-        
+        raise NotImplemented
         # Used to construct the tree recursively
-        if recursive: 
+        if recursive:
             self._label = list(recursive.keys())[0]
             # End recursion if list of keys is empty
             if list(recursive[self.label]) == []:
@@ -123,6 +129,17 @@ class ManuscriptBase:
         if recurcive: # Propagate dump recursively to children
             for child in self.children:
                 child.dump(folder_path, recurcive = True)
+
+    def build_lookup(self, lookup: dict["ManuscriptBase"]) -> None:
+        """Used to instantiate the stemmas lookup attribute.
+
+        Args:
+            lookup (dict, Requiered): The dictionary that the current manuscript will be added to.
+        """
+        # TODO: Check to see if passed by reference or by value -> need return.
+        lookup.update({self.label: self})
+        if self.children:
+            (c.build_lookup(lookup) for c in self.children)
 
 ################### UNDER CONSTRUCTION ########################
 

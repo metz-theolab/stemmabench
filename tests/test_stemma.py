@@ -12,6 +12,9 @@ class TestStemma(unittest.TestCase):
         """Setup the unit test.
         """
         self.stemma = Stemma()
+        self.stemma.compute()
+        
 
-    #def test_stemma_tree(self):
+    def test_stemma_generation(self):
+        pass
         

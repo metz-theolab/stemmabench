@@ -1,6 +1,5 @@
 from pathlib import Path ######################## Remove
 from stemma.manuscript_base import ManuscriptBase
-from src.utils import load_text
 
 
 class Manuscript(ManuscriptBase):
@@ -9,63 +8,79 @@ class Manuscript(ManuscriptBase):
 
     def __init__(self,
                  label: str,
-                 text_path: str,
-                 text: str,
-                 parent: "Manuscript",
+                 #text_path: str, text_path (str, reqired): The path to the folder containing the manuscript .txt files.
+                 parent: "ManuscriptBase",
                  children: list["ManuscriptBase"] = None,
                  edges: list[float] = None,
-                 recursive: list[list[str, str],list[str, str]] = None) -> None:
+                 recursive: dict[str:dict] = None,
+                 text: str = None) -> None:
         """A class representing the Manuscripts that make up the nodes of a stemma.
 
         Args:
-            label (str, reqired): The label denoting the text.
-            text_path (str, reqired): The name of the txt file containing the text. 
-            (The name of the folder containing the txt files will be taken from the stemma class.)
-            text (str, required): The contense of the text. If set to None this represents a missing text.
-            parent (text, optional): The parent text of the curent text.
+            label (str, Reqired): The label denoting the text.
+            parent (text, Optional): The parent Manuscript of the curent Manuscript. If set to None is the root of the tree.
             children (list, optional): A list of this Manuscripts children.
             edges (list, Optional): A list representing the distance between the edges. 
             In the same order as the children array.
-            recursive (list[str], Optional): If different than None will buil all the children of the manuscript
+            recursive (dict[str], Optional): If different than None will buil all the children of the manuscript
             from the given list. 
+            text (str, Required): The contense of the text. If set to None this represents a missing text.
 
         Raises:
-            Exception: If no input text is specified.
+            ValueError: If no label or.
         """
-        if recursive:
-            super().__init__(self, parent, recursive)
-            return
+        self._text = text
 
-        super().__init__(self, label, parent, children, edges)
-        
-        if text_path:
-            self._text_path = text_path
+        if recursive:
+            self._label = list(recursive.keys())[0]
+            
+            # End recursion if list of keys is empty
+            if list(recursive[self.label]) == []:
+                return
+            # Initialize children list
+            self.children = []
+            # Else for each key value add a new Manuscript with dict contense
+            for lab in recursive[self.label].keys():
+                self.children.append(Manuscript(parent = self, recursive = {lab:recursive[self._label][lab]}))
         else:
-            raise TypeError("No text path specified.")
-        
-        if text:
-            self._text = load_text(text_path)
-        else:
-            raise TypeError("No input text specified.")
+            if label:
+                self._label = label
+            else:
+                raise ValueError("No Manuscript label specified.")
+
+            self._parent = parent
+
+            if children:
+                self._children = children
+
+            if edges:
+                if not children:
+                    raise ValueError("The children array must be specified in order to have edges.")
+                elif len(children) != len(edges):
+                    raise RuntimeError("The edges array must be of same length as the children array.")
+                else:
+                    self._edges = edges
+            if text:
+                self._text
 
     # Getters
-    @property
-    def text_path(self):
-        return self._text_path
+    #@property
+    #def text_path(self):
+    #    return self._text_path
     
     @property
     def text(self):
         return self._text
         
     def __eq__(self, value: object) -> bool:
-        """Returns True if both texts have the same contents.
+        """Returns True if both texts have the same content and the same label.
         !!! Returns True if both texts are missing !!!
 
         Args:
             value (object, requiered): The object to compare to.
         """
         if isinstance(value, Manuscript):
-            return value.text == self.text
+            return value.text == self.text and value.label == self.label
         return False
 
     def dump(self, 
@@ -82,9 +97,27 @@ class Manuscript(ManuscriptBase):
             folder_path (str, Required): The path the folder where the text file will be writen.
             recurcive (bool, Otional): Indicates if the dump should be propagated to all children recursively.
         """
-
         Path(folder_path).mkdir(exist_ok=True)
         file_path = Path(folder_path) / f"{self.label.replace(':', '_')}.txt"
         file_path.open("r+", encoding="utf-8").write(self.text)
         super().dump(folder_path, recurcive=recurcive) # Edge files are dumped here
         
+    def cast_to_Manuscript(manuscriptBase: "ManuscriptBase",
+                           text_path: str,
+                           text: str):
+        """Casts a ManuscriptBase to a Manuscript.
+        
+        Args:
+            manuscriptBase (ManuscriptBase, Required): The ManuscriptBase object to be cast to a Manuscript.
+            text_path (str, Required): The path the the txt file containing the text.
+            text (str, Required): The manuscript text.
+
+        Returns:
+            Manuscript: The manuscriptBase object cast to a Manuscript class.
+
+        Raises:
+            ValueError: If manuscriptBase is not of class ManuscriptBase.
+        """
+        if not isinstance(manuscriptBase, ManuscriptBase):
+            raise ValueError("manuscriptBase is not of class ManuscriptBase.")
+        return Manuscript(manuscriptBase.label,text_path, text, manuscriptBase.parent, manuscriptBase.children)
