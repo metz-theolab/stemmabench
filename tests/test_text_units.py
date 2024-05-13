@@ -3,11 +3,11 @@ Unit tests for textual units.
 """
 import unittest
 import numpy as np
-from stemmabench.config_parser import MetaConfig, ProbabilisticConfig, VariantConfig
-from stemmabench.textual_units.text import Text
-from stemmabench.textual_units.sentence import Sentence
-from stemmabench.textual_units.word import Word
-from stemmabench.data import LETTERS
+from stemmabench.bench.config_parser import MetaConfig, ProbabilisticConfig, VariantConfig
+from stemmabench.bench.textual_units.text import Text
+from stemmabench.bench.textual_units.sentence import Sentence
+from stemmabench.bench.textual_units.word import Word
+from stemmabench.bench.data import LETTERS
 
 class TestWord(unittest.TestCase):
     """Unit tests for the Word class.

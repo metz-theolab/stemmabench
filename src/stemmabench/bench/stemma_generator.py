@@ -5,8 +5,8 @@ from pathlib import Path
 from typing import Dict, List, Tuple, Union
 
 import numpy as np
-from stemmabench.config_parser import StemmaBenchConfig
-from stemmabench.textual_units.text import Text
+from stemmabench.bench.config_parser import StemmaBenchConfig
+from stemmabench.bench.textual_units.text import Text
 
 
 class Stemma:

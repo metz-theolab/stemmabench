@@ -6,8 +6,8 @@ import shutil
 from pathlib import Path
 
 import numpy as np
-from stemmabench.config_parser import StemmaBenchConfig
-from stemmabench.stemma_generator import Stemma
+from stemmabench.bench.config_parser import StemmaBenchConfig
+from stemmabench.bench.stemma_generator import Stemma
 
 TEST_YAML = Path(__file__).resolve().parent / "test_data" / "config.yaml"
 OUTPUT_FOLDER = "output_folder"
