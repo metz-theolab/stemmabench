@@ -1,17 +1,19 @@
 from pathlib import Path ######################## Remove
 from stemmabench.algorithms.manuscript_base import ManuscriptBase
+from typing import Union
+
 
 class Manuscript(ManuscriptBase):
     """Class for the representation of an existing manuscript in a stemma tree.
     """
 
     def __init__(self,
-                 label: str,
                  parent: "ManuscriptBase",
-                 children: list["ManuscriptBase"] = None,
-                 edges: list[float] = None,
-                 recursive: dict[str:dict] = None,
-                 text: str = None) -> None:
+                 label: str = None,
+                 children: Union[list["ManuscriptBase"], None] = None,
+                 edges: Union[list[float], None] = None,
+                 recursive: Union[dict[str:dict], None] = None,
+                 text: Union[str, None] = None) -> None:
         """A class representing the Manuscripts that make up the nodes of a stemma.
 
         Args:
@@ -29,28 +31,18 @@ class Manuscript(ManuscriptBase):
         """
         if text:
             self._text = text
-        
         if recursive:
+            self._parent = None
+            self._children = []
+            self._label = list(recursive.keys())[0]
             # End recursion if list of keys is empty
             if list(recursive[self.label]) == []:
                 return None
-            super().__init__(list(recursive.keys())[0], parent, [], edges)
-            # Initialize children list
-            #children = []
             # Else for each key value add a new Manuscript with dict contense
             for lab in recursive[self.label].keys():
-                super()._children.append(Manuscript(parent=self, recursive={lab:recursive[self._label][lab]}))
-            
+                self._children.append(Manuscript(parent=self, recursive={lab:recursive[self._label][lab]}))  
         else:
             super().__init__(label, parent, children, edges)
-
-
-            
-
-    # Getters
-    #@property
-    #def text_path(self):
-    #    return self._text_path
     
     @property
     def text(self):
@@ -58,7 +50,6 @@ class Manuscript(ManuscriptBase):
         
     def __eq__(self, value: object) -> bool:
         """Returns True if both texts have the same content and the same label.
-        !!! Returns True if both texts are missing !!!
 
         Args:
             value (object, requiered): The object to compare to.
@@ -67,41 +58,31 @@ class Manuscript(ManuscriptBase):
             return value.text == self.text and value.label == self.label
         return False
 
-    def dump(self, 
-             folder_path: str,  
-             recurcive: bool = False) -> None:
-        """Writes the manuscripts contents to a txt file in the given folder.
-            If file already exists will overwrite file.
-            If the folder does not exist it will be created.
-            If the edge file does not existe it will be created.
-            Will look through edge file if it exists to check that edge is alredy present in edge file. 
-            If True will not wirte individual edge to file.
+    def dump(self, folder_path: str, edge_path: str = None):
+        """Writes all texts int the stemma to txt files placed in the specified folder.
+        If the folder does not exist it will be created. Will also write all edges present in the stemma to 
+        the specified edge file. If none is specified a file named edges.txt will be created in the given folder
+        and the adges will be writen to that file.
         
         Args:
             folder_path (str, Required): The path the folder where the text file will be writen.
-            recurcive (bool, Otional): Indicates if the dump should be propagated to all children recursively.
+            edge_path (str, Optional): The path to the edge file.
         """
-        Path(folder_path).mkdir(exist_ok=True)
-        file_path = Path(folder_path) / f"{self.label.replace(':', '_')}.txt"
-        file_path.open("r+", encoding="utf-8").write(self.text)
-        super().dump(folder_path, recurcive=recurcive) # Edge files are dumped here
-        
-    def cast_to_Manuscript(manuscriptBase: "ManuscriptBase",
-                           text_path: str,
-                           text: str):
-        """Casts a ManuscriptBase to a Manuscript.
-        
-        Args:
-            manuscriptBase (ManuscriptBase, Required): The ManuscriptBase object to be cast to a Manuscript.
-            text_path (str, Required): The path the the txt file containing the text.
-            text (str, Required): The manuscript text.
+        if not Path(folder_path).exists():
+            Path(folder_path).mkdir(exist_ok=True)
+        f = (Path(folder_path) / (self.label + ".txt")).open("w")
+        f.write(self.text)
+        f.close()
+        super().dump(folder_path, edge_path)
+
+    def build_text_lookup(self) -> dict:
+        """Used to instantiate the stemmas lookup attribute.
 
         Returns:
-            Manuscript: The manuscriptBase object cast to a Manuscript class.
-
-        Raises:
-            ValueError: If manuscriptBase is not of class ManuscriptBase.
+            dict: Dictionary of its self and all its decendents. With its label as key and its self as value.
         """
-        if not isinstance(manuscriptBase, ManuscriptBase):
-            raise ValueError("manuscriptBase is not of class ManuscriptBase.")
-        return Manuscript(manuscriptBase.label,text_path, text, manuscriptBase.parent, manuscriptBase.children)
+        out = {self.label: self}
+        if self.children:
+             for c in self.children:
+                  out.update(c.build_lookup())
+        return out

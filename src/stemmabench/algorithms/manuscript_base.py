@@ -1,5 +1,7 @@
 from pathlib import Path
-import re
+import os
+from typing import Union
+
 
 class ManuscriptBase:
     """Base class for representing manuscripts in a stemma tree.
@@ -8,7 +10,7 @@ class ManuscriptBase:
     def __init__(self,
                  label: str,
                  parent: "ManuscriptBase",
-                 children: list["ManuscriptBase"] = None,
+                 children: list["ManuscriptBase"] = [],
                  edges: list[float] = None
                  ) -> None:
         """Base class for representing manuscripts.
@@ -27,24 +29,20 @@ class ManuscriptBase:
         """
         if label:
                 self._label = label
-        else:
-            raise ValueError("No Manuscript label specified.")
-        if parent:
+        #TODO: Check not broken
+        if parent == None or isinstance(parent, ManuscriptBase):
                 self._parent = parent
         else:
-            raise ValueError("No Manuscript parent specified.")
-        if children:
+            raise ValueError("Parent must be None or of type ManuscriptBase.")
+        if isinstance(children, list):
                 self._children = children
         else:
-            raise ValueError("No Manuscript children specified.")
-        if edges:
-                if not children:
-                    raise ValueError("The children array must be specified in order to have edges.")
-                elif len(children) != len(edges):
+            raise ValueError("The children must be of type list.")
+        if edges != None:
+                if len(children) != len(edges):
                     raise RuntimeError("The edges array must be of same length as the children array.")
                 else:
                     self._edges = edges
-
 
     @property
     def parent(self):
@@ -79,50 +77,48 @@ class ManuscriptBase:
             if len(self.children) == 0:
                 return self.label
             else:
-                return {self.label: {child.dict() for child in self.children}}
-        # TODO: Check this works.
-        else:
-            if len(self.children) == 0:
-                return self.label
-            else:
                 return {"label": self.label, 
                         "edges": {edge for edge in self.edges},
                         "children": {child.dict() for child in self.children}}
+        else:
+            if not self.children or len(self.children) == 0:
+                return {self.label: {}}
+            else:
+                out = {}
+                for child in self.children:
+                     out.update(child.dict())
+                return {self.label: out}
 
-    def dump(self, 
-             folder_path: str,  
-             recurcive: bool = False) -> None:
+    def dump(self, folder_path: str, edge_path: str = None) -> None:
         """Adds the edge to the edge file present in given folder.
             If the folder does not exist it will be created.
             If the edge file does not existe it will be created.
             Will look through edge file if it exists to check that edge is alredy present in edge file. 
-            If True will not wirte individual edge to file.
         
         Args:
-            folder_path (str, required): The path the folder where the text file will be writen.
-            recurcive (bool, otional): Indicates if the dump should be propagated to all children recursively.
+            folder_path (str, Required): The path the folder where the text file will be writen.
+            edge_path (str, Optional): The path to the edge file.
         """
-        edge_path = Path(folder_path) / "edges.txt"
-        if not Path.exists(edge_path): # If not exists read file check if edge already present
-            Path.mkdir(exist_ok=True)
-        text = edge_path.read_text()
-        with edge_path.open("a") as f:
+        if not os.path.isdir(folder_path):
+             Path(folder_path).mkdir(exist_ok=True)
+        if not edge_path:
+            edge_path = Path(folder_path) / "edges.txt"
+        with open(edge_path, "a") as fedge:
+            edges = open(edge_path, "r").read()
             for child in self.children:
-                edge = "('" + self.label + "','" + child.label + "')"
-                if not re.search(edge, text):
-                    f.write(edge + "\n")
-            f.close()
-        if recurcive: # Propagate dump recursively to children
-            for child in self.children:
-                child.dump(folder_path, recurcive = True)
-
-    def build_lookup(self, lookup: dict) -> None:
+               edge = "('" + self.label + "','" + child.label + "')\n"
+               if edges.find(edge) < 1:
+                fedge.write(edge)
+        fedge.close()
+            
+    def build_lookup(self) -> dict:
         """Used to instantiate the stemmas lookup attribute.
 
-        Args:
-            lookup (dict, Requiered): The dictionary that the current manuscript will be added to.
+        Returns:
+            dict: Dictionary of its self and all its decendents. With its label as key and its self as value.
         """
-        # TODO: Check to see if passed by reference or by value -> need return.
-        lookup.update({self.label: self})
+        out = {self.label: self}
         if self.children:
-            (c.build_lookup(lookup) for c in self.children)
+             for c in self.children:
+                  out.update(c.build_lookup())
+        return out

@@ -1,5 +1,6 @@
 from pathlib import Path
 
+
 class Utils:
 
     @staticmethod
@@ -12,7 +13,7 @@ class Utils:
         Returns:
             str: The loaded text.
         """
-        with open(Path(path_to_text), encoding="utf-8") as file:
+        with open(path_to_text, "r", encoding="utf-8") as file:
             return file.read()
 
     @staticmethod   
@@ -54,7 +55,7 @@ class Utils:
         return root
 
     @staticmethod
-    def dict_from_edge(edge_path) -> dict:
+    def dict_from_edge(edge_path: str) -> dict:
         """Converts edge file to dictionary representation.
 
         Args:
@@ -66,7 +67,7 @@ class Utils:
         tree_data = Utils.dict_of_children(Utils.edge_to_list(edge_path))
         root = Utils.find_root(tree_data)
         if not Utils.validate_edge(tree_data):
-            raise RuntimeError("The edge file given is not valid. Look at validate_edge function for more details.")
+            raise ValueError("The edge file given is not valid. Look at validate_edge function for more details.")
         while len(tree_data) > 1:
             # TODO: Optimize this mess
             if root[0] == list(tree_data.keys())[len(tree_data.keys())-1]:

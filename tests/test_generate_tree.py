@@ -55,7 +55,7 @@ class TestStemmaGenerator(unittest.TestCase):
         expected_mss = sum([width**i for i in range(depth)])
         self.assertTrue(
             expected_mss,
-            len(self.stemma.texts_lookup)
+            len(self.stemma.texts_texts_lookup)
         )
 
     def test_apply_level(self):
@@ -87,7 +87,7 @@ class TestStemmaGenerator(unittest.TestCase):
         mss_non_missing, edges_non_missing = generated_stemma.missing_manuscripts()
 
         # Check if the selected missing manuscripts are not present in edge.
-        for mss in generated_stemma.texts_lookup:
+        for mss in generated_stemma.texts_texts_lookup:
             if mss not in mss_non_missing:
                 for edge in edges_non_missing:
                     self.assertNotIn(mss, edge)
@@ -97,7 +97,7 @@ class TestStemmaGenerator(unittest.TestCase):
         self.assertIsInstance(edges_non_missing, list)
 
         # Calculate the expected number of missing manuscripts based on the configured rate
-        total_manuscripts = len(generated_stemma.texts_lookup)
+        total_manuscripts = len(generated_stemma.texts_texts_lookup)
         configured_rate = generated_stemma.missing_manuscripts_rate
         expected_missing_count = int(configured_rate * total_manuscripts)
         # Check if the number of missing manuscripts matches the expected count

@@ -3,7 +3,6 @@
 import json
 from pathlib import Path
 from typing import Dict, List, Tuple, Union
-
 import numpy as np
 from stemmabench.bench.config_parser import StemmaBenchConfig
 from stemmabench.bench.textual_units.text import Text
@@ -52,7 +51,7 @@ class Stemma:
         
         self.tree = {}
         self._levels = [[]]  # Initialize the levels with an empty list
-        self.texts_lookup = {}  # Dictionary to store manuscripts with their IDs
+        self.texts_texts_lookup = {}  # Dictionary to store manuscripts with their IDs
         self.edges = []  # List to store edges in the tree
         self.next_id = 1  # Next available ID
 
@@ -103,14 +102,14 @@ class Stemma:
         """
         # Compute the number of manuscripts to delete.
         n_mss_to_delete = int(
-            self.missing_manuscripts_rate * len(self.texts_lookup))
+            self.missing_manuscripts_rate * len(self.texts_texts_lookup))
         # Select the manuscripts to delete.
-        mss_list = list(self.texts_lookup)
+        mss_list = list(self.texts_texts_lookup)
         missing_mss = np.random.choice(
             mss_list, n_mss_to_delete, replace=False)
         # Subset non-missing manuscripts and non-missing edges.
         mss_non_missing = {mss_id: mss_text
-                           for mss_id, mss_text in self.texts_lookup.items()
+                           for mss_id, mss_text in self.texts_texts_lookup.items()
                            if mss_id not in missing_mss}
         edges_non_missing = [
             edge for edge in self.edges
@@ -123,7 +122,7 @@ class Stemma:
         Add a manuscript to the tree.
         """
         manuscript_id = self.next_id
-        self.texts_lookup[str(manuscript_id)] = text
+        self.texts_texts_lookup[str(manuscript_id)] = text
         self.next_id += 1
         level = len(self._levels) - 1
         self._levels[level].append(manuscript_id)
@@ -135,7 +134,7 @@ class Stemma:
         for depth in range(self.depth-1):
             self._levels.append([])
             for manuscript_id in self._levels[depth]:
-                text = self.texts_lookup[str(manuscript_id)]
+                text = self.texts_texts_lookup[str(manuscript_id)]
                 transformed_texts = self._apply_level(text)
                 for transformed_text in transformed_texts:
                     transformed_manuscript_id = self.add_manuscript(
@@ -154,7 +153,7 @@ class Stemma:
             folder (str): The folder where the text should be written.
         """
         Path(folder).mkdir(exist_ok=True)
-        for file_name, file_content in self.texts_lookup.items():
+        for file_name, file_content in self.texts_texts_lookup.items():
             file_path = Path(folder) / f"{file_name.replace(':', '_')}.txt"
             with file_path.open("w", encoding="utf-8") as f:
                 f.write(file_content)
@@ -166,8 +165,8 @@ class Stemma:
         if self.missing_manuscripts_rate > 0:
             missing_tradition_folder = Path(folder) / "missing_tradition"
             missing_tradition_folder.mkdir(exist_ok=True)
-            miss_texts_lookup, miss_edges = self.missing_manuscripts()
-            for file_name, file_content in miss_texts_lookup.items():
+            miss_texts_texts_lookup, miss_edges = self.missing_manuscripts()
+            for file_name, file_content in miss_texts_texts_lookup.items():
                 file_path = missing_tradition_folder / \
                     f"{file_name.replace(':', '_')}.txt"
                 with file_path.open("w", encoding="utf-8") as f:
