@@ -1,5 +1,6 @@
 from stemmabench.algorithms.manuscript_base import ManuscriptBase
 
+
 class ManuscriptMissing(ManuscriptBase):
     """Class for the representation of a missing manuscript in a stemma tree.
     """
@@ -12,18 +13,10 @@ class ManuscriptMissing(ManuscriptBase):
         """Class for the representation of a missing manuscript in a stemma tree.
 
         Args:
-            label (str, reqired): The label denoting the text.
-            parent (text, requiered): The parent text of the curent text. If set to None is the root manuscript of the tree.
+            label (str, Required): The label denoting the text.
+            parent (ManuscriptBase, Required): The parent text of the curent text. If set to None is the root manuscript of the tree.
             children (list, optional): A list of this Manuscripts children.
             edges (list, Optional): A list representing the distance between the edges. 
             In the same order as the children array.
         """
-        raise NotImplemented
-        
-    def __eq__(self, value: object) -> bool:
-        """Returns True if both texts are missing.
-
-        Args:
-            value (object, requiered): The object to compare to.
-        """
-        return isinstance(value, ManuscriptMissing)
+        raise NotImplementedError()

@@ -9,7 +9,7 @@ from stemmabench.algorithms.manuscript import Manuscript
 
 
 class TestStemma(unittest.TestCase):
-    """Unit tests for the Utils functions.
+    """Unit tests for the Utils class.
     """
     def setUp(self) -> None:
         """Setup the unit test.
@@ -29,7 +29,6 @@ class TestStemma(unittest.TestCase):
         if os.path.exists("tests/test_data/test_output"):
                 shutil.rmtree("tests/test_data/test_output")
     
-    # Attribute tests
     def test_Stemma(self):
         """Tests Stemma instanciation."""
         self.assertFalse(self.stemma_empty.fitted)
@@ -55,16 +54,22 @@ class TestStemma(unittest.TestCase):
         self.assertEqual(self.stemma_edge.__repr__().replace("\n","").replace(" ",""), self.stemma_str)
         self.assertEqual(self.stemma_empty.__repr__(), "Empty")
 
-    def test_compute_from_edge(self):
+    def test_compute(self):
         """Check to see if the compute method sets Stemma attributes properly."""
+        # From edge file
         self.assertTrue(self.stemma_edge.fitted)
         self.assertEqual(self.stemma_edge.text_lookup.keys(), self.compare_lookup_keys.keys())
         self.assertEqual(self.stemma_edge.path_to_folder, "tests/test_data")
         temp = Stemma()
         with self.assertRaises(ValueError):
             temp.compute(edge_file="tests/test_data/test_edges_stemma.txt")
+        # From algo
+        with self.assertRaises(NotImplementedError):
+            temp.compute(algo=lambda x: x)
+        # Error tests
+        with self.assertRaises(RuntimeError):
+            temp.compute()
 
-        
     def test_dump(self):
         """Tests the dump method. !!! Uses __eq__ method from Manuscript class !!!"""
         out = True
@@ -88,3 +93,8 @@ class TestStemma(unittest.TestCase):
             self.assertEqual(self.stemma_edge.text_lookup[name.replace(".txt", "")].text, text2)
         for edge in open("tests/test_data/test_edges_stemma.txt", "r").read().split(sep="\n"):
             self.assertTrue(open("tests/test_data/test_output/edges.txt", "r").read().find(edge) > -1)
+
+    def test_get_edges(self):
+        """Tests the get_edges method."""
+        with self.assertRaises(NotImplementedError):
+            self.stemma_empty.get_edges()

@@ -7,23 +7,20 @@ import os
 
 
 class Stemma:
-    
-    def __init__(
-        self,
-        path_to_folder: str = None,
-        edge_file: str = None,
-        generation_info: dict = None) -> None:
+    """Class that represents a stemma tree."""
+
+    def __init__(self,
+                 path_to_folder: str = None,
+                 edge_file: str = None,
+                 generation_info: dict = None) -> None:
         """A class to perform variant generation.
         To instansite the class use one of the build methods.
 
         Args:
-            root (ManuscriptBase, optional): The root text of the tree.
-            path_to_folder (str, optional): The path to the folder that contains the texts.
-            If the true original text is not known the path to the root text will be added here and
-            that fact will be stated in the generation_info dictionary.
-            edge_file (str, optional): An edge file from which the tree can be built. 
+            path_to_folder (str, Optional): The path to the folder that contains the texts.
+            edge_file (str, Optional): An edge file from which the tree can be built. 
             !!! The labels used in the edge file must be the same as the name used for the text .txt names !!!
-            generation_info (dict, optional): A dictionnary containing.
+            generation_info (dict, Optional): A dictionnary containing information about the stemma's generation.
 
         Generation_info content:
             config: The path to the config file used to generate the tree.
@@ -37,7 +34,6 @@ class Stemma:
         self._text_lookup = {}
         self._fitted = False
 
-    # Getters
     @property
     def root(self):
         return self._root
@@ -62,18 +58,17 @@ class Stemma:
     def generation_info(self):
         return self._generation_info
     
-    def get_edges():
+    def get_edges(self):
         """Return array of all the edge values."""
-        raise NotImplemented
+        raise NotImplementedError()
 
     def dict(self, include_edges = False) -> Dict[str, Union[List[str], Dict[str, List[str]]]]:
         """Return a dict representation of the tree.
         Dict is empty until tree is fitted (fitting can be done using .fit() method)
         """
-        # TODO: Test if it works and see if include_edges parameter should be removed.
         if self.fitted == False:
             raise RuntimeError("Stemma not fitted yet.")
-        return self.root.dict()
+        return self.root.dict(include_edges)
     
     def __eq__(self, value: object) -> bool:
         """Returns true if both stemmas are the same. !!! Only checks that both stemmas contain all the same texts !!!"""
@@ -104,8 +99,6 @@ class Stemma:
         Raises:
             Exception: If folder is not specified and the folder_path variable is not set.
         """
-
-        # TODO: Test
         if not self.path_to_folder and not folder:
             raise ValueError("This stemmas path_to_folder varaibles is not set. Therefor folder must be specified.")
         if not folder and self.path_to_folder:
@@ -116,9 +109,9 @@ class Stemma:
             self.text_lookup[key].dump(folder)
 
     def compute(self,
-                algo = None, # Use string of lambda.
+                algo = None,
                 edge_file: Union[str, None] = None,
-                path_to_folder: Union[str, None] = None, # Use just path to folder and look for edge_file
+                path_to_folder: Union[str, None] = None,
                 generation_info: Union[Dict, None] = None,
                 *args,
                 **kargs) -> None:
@@ -142,7 +135,7 @@ class Stemma:
             self._fitted = True
             self._edge_file = edge_file
         elif algo:
-            raise RuntimeError("Not implemented yet!")
+            raise NotImplementedError("Not implemented yet!")
             if not path_to_folder:
                 raise RuntimeError("If algo is used the path to the folder containing the manuscripts must be specified.")
             # TODO: Build tree using the stated algo present in the algo folder.

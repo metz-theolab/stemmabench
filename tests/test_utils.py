@@ -1,5 +1,5 @@
 """
-Unit tests for utils.
+Unit tests for the Utils class.
 """
 import unittest
 from pathlib import Path
@@ -7,7 +7,7 @@ from stemmabench.algorithms.utils import Utils# import dict_from_edge, load_text
 
 
 class TestUtils(unittest.TestCase):
-    """Unit tests for the Utils functions.
+    """Unit tests for the Utils class.
     """
 
     def setUp(self):

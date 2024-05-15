@@ -1,6 +1,5 @@
 from pathlib import Path
 import os
-from typing import Union
 
 
 class ManuscriptBase:
@@ -16,16 +15,18 @@ class ManuscriptBase:
         """Base class for representing manuscripts.
 
         Args:
-            label (str, reqired): The label denoting the text.
-            parent (text, requiered): The parent text of the curent text. If set to None is the root manuscript of the tree.
-            children (list, optional): A list of this Manuscripts children.
-            edges (list, Optional): A list representing the distance between the edges. 
-            In the same order as the children array.
-            recursive (dict, Optional): If different than None will ignore all other parameters except parent
+            label (str, Required): The label denoting the text.
+            parent (text, Required): The parent text of the curent text. If set to None is the root manuscript of the tree.
+            children (list, Optional): A list of this Manuscripts children.
+            edges (list, Optional): A list representing the distance between the edges. In the same order as the children list.
+            recursive (dict, Optional): A dictionary representation of the Manuscript and all its children.
+            If different than None will ignore all other parameters except parent
             and will build all the children of the manuscript from the given list.
 
         Raises:
-            TypeError: If no Manuscript label specified.
+            ValueError: If parent different than None or not of type ManuscriptBase.
+                        If children not of type list.
+            RuntimeError: If edges specified and len(edges) > len(children)
         """
         if label:
                 self._label = label
@@ -75,11 +76,11 @@ class ManuscriptBase:
         """
         if include_edges:
             if len(self.children) == 0:
-                return self.label
+                return {self.label: {}}
             else:
                 return {"label": self.label, 
-                        "edges": {edge for edge in self.edges},
-                        "children": {child.dict() for child in self.children}}
+                        "edges": {child.label: edge for edge,child in zip(self.edges, self.children)},
+                        "children": {child.label: child.dict() for child in self.children}}
         else:
             if not self.children or len(self.children) == 0:
                 return {self.label: {}}
@@ -110,8 +111,8 @@ class ManuscriptBase:
                if edges.find(edge) < 1:
                 fedge.write(edge)
         fedge.close()
-            
-    def build_lookup(self) -> dict:
+
+    def build_text_lookup(self) -> dict:
         """Used to instantiate the stemmas lookup attribute.
 
         Returns:
@@ -120,5 +121,5 @@ class ManuscriptBase:
         out = {self.label: self}
         if self.children:
              for c in self.children:
-                  out.update(c.build_lookup())
+                  out.update(c.build_text_lookup())
         return out

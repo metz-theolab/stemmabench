@@ -1,4 +1,4 @@
-from pathlib import Path ######################## Remove
+from pathlib import Path
 from stemmabench.algorithms.manuscript_base import ManuscriptBase
 from typing import Union
 
@@ -8,26 +8,25 @@ class Manuscript(ManuscriptBase):
     """
 
     def __init__(self,
-                 parent: "ManuscriptBase",
-                 label: str = None,
-                 children: Union[list["ManuscriptBase"], None] = None,
+                 parent: Union["ManuscriptBase", None] = None,
+                 label: Union[str, None] = None,
+                 children: list["ManuscriptBase"] = [],
                  edges: Union[list[float], None] = None,
                  recursive: Union[dict[str:dict], None] = None,
                  text: Union[str, None] = None) -> None:
         """A class representing the Manuscripts that make up the nodes of a stemma.
 
         Args:
-            label (str, Reqired): The label denoting the text.
-            parent (text, Optional): The parent Manuscript of the curent Manuscript. If set to None is the root of the tree.
-            children (list, optional): A list of this Manuscripts children.
-            edges (list, Optional): A list representing the distance between the edges. 
-            In the same order as the children array.
-            recursive (dict[str], Optional): If different than None will buil all the children of the manuscript
-            from the given list. 
-            text (str, Required): The contense of the text. If set to None this represents a missing text.
+            parent (ManuscriptBase, Optional): The parent Manuscript of the curent Manuscript. If set to None should be the root of the tree.
+            label (str, Optional): The label denoting the text.
+            children (list, Optional): A list of this Manuscripts children.
+            edges (list, Optional): A list representing the distance between the edges. Is in the same order as the list of children. 
+            recursive (dict, Optional): Dictionary representation of the current Manuscript and all its decendents. If different than None will buil all the children of the manuscript
+            from the given list. Should only be used when instantiating a stemma from the root. 
+            text (str, Optional): The contense of the text.
 
         Raises:
-            ValueError: If no label or.
+            ValueError: If both recursive and lable are not specified.
         """
         if text:
             self._text = text
@@ -41,9 +40,11 @@ class Manuscript(ManuscriptBase):
             # Else for each key value add a new Manuscript with dict contense
             for lab in recursive[self.label].keys():
                 self._children.append(Manuscript(parent=self, recursive={lab:recursive[self._label][lab]}))  
-        else:
+        elif label:
             super().__init__(label, parent, children, edges)
-    
+        else: 
+            raise ValueError("If recursive is not specified then lable must be specified.")
+
     @property
     def text(self):
         return self._text
@@ -74,15 +75,3 @@ class Manuscript(ManuscriptBase):
         f.write(self.text)
         f.close()
         super().dump(folder_path, edge_path)
-
-    def build_text_lookup(self) -> dict:
-        """Used to instantiate the stemmas lookup attribute.
-
-        Returns:
-            dict: Dictionary of its self and all its decendents. With its label as key and its self as value.
-        """
-        out = {self.label: self}
-        if self.children:
-             for c in self.children:
-                  out.update(c.build_lookup())
-        return out

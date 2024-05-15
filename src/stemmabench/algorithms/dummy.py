@@ -1,5 +1,7 @@
 
 import os
+from stemmabench.algorithms.stemma_algorithm import Stemma_algo
+
 
 class Dummy(Stemma_algo):
     
