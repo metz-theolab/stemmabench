@@ -71,50 +71,6 @@ class TestLetter(unittest.TestCase):
         ), "c")
 
 
-class TestLetter(unittest.TestCase):
-    """Unit tests for the Letter class.
-    """
-
-    def setUp(self):
-        self.test_letter = Letter("a")
-        self.rate = 0.1
-        self.specific_rates = {
-            "a": {'b': 0.3, 'c': 0.2, 'd': 0.025},
-            "b": {'d': 0.1}
-        }
-        self.alphabet = ["a", "b", "c", "d"]
-
-    def test_init(self):
-        """Tests that the initialization of the Letter class behaves as expected.
-        """
-        self.assertEqual(self.test_letter.letter, "a")
-
-    def test_build_probability_matrix(self):
-        """Tests that the probability matrix is built as expected.
-        """
-        probability_matrix = self.test_letter.build_probability_matrix(
-            rate=self.rate,
-            specific_rates=self.specific_rates,
-            alphabet=self.alphabet
-        )
-        self.assertDictEqual(
-            probability_matrix,
-            {"a": {'a': 0.475, 'b': 0.3, 'c': 0.2, 'd': 0.025},
-             "b": {'a': 0.025, 'b': 0.85, 'c': 0.025, 'd': 0.1},
-             "c": {'a': 0.025, 'b': 0.025, 'c': 0.925, 'd': 0.025},
-             'd': {'a': 0.025, 'b': 0.025, 'c': 0.025, 'd': 0.925},
-             })
-
-    def test_mispell(self):
-        """Tests that mispelling a letter behaves as expected.
-        """
-        np.random.seed(1)
-        self.assertEqual(self.test_letter.mispell(
-            rate=self.rate,
-            specific_rates=self.specific_rates
-        ), "c")
-
-
 class TestWord(unittest.TestCase):
     """Unit tests for the Word class.
     """
