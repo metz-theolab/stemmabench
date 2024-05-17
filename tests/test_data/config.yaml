@@ -6,7 +6,7 @@ variants:
   letters:
     mispell:
       law: Bernouilli
-      rate: 0.01
+      rate: 0.03
       args:
         specific_rates:
           a:

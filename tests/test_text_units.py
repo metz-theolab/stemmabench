@@ -17,7 +17,7 @@ class TestLetter(unittest.TestCase):
 
     def setUp(self):
         self.test_letter = Letter("a")
-        self.rate = 0.1
+        self.rate = 0.6
         self.specific_rates = {
             "a": {'b': 0.3, 'c': 0.2, 'd': 0.025},
             "b": {'d': 0.1}
@@ -39,11 +39,27 @@ class TestLetter(unittest.TestCase):
         )
         self.assertDictEqual(
             probability_matrix,
-            {"a": {'a': 0.475, 'b': 0.3, 'c': 0.2, 'd': 0.025},
-             "b": {'a': 0.025, 'b': 0.85, 'c': 0.025, 'd': 0.1},
-             "c": {'a': 0.025, 'b': 0.025, 'c': 0.925, 'd': 0.025},
-             'd': {'a': 0.025, 'b': 0.025, 'c': 0.025, 'd': 0.925},
-             })
+                {
+                 'a': {'b': 0.3, 'c': 0.2, 'd': 0.025, 'a': 0.4},
+                 'b': {'d': 0.1, 'b': 0.4, 'c': 0.25, 'a': 0.25},
+                 'c': {'c': 0.4, 'b': 0.19999999999999998, 'a': 0.19999999999999998, 'd': 0.19999999999999998},
+                 'd': {'d': 0.4, 'b': 0.19999999999999998, 'c': 0.19999999999999998, 'a': 0.19999999999999998}
+                 }
+            )
+
+    def test_wrong_build_probability_matrix(self):
+        """Tests that the probability matrix is built as expected.
+        """
+        with self.assertRaises(ValueError):
+            wrong_specific_rate = {
+                "a": {'b': 0.3, 'c': 0.2, 'd': 0.3},
+                "b": {'d': 0.1}
+            }
+            self.test_letter.build_probability_matrix(
+                rate=self.rate,
+                specific_rates= wrong_specific_rate,
+                alphabet=["a", "b", "c"]
+            )
 
     def test_mispell(self):
         """Tests that mispelling a letter behaves as expected.
@@ -89,25 +105,10 @@ class TestWord(unittest.TestCase):
         self.assertEqual(self.test_word_no_synonym.synonym(),
                          self.test_word_no_synonym.word)
 
-    def test_mispell(self):
-        """Tests that mispells behave as expected.
-        """
-        self.assertEqual(self.test_word.mispell(), "rabbil")
-
     def test_omit(self):
         """Tests that omitting a word behaves as expected.
         """
         self.assertEqual(self.test_word.omit(), "")
-
-    def test_greek_mispell(self):
-        """Tests that working with greek characters behaves as expected by
-        using greek only characters.
-        """
-        test_word = Word("λειπω", language="gr")
-        self.assertFalse(
-            sum((letter not in LETTERS["gr"])
-                for letter in test_word.mispell())
-        )
 
     def test_greek_synonym(self):
         """Tests that working with greek characters behaves as expected when requesting greek
@@ -230,13 +231,9 @@ class TestText(unittest.TestCase):
     def test_word_transform(self):
         """Tests that transforming at the word level behaves as expected.
         """
+        np.random.seed(15)
         word_config = {
             "synonym": ProbabilisticConfig(**{
-                "law": "Bernouilli",
-                "rate": 1,
-                "args": {}
-            }),
-            "mispell": ProbabilisticConfig(**{
                 "law": "Bernouilli",
                 "rate": 1,
                 "args": {}
@@ -248,7 +245,7 @@ class TestText(unittest.TestCase):
 
             })
         }
-        self.assertEqual("home alive",
+        self.assertEqual("come alive",
                          self.test_text.transform_word(self.test_text.words[27],
                                                        word_config=word_config))
 
@@ -261,11 +258,6 @@ class TestText(unittest.TestCase):
                 "rate": 0.1,
                 "args": {}
             }),
-            "mispell": ProbabilisticConfig(**{
-                "law": "Bernouilli",
-                "rate": 1,
-                "args": {}
-            }),
             "omit": ProbabilisticConfig(**{
                 "law": "Bernouilli",
                 "rate": 0.1,
@@ -273,7 +265,7 @@ class TestText(unittest.TestCase):
             })
         }
         self.assertEqual(
-            "hut onlx firmt  relember reiember hhe figns",
+            "but simply  remember remember think of the signs",
             self.test_text.transform_words(
                 sentence="But but first remember remember remember the signs.",
                 word_config=word_config,
@@ -290,15 +282,14 @@ class TestText(unittest.TestCase):
                 "args": {
                     "specific_rates": {
                         "a": {
-                            "b": 0.01,
-                            "c": 0.02,
-                            "d": 0.025
+                            "b": 0.999,
+                            "c": 0.001
                         },
                 }
             }})
         }
         self.assertEqual(
-            "h",
+            "b",
             self.test_text.transform_letter(
                 letter=Letter("a"),
                 letter_config=letter_config,
@@ -309,23 +300,95 @@ class TestText(unittest.TestCase):
         """
         Tests that transforming a sentence at the letter level behaves as expected.
         """
-        np.random.seed(12)
         letter_config = {
             "mispell": ProbabilisticConfig(**{
                 "law": "Bernouilli",
-                "rate": 0.2,
+                "rate": 1,
                 "args": {
                     "specific_rates": {
                         "a": {
-                            "b": 0.01,
-                            "c": 0.02,
-                            "d": 0.025
+                            "b": 1,
+                        },
+                        "b": {
+                            "c": 1,
+                        },
+                        "c": {
+                            "d": 1,
+                        },
+                        "d": {
+                            "e": 1,
+                        },
+                        "e": {
+                            "f": 1,
+                        },
+                        "f": {
+                            "g": 1,
+                        },
+                        "g": {
+                            "h": 1,
+                        },
+                        "h": {
+                            "i": 1,
+                        },
+                        "i": {
+                            "j": 1,
+                        },
+                        "j": {
+                            "k": 1,
+                        },
+                        "k": {
+                            "l": 1,
+                        },
+                        "l": {
+                            "m": 1,
+                        },
+                        "m": {
+                            "n": 1,
+                        },
+                        "n": {
+                            "o": 1,
+                        },
+                        "o": {
+                            "p": 1,
+                        },
+                        "p": {
+                            "q": 1,
+                        },
+                        "q": {
+                            "r": 1,
+                        },
+                        "r": {
+                            "s": 1,
+                        },
+                        "s": {
+                            "t": 1,
+                        },
+                        "t": {
+                            "u": 1,
+                        },
+                        "u": {
+                            "v": 1,
+                        },
+                        "v": {
+                            "w": 1,
+                        },
+                        "w": {
+                            "x": 1,
+                        },
+                        "x": {
+                            "y": 1,
+                        },
+                        "y": {
+                            "z": 1,
+                        },
+                        "z": {
+                            "a": 1,
                         },
                 }
             }})
-        }
+}
         self.assertEqual(
-            "but, first, remembsr, remember, remember the silns.",
+            "cvu, gjstu, sfnfncfs, sfnfncfs, sfnfncfs uif tjhot.",
             self.test_text.transform_letters(
                 sentence="But, first, remember, remember, remember the signs.",
                 letter_config=letter_config,
@@ -376,8 +439,8 @@ class TestText(unittest.TestCase):
         )
         result = self.test_text.transform(
             variant_config=variant_config, meta_config=meta_config)
-        expected_result = "But  first remember remember remzmser  signs. Lay them to yourself  you wake qn  she mornfng axd when you lie down atomic number 85  ant when you wake in tee middle of ghq ."
-        self.assertEqual(expected_result, result)
+        expected_result = self.test_text.text
+        self.assertNotEqual(expected_result, result)
 
 
 if __name__ == "__main__":

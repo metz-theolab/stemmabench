@@ -58,19 +58,6 @@ class Word:
             logger.debug(f"Could not find synonym for word {self.word}")
         return self.word
 
-    def mispell(self) -> str:
-        """Mispell the word by replacing a letter with another one.
-
-        Returns:
-            str: The mispelled word.
-        """
-        if self.word:
-            random_location = np.random.randint(0, len(self.word))
-            return self.word[:random_location] + \
-                np.random.choice(list(LETTERS[self.language])) + \
-                self.word[random_location + 1:]
-        return self.word
-
     def omit(self) -> str:
         """Omit a word (ie: return an empty string).
 

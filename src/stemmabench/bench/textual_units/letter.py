@@ -4,8 +4,8 @@ the letter level.
 from typing import Dict, Any, List
 from numpy.random import choice
 from string import punctuation
-from stemmabench.data import LETTERS
-
+from stemmabench.bench.data import LETTERS
+from numpy import array
 
 class Letter:
     """The Letter class defines several methods for variants at
@@ -47,25 +47,23 @@ class Letter:
         """
         probability_matrix = {}
         for letter in alphabet:
-            if letter in specific_rates.keys():
-                # Store current specific rate matrix
-                probability_matrix[letter] = specific_rates[letter]
-            else:
-                probability_matrix[letter] = {}
-            for other_letter in alphabet:
-                # FIXME: improve the computation of the probability of the letters
-                # For now, there is no check on the rate value and it can sum higher than 1
-                # should we really trust user input ?
-                if other_letter not in probability_matrix[letter].keys() and other_letter != letter:
-                    probability_matrix[letter].update(
-                        {other_letter: rate/(len(alphabet))})
-            # FIXME: compute the probability of the letter staying the same
-            probability_matrix[letter].update({
-                    letter: 1 -
-                    sum(probability_matrix[letter].values())
-                })
-        return probability_matrix
+            specific_rate = specific_rates.get(letter, {})
+            total_specific_rate = sum(specific_rate.values())
 
+            if total_specific_rate > rate:
+                raise ValueError(f"Sum of specific rates for '{letter}' is higher than the global rate")
+
+            probability_matrix[letter] = {**specific_rate, letter: 1 - rate}
+            remaining_rate = rate - total_specific_rate
+            remaining_letters = len(alphabet) - len(probability_matrix[letter])
+
+            ponderate_rate = remaining_rate / remaining_letters if remaining_letters > 0 else 1
+
+            for other_letter in set(alphabet) - set(probability_matrix[letter]):
+                probability_matrix[letter][other_letter] = ponderate_rate if letter in specific_rates else rate / (len(alphabet)-1)
+
+        return probability_matrix
+    
     def mispell(self,
                 rate: float,
                 specific_rates: Dict[str, Any] = {}
@@ -94,5 +92,6 @@ class Letter:
             return self.letter
         if self.letter in probability_matrix:
             proba_vector = probability_matrix[self.letter]
+            p_normilized = array(list(proba_vector.values()))/array(list(proba_vector.values())).sum()
             return choice(list(proba_vector.keys()),
-                                     p=list(proba_vector.values()))
+                                     p=p_normilized)
