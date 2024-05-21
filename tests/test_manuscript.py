@@ -8,6 +8,7 @@ from stemmabench.algorithms.manuscript import Manuscript
 class TestManuscript(unittest.TestCase):
     """Unit tests for Manuscript.
     """
+    
     def setUp(self) -> None:
         """Setup the unit test.
         """

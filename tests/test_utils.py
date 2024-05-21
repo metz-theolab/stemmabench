@@ -41,34 +41,33 @@ class TestUtils(unittest.TestCase):
                                           '20': {'24': {}}}
         
     def test_load_text(self):
-        """Tests that the function load_text imports texts correctly."""
-        self.assertEqual(Utils.load_text(self.test_path_text_file), self.test_text, "Both string are not equal!")
+        """Tests the load_text method."""
+        self.assertEqual(Utils.load_text(self.test_path_text_file), self.test_text, msg="load_text does not load a text properly.")
 
     def test_edge_to_list(self):
-        """Tests to see if edge file is converted to list properly."""
-        self.assertCountEqual(Utils.edge_to_list(self.test_path_edge_file), self.test_edge_list)
+        """Tests edge_to_list method."""
+        self.assertCountEqual(Utils.edge_to_list(self.test_path_edge_file), self.test_edge_list, msg="edge_to_list does not convert edge file to edge list properly.")
 
     def test_dict_of_children(self):
-        """Tests if """
-        self.assertDictEqual(Utils.dict_of_children(self.test_edge_list),self.test_children_dict)
+        """Tests _dict_of_children method."""
+        self.assertDictEqual(Utils.dict_of_children(self.test_edge_list),self.test_children_dict, msg="Does not convert edge list to dictionary of children properly.")
 
     def test_dict_from_edge(self):
-        """Tests that the edge files converted to dictionaries properly."""
-        self.assertDictEqual(Utils.dict_from_edge(self.test_path_edge_file), self.test_dict)
+        """Tests _dict_from_edge method."""
+        self.assertDictEqual(Utils.dict_from_edge(edge_path=self.test_path_edge_file), self.test_dict, msg="_dict_from_edge does not convert edge files properly.")
+        self.assertDictEqual(Utils.dict_from_edge(edge_list=self.test_edge_list), self.test_dict, msg="_dict_from_edge does not convert edge lists properly.")
+        with self.assertRaises(ValueError, msg="_dict_from_edge does not raise ValueError if edge file is not valid."):
+            Utils.dict_from_edge(edge_path=self.test_path_edge_2roots_file)
+        with self.assertRaises(ValueError, msg="_dict_from_edge does not raise ValueError if both parameters are specified."):
+            Utils.dict_from_edge(edge_path=self.test_path_edge_2roots_file, edge_list=['1','2'])
+        with self.assertRaises(ValueError, msg="_dict_from_edge does not raise ValueError if no parameters are specified."):
+            Utils.dict_from_edge()
+        
+    def test_find_root(self):
+        """Tests find_root method."""
+        self.assertCountEqual(Utils.find_root(self.test_children_dict), ["1"], msg="find_root can't find the root if there is only 1 root.")
+        self.assertCountEqual(Utils.find_root(self.test_children_dict_2roots), ["1","20"], msg="find_root can't find the presence of 2 roots.")
 
-    def test_dict_from_edge_validate_file(self):
-        """Tests if the dict_from_edge method can Throw an invalid exception if the given edge file is not valid."""
-        with self.assertRaises(ValueError):
-            Utils.dict_from_edge(self.test_path_edge_2roots_file)
-    
-    def test_find_root_1root(self):
-        """Tests that find_root can find the label of the root in a dictionary of children."""
-        self.assertCountEqual(Utils.find_root(self.test_children_dict), ["1"])
-
-    def test_find_root_2roots(self):
-        """Tests that find_root can find 2 roots if a children dictionary contains 2 roots."""
-        self.assertCountEqual(Utils.find_root(self.test_children_dict_2roots), ["1","20"])
-
-    def test_validate_edge_2roots(self):
-        """Tests that validate_edges can detect if 2 roots are present in an edge file."""
-        self.assertFalse(Utils.validate_edge(self.test_children_dict_2roots))
+    def test_validate_edge(self):
+        """Tests the validate_edges method."""
+        self.assertFalse(Utils.validate_edge(self.test_children_dict_2roots), msg="validate_edges can't detect if 2 roots are present in an edge file.")

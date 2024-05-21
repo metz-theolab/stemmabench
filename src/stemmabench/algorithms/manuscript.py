@@ -12,7 +12,7 @@ class Manuscript(ManuscriptBase):
                  label: Union[str, None] = None,
                  children: list["ManuscriptBase"] = [],
                  edges: Union[list[float], None] = None,
-                 recursive: Union[dict[str:dict], None] = None,
+                 recursive: Union[dict[str,dict], None] = None,
                  text: Union[str, None] = None) -> None:
         """A class representing the Manuscripts that make up the nodes of a stemma.
 
@@ -29,11 +29,11 @@ class Manuscript(ManuscriptBase):
             ValueError: If both recursive and lable are not specified.
         """
         if text:
-            self._text = text
+            self._text: str = text
         if recursive:
-            self._parent = None
-            self._children = []
-            self._label = list(recursive.keys())[0]
+            self._parent: ManuscriptBase = None
+            self._children: list = []
+            self._label: str = list(recursive.keys())[0]
             # End recursion if list of keys is empty
             if list(recursive[self.label]) == []:
                 return None
@@ -53,7 +53,7 @@ class Manuscript(ManuscriptBase):
         """Returns True if both texts have the same content and the same label.
 
         Args:
-            value (object, requiered): The object to compare to.
+            value (object, Requiered): The object to compare to.
         """
         if isinstance(value, Manuscript):
             return value.text == self.text and value.label == self.label

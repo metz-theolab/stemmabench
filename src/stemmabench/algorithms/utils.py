@@ -55,16 +55,28 @@ class Utils:
         return root
 
     @staticmethod
-    def dict_from_edge(edge_path: str) -> dict:
+    def dict_from_edge(*,edge_path: str = None, edge_list: list = None) -> dict:
         """Converts edge file to dictionary representation.
 
         Args:
-            edge_path (str, Requiered): The path to the edge file used to construct dictionary.
+            edge_path (str, Optional): The path to the edge file used to construct dictionary.
+            edge_list (str, Optional): The list of all the edges in a stemma tree.
 
         Returns:
             dict: Dictionary representation of the tree in edge file.
+
+        Raises:
+            ValueError: If edge file or list is not a valid edge (see method validate_edge for more info).
+                        If no parameter is specified.
+                        If both parameters are specified.
         """
-        tree_data = Utils.dict_of_children(Utils.edge_to_list(edge_path))
+        if edge_path != None and edge_list != None:
+            raise ValueError("Only one of the parameters edge_path and edge_list can be specified.")
+        if edge_path == None and edge_list == None:
+            raise ValueError("At least one of the parameters edge_path or edge_list must be specified.")
+        if edge_path != None:
+            edge_list = Utils.edge_to_list(edge_path)
+        tree_data = Utils.dict_of_children(edge_list)
         root = Utils.find_root(tree_data)
         if not Utils.validate_edge(tree_data):
             raise ValueError("The edge file given is not valid. Look at validate_edge function for more details.")
@@ -107,5 +119,3 @@ class Utils:
         """
         input_lines = Path(edge_path).read_text().strip().replace("(", "").replace(")","").replace("'","").replace(" ","").split(sep="\n")
         return list(e.split(sep=",") for e in input_lines)
-
-    pass

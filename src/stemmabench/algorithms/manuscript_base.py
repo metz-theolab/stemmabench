@@ -29,10 +29,9 @@ class ManuscriptBase:
             RuntimeError: If edges specified and len(edges) > len(children)
         """
         if label:
-                self._label = label
-        #TODO: Check not broken
+                self._label: str = label
         if parent == None or isinstance(parent, ManuscriptBase):
-                self._parent = parent
+                self._parent: ManuscriptBase = parent
         else:
             raise ValueError("Parent must be None or of type ManuscriptBase.")
         if isinstance(children, list):
