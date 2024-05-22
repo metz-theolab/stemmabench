@@ -193,8 +193,9 @@ class Stemma:
                     parent=None, recursive=generation_dict, text_list=text_list)
             self._text_lookup = self._root.build_text_lookup()
             for text in self.text_lookup.values():
-                text._text = Utils.load_text(
-                    self.folder_path + "/" + text.label + ".txt")
+                if isinstance(text, ManuscriptInTree):
+                    text._text = Utils.load_text(
+                        self.folder_path + "/" + text.label + ".txt")
             self._fitted = True
             self._edge_file = edge_file
         elif algo:
@@ -202,8 +203,9 @@ class Stemma:
                 folder_path=self.folder_path, *args, **kargs)
             self._text_lookup = self._root.build_text_lookup()
             for text in self.text_lookup.values():
-                text._text = Utils.load_text(
-                    self.folder_path + "/" + text.label + ".txt")
+                if isinstance(text, ManuscriptInTree):
+                    text._text = Utils.load_text(
+                        self.folder_path + "/" + text.label + ".txt")
             self._fitted = True
         else:
             raise RuntimeError(
