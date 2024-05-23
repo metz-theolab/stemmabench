@@ -6,7 +6,7 @@ import os
 import shutil
 from stemmabench.algorithms.stemma import Stemma
 from stemmabench.algorithms.manuscript import Manuscript
-#from stemmabench.algorithms.stemma_dummy import StemmaDummy
+from stemmabench.algorithms.stemma_dummy import StemmaDummy
 
 
 class TestStemma(unittest.TestCase):
@@ -47,7 +47,7 @@ class TestStemma(unittest.TestCase):
         self.assertIsNone(self.stemma_empty.edge_file)
         self.assertIsNone(self.stemma_empty.edge_file)
         self.assertIsNone(self.stemma_empty.edge_file)
-        self.assertIsNone(self.stemma_empty.generation_info)
+        self.assertDictEqual(self.stemma_empty.generation_info, {})
 
     def test_eq(self):
         """Test the __eq__ method."""
@@ -76,22 +76,14 @@ class TestStemma(unittest.TestCase):
         temp = Stemma()
         with self.assertRaises(RuntimeError):
             temp.compute()
-        # Temporary test    
         temp = Stemma()
-        with self.assertRaises(NotImplementedError):
-            temp.compute(algo="test")
-        # Tests for next Pull Request
-        #temp = Stemma()
-        #with self.assertRaises(RuntimeError, msg="The compute methode does not raise a RuntimeError if the folder path has not been specified."):
-        #    temp.compute(StemmaDummy(width=2))
-        ## From algo
-        #temp.compute(algo=StemmaDummy(folder_path=self.stemma_folder, width=2, seed=1))
-        #self.assertDictEqual(temp.dict(),
-        #                     self.test_compute_dict,
-        #                     msg="compute does not build the right tree. !!! Test uses dict method !!!")
-        #temp = Stemma()
-        #with self.assertRaises(ValueError, msg="The compute method does not raise a ValueError when the given folder_path is not an existing directory."):
-        #    temp.compute(folder_path="tests/not_folder_path", algo=StemmaDummy(width=2))
+        with self.assertRaises(RuntimeError, msg="The compute methode does not raise a RuntimeError if the folder path has not been specified."):
+            temp.compute(StemmaDummy(width=2))
+        # From algo
+        temp.compute(algo=StemmaDummy(folder_path=self.stemma_folder, width=2, seed=1))
+        temp = Stemma()
+        with self.assertRaises(ValueError, msg="The compute method does not raise a ValueError when the given folder_path is not an existing directory."):
+            temp.compute(folder_path="tests/not_folder_path", algo=StemmaDummy(width=2))
        
 
     def test_dump(self):

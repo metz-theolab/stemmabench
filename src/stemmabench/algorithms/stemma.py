@@ -4,17 +4,27 @@ from typing import Dict, List, Union
 from stemmabench.algorithms.manuscript import Manuscript
 from stemmabench.algorithms.manuscript_base import ManuscriptBase
 from stemmabench.algorithms.utils import Utils
-#from stemmabench.algorithms.stemma_algorithm import StemmaAlgo
+from stemmabench.algorithms.stemma_algorithm import StemmaAlgo
 import os
 
 
 class Stemma:
-    """Class that represents a stemma tree."""
+    """Class that represents a stemma tree.
+    
+    Attributes:
+        - root (Manuscript): The root of the stemma tree.
+        - folder_path (str): The path to the folder containing the texts for the stemma.
+        - edge_file (str): The path to the .txt file that contains the edges for the stemma.
+        - text_lookup (dict): Dictionary containing all the manuscripts contained in the stemma tree.
+          With manuscript as labels as keys and reference of manuscripte as value.
+        - fitted (bool): Indicates if the stemma has been built.
+        - generation_info (dict): Dictionary containing info about how the tree was generated.
+    """
 
     def __init__(self,
                  folder_path: str = None,
                  edge_file: str = None,
-                 generation_info: dict = None) -> None:
+                 generation_info: dict = {}) -> None:
         """A class to perform variant generation.
         To instansite the class use one of the build methods.
 
@@ -125,12 +135,12 @@ class Stemma:
             self.text_lookup[key].dump(folder)
 
     def compute(self,
-                algo = None,
+                algo: StemmaAlgo = None,
                 edge_file: Union[str, None] = None,
                 folder_path: Union[str, None] = None,
                 generation_info: Union[Dict, None] = None,
                 *args,
-                **kargs) -> None:
+                **kwargs) -> None:
         """Builds the stemma based on given algorithm or edge file. Builds the stemma in place. 
            Meaning it does not return anything.
 
@@ -141,7 +151,6 @@ class Stemma:
             If specified with the algo perameter this path will overwrite all other
             **kargs: The parameters to be passed to the algo parameter for the stemma generation.
         """
-        # TODO: Test kargs parameter passing. (width)
         self._generation_info = generation_info
         if edge_file:
             if not folder_path:
@@ -154,8 +163,6 @@ class Stemma:
             self._fitted = True
             self._edge_file = edge_file
         elif algo:
-            # Implemented in next Pull Request
-            raise NotImplementedError()
             if folder_path != None:
                 self._set_folder_path(folder_path=folder_path)
             elif self.folder_path != None:
@@ -165,7 +172,7 @@ class Stemma:
                 self._set_folder_path(folder_path=algo.folder_path)
             else:
                 raise RuntimeError("The folder_path is not specified as an attribute of this stemma instance or as an attribute of the algo parameter instance. Therefore the parameter folder_path must be specified.")  
-            self._root = algo.compute(folder_path=folder_path,*args,**kargs)
+            self._root = algo.compute(folder_path=folder_path,**kwargs)
             self._text_lookup = self._root.build_text_lookup()
             for text in self.text_lookup.values():
                 text._text = Utils.load_text(folder_path + "/" + text.label + ".txt")
