@@ -1,11 +1,12 @@
-"""This module define the `Letter` class whose methods apply transformations at 
+"""This module defines the `Letter` class whose methods apply transformations at 
 the letter level.
 """
 from typing import Dict, Any, List
 from numpy.random import choice
 from string import punctuation
 from stemmabench.bench.data import LETTERS
-from numpy import array
+import numpy as np
+
 
 class Letter:
     """The Letter class defines several methods for variants at
@@ -47,6 +48,10 @@ class Letter:
         """
         probability_matrix = {}
         for letter in alphabet:
+            if letter in specific_rates:
+                if not all(specific_letter in alphabet for specific_letter in specific_rates[letter]):
+                    raise ValueError(f"One or more specific letters for '{letter}' are not in the alphabet")  
+                
             specific_rate = specific_rates.get(letter, {})
             total_specific_rate = sum(specific_rate.values())
 
@@ -92,6 +97,6 @@ class Letter:
             return self.letter
         if self.letter in probability_matrix:
             proba_vector = probability_matrix[self.letter]
-            p_normilized = array(list(proba_vector.values()))/array(list(proba_vector.values())).sum()
+            p_normalized  = np.array(list(proba_vector.values()))/np.array(list(proba_vector.values())).sum()
             return choice(list(proba_vector.keys()),
-                                     p=p_normilized)
+                                     p=p_normalized)

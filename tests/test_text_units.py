@@ -47,18 +47,31 @@ class TestLetter(unittest.TestCase):
                  }
             )
 
-    def test_wrong_build_probability_matrix(self):
+    def test_wrong_rate_build_probability_matrix(self):
         """Tests that the probability matrix is built as expected.
         """
         with self.assertRaises(ValueError):
             wrong_specific_rate = {
-                "a": {'b': 0.3, 'c': 0.2, 'd': 0.3},
-                "b": {'d': 0.1}
+                "a": {'b': 0.3, 'c': 0.2},
+                "b": {'a': 0.7}
             }
             self.test_letter.build_probability_matrix(
                 rate=self.rate,
                 specific_rates= wrong_specific_rate,
                 alphabet=["a", "b", "c"]
+            )
+    def test_wrong_letter_build_probability_matrix(self):
+        """Tests that the probability matrix is built as expected.
+        """
+        with self.assertRaises(ValueError):
+            wrong_specific_rate = {
+                "a": {'b': 0.1, 'c': 0.2,'d': 0.1},
+                "b": {'a': 0.1}
+            }
+            self.test_letter.build_probability_matrix(
+                rate=self.rate,
+                specific_rates= wrong_specific_rate,
+                alphabet=["a","b","c"]
             )
 
     def test_mispell(self):
@@ -272,7 +285,7 @@ class TestText(unittest.TestCase):
                 language="en"))
 
     def test_letter_transform(self):
-        """Tests that transforming a sentence at the letter level behaves as expected.
+        """Tests that transforming a letter behaves as expected.
         """
         np.random.seed(15)
         letter_config = {
