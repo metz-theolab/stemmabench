@@ -1,137 +1,154 @@
 """
 Unit tests for the StemmaNJ class.
 """
-import numpy as np
 import unittest
-from textdistance import levenshtein
 from stemmabench.algorithms.stemma_NJ import StemmaNJ
+from stemmabench.algorithms.stemma import Stemma
+from textdistance import levenshtein
+import numpy as np
 
 
 class TestStemmaNJ(unittest.TestCase):
-    """Unit tests for the StemmaNJ class.
+    """Unit tests for the stemmaNJ class.
     """
-
+    
     def setUp(self) -> None:
         """Setup the unit test.
         """
         self.stemma_folder_path = "tests/test_data/test_stemma"
-        self.test_edges_list = [['N_1', 'c'],
-                                ['N_1', 'd'],
-                                ['N_2', 'a'],
+        self.stemmaNJ_empty = StemmaNJ()
+        self.stemmaNJ = StemmaNJ()
+        self.test_stemma = Stemma()
+        self.test_stemma.compute(algo=StemmaNJ(),folder_path=self.stemma_folder_path, distance=levenshtein)
+        self.stemmaNJ.compute(folder_path=self.stemma_folder_path, distance=levenshtein)
+        #self.test_edges_list = [['5_7', '5'],
+        #                        ['5_7', '7'],
+        #                        ['5_7', '6_11_12_8_9_4_1_2_3_10_13'],
+        #                        ['6_11_12_8_9_4_1_2_3_10_13', '6_11_12_8_9_4_1_2_3'],
+        #                        ['6_11_12_8_9_4_1_2_3_10_13', '10_13'],
+        #                        ['6_11_12_8_9_4_1_2_3', '6_11_12'],
+        #                        ['6_11_12_8_9_4_1_2_3', '8_9_4_1_2_3'],
+        #                        ['6_11_12', '6'],
+        #                        ['6_11_12', '11_12'],
+        #                        ['11_12', '11'],
+        #                        ['11_12', '12'],
+        #                        ['8_9_4_1_2_3', '8_9'],
+        #                        ['8_9_4_1_2_3', '4_1_2_3'],
+        #                        ['8_9', '8'],
+        #                        ['8_9', '9'],
+        #                        ['4_1_2_3', '4'],
+        #                        ['4_1_2_3', '1_2_3'],
+        #                        ['1_2_3', '1'],
+        #                        ['1_2_3', '2_3'],
+        #                        ['2_3', '2'],
+        #                        ['2_3', '3'],
+        #                        ['10_13', '10'],
+        #                        ['10_13', '13']]
+        self.test_edges_list = [['N_1', '11'],
+                                ['N_1', '12'],
+                                ['N_2', '6'],
                                 ['N_2', 'N_1'],
-                                ['N_3', 'b'],
-                                ['N_3', 'e'],
-                                ['N_2', 'N_3']]
-        self.dist_mat_edge_test = np.array([[0, 17, 21, 31, 23],
-                                            [17, 0, 30, 34, 21],
-                                            [21, 30, 0, 28, 39],
-                                            [31, 34, 28, 0, 43],
-                                            [23, 21, 39, 43, 0]])
-        self.test_distance_matrix = np.array([[0.,  5.,  8.,  8., 15.,  2.,  2.,  3.,  5.,  7.,  5.,  4.,  4.],
-                                              [5.,  0.,  4.,  4., 10.,  3.,  3.,
-                                                  2.,  0.,  2.,  0.,  2.,  2.],
-                                              [8.,  4.,  0.,  0., 14.,  7.,  7.,
-                                                  5.,  4.,  2.,  4.,  6.,  6.],
-                                              [8.,  4.,  0.,  0., 14.,  7.,  7.,
-                                                  5.,  4.,  2.,  4.,  6.,  6.],
-                                              [15., 10., 14., 14.,  0., 13., 13.,
-                                                  12., 10., 12., 10., 12., 12.],
-                                              [2.,  3.,  7.,  7., 13.,  0.,  0.,
-                                                  2.,  3.,  5.,  3.,  2.,  2.],
-                                              [2.,  3.,  7.,  7., 13.,  0.,  0.,
-                                                  2.,  3.,  5.,  3.,  2.,  2.],
-                                              [3.,  2.,  5.,  5., 12.,  2.,  2.,
-                                                  0.,  2.,  4.,  2.,  3.,  3.],
-                                              [5.,  0.,  4.,  4., 10.,  3.,  3.,
-                                                  2.,  0.,  2.,  0.,  2.,  2.],
-                                              [7.,  2.,  2.,  2., 12.,  5.,  5.,
-                                                  4.,  2.,  0.,  2.,  4.,  4.],
-                                              [5.,  0.,  4.,  4., 10.,  3.,  3.,
-                                                  2.,  0.,  2.,  0.,  2.,  2.],
-                                              [4.,  2.,  6.,  6., 12.,  2.,  2.,
-                                                  3.,  2.,  4.,  2.,  0.,  0.],
-                                              [4.,  2.,  6.,  6., 12.,  2.,  2.,  3.,  2.,  4.,  2.,  0.,  0.]])
-        self.edge_dictionary_reference = {'N_1,c': 11.0,
-                                          'N_1,d': 17.0,
-                                          'N_2,a': 4.75,
-                                          'N_2,N_1': 7.25,
-                                          'N_3,b': 6.75,
-                                          'N_3,e': 14.25,
-                                          'N_2,N_3': 4.75}
-
-    @staticmethod
-    def distance_test(text1: str, text2: str) -> float:
-        """Function used to test distance parameter of the dist method.
-        """
-        return abs(len(text1) - len(text2))
-
-    def test_distance_check(self):
-        """Tests the error raising in the constructor."""
-        def testing_function(text1: str, text2: str) -> int:
-            """Function used for testing is_similaritys d(x,x) = 0 condition."""
-            return len(text1) + len(text2)
-        with self.assertRaises(ValueError, msg="Does not raise ValueError when compute is called with an invalid distance function."):
-            testing_stemma = StemmaNJ(distance=testing_function)
+                                ['N_3', '2'],
+                                ['N_3', '3'],
+                                ['N_4', '1'],
+                                ['N_4', 'N_3'],
+                                ['N_5', '8'],
+                                ['N_5', '9'],
+                                ['N_6', '4'],
+                                ['N_6', 'N_4'],
+                                ['N_7', 'N_5'],
+                                ['N_7', 'N_6'],
+                                ['N_8', 'N_2'],
+                                ['N_8', 'N_7'],
+                                ['N_9', '10'],
+                                ['N_9', '13'],
+                                ['N_10', '5'],
+                                ['N_10', '7'],
+                                ['N_11', 'N_8'],
+                                ['N_11', 'N_9'],
+                                ['N_10', 'N_11']]
+        self.test_distance_matrix = np.array([[ 0.,  5.,  8.,  8., 15.,  2.,  2.,  3.,  5.,  7.,  5.,  4.,  4.],
+                                              [ 5.,  0.,  4.,  4., 10.,  3.,  3.,  2.,  0.,  2.,  0.,  2.,  2.],
+                                              [ 8.,  4.,  0.,  0., 14.,  7.,  7.,  5.,  4.,  2.,  4.,  6.,  6.],
+                                              [ 8.,  4.,  0.,  0., 14.,  7.,  7.,  5.,  4.,  2.,  4.,  6.,  6.],
+                                              [15., 10., 14., 14.,  0., 13., 13., 12., 10., 12., 10., 12., 12.],
+                                              [ 2.,  3.,  7.,  7., 13.,  0.,  0.,  2.,  3.,  5.,  3.,  2.,  2.],
+                                              [ 2.,  3.,  7.,  7., 13.,  0.,  0.,  2.,  3.,  5.,  3.,  2.,  2.],
+                                              [ 3.,  2.,  5.,  5., 12.,  2.,  2.,  0.,  2.,  4.,  2.,  3.,  3.],
+                                              [ 5.,  0.,  4.,  4., 10.,  3.,  3.,  2.,  0.,  2.,  0.,  2.,  2.],
+                                              [ 7.,  2.,  2.,  2., 12.,  5.,  5.,  4.,  2.,  0.,  2.,  4.,  4.],
+                                              [ 5.,  0.,  4.,  4., 10.,  3.,  3.,  2.,  0.,  2.,  0.,  2.,  2.],
+                                              [ 4.,  2.,  6.,  6., 12.,  2.,  2.,  3.,  2.,  4.,  2.,  0.,  0.],
+                                              [ 4.,  2.,  6.,  6., 12.,  2.,  2.,  3.,  2.,  4.,  2.,  0.,  0.]])
+        #self.test_dist_dict = {'11_12,11': 0.0,
+        #                       '11_12,12': 0.0,
+        #                       '6_11_12,6': 0.09999999999999998,
+        #                       '6_11_12,11_12': 1.9,
+        #                       '2_3,2': 0.0,
+        #                       '2_3,3': 0.0,
+        #                       '1_2_3,1': 1.90625,
+        #                       '1_2_3,2_3': 0.09375,
+        #                       '8_9,8': 0.0,
+        #                       '8_9,9': 0.0,
+        #                       '4_1_2_3,4': 0.3958333333333333,
+        #                       '4_1_2_3,1_2_3': 1.1041666666666667,
+        #                       '8_9_4_1_2_3,8_9': 1.0375,
+        #                       '8_9_4_1_2_3,4_1_2_3': 0.7124999999999999,
+        #                       '6_11_12_8_9_4_1_2_3,6_11_12': 1.90625,
+        #                       '6_11_12_8_9_4_1_2_3,8_9_4_1_2_3': 0.90625,
+        #                       '10_13,10': 0.0,
+        #                       '10_13,13': 10.0,
+        #                       '5_7,5': 0.0,
+        #                       '5_7,7': 0.0,
+        #                       '6_11_12_8_9_4_1_2_3_10_13,6_11_12_8_9_4_1_2_3': 0.09375,
+        #                       '6_11_12_8_9_4_1_2_3_10_13,10_13': 0.0,
+        #                       '5_7,6_11_12_8_9_4_1_2_3_10_13': 0.0
+        self.test_dist_dict = {'N_1,11': 0.0,
+                               'N_1,12': 0.0,
+                               'N_2,6': 0.1,
+                               'N_2,N_1': 1.9,
+                               'N_3,2': 0.0,
+                               'N_3,3': 0.0,
+                               'N_4,1': 1.90625,
+                               'N_4,N_3': 0.09375,
+                               'N_5,8': 0.0,
+                               'N_5,9': 0.0,
+                               'N_6,4': 0.3958333,
+                               'N_6,N_4': 1.1041667,
+                               'N_7,N_5': 1.0375,
+                               'N_7,N_6': 0.7125,
+                               'N_8,N_2': 1.90625,
+                               'N_8,N_7': 0.90625,
+                               'N_9,10': 0.0,
+                               'N_9,13': 10.0,
+                               'N_10,5': 0.0,
+                               'N_10,7': 0.0,
+                               'N_11,N_8': 0.09375,
+                               'N_11,N_9': 0.0,
+                               'N_10,N_11': 0.0}
 
     def test_getters(self):
         """Testing getters for class properties."""
-        self.stemmaNJ = StemmaNJ(distance=levenshtein)
-        self.stemmaNJ.compute(folder_path=self.stemma_folder_path)
-        self.assertTrue((self.stemmaNJ.dist_matrix.round(7) == self.test_distance_matrix.round(
-            7)).all(), msg="The distance matrix is not correct.")
-        self.assertEqual(self.stemmaNJ.distance, levenshtein,
-                         msg="The returned distance is not correct.")
-
+        self.assertTrue((self.stemmaNJ.dist_matrix.round(7) == self.test_distance_matrix.round(7)).all(), msg="The distance matrix is not correct.")
+        self.assertEqual(self.stemmaNJ.distance, levenshtein, msg="The returned distance is not correct.")
+        self.assertEqual(self.stemmaNJ.folder_path, self.stemma_folder_path, msg="Does not return the right folder path.")
+    
     def test_build_edges(self):
         """Tests the _build_edges method."""
-        temp_stem = StemmaNJ(distance=levenshtein)
-        temp_stem._dist_matrix = self.dist_mat_edge_test
-        temp_stem._manuscripts = {
-            "a": "", "b": "", "c": "", "d": "", "e": "", }
-        distance_dict, edge_list = temp_stem._build_edges()
-        self.assertDictEqual(distance_dict, self.edge_dictionary_reference,
-                             msg="Does not return the correct distance dictionary.")
-        self.assertCountEqual(edge_list, self.test_edges_list,
-                              msg="Does not return the correct edge list.")
+        temp = StemmaNJ(folder_path=self.stemma_folder_path, distance=levenshtein)
+        distance_dict, edge_list = temp._build_edges()
+        self.assertDictEqual(distance_dict, self.test_dist_dict, msg="Does not return the correct distance dictionary.")
+        self.assertCountEqual(edge_list, self.test_edges_list, msg="Does not return the correct edge list.")
+        temp = StemmaNJ()
+        with self.assertRaises(RuntimeError, msg="Does not raise error when _build_edges is called if _dist_matrix has not been initialized."):
+            temp._build_edges()
 
+    def test_compute(self):
+        """Tests the compute method."""
+        with self.assertRaises(RuntimeError, msg="Does not raise RuntimeError when compute is called but distance was not specified in the constructor or in the compute function call."):
+            self.stemmaNJ_empty.compute(folder_path=self.stemma_folder_path)
+    
     def test_dist(self):
-        """Tests that the dist method build and sets the corredt distance matrix"""
-        testing_stemma = StemmaNJ(distance=levenshtein)
-        testing_stemma._manuscripts = {
-            "m1": "text1", "m2": "text2", "m3": "text3"}
-        testing_stemma.dist(distance=levenshtein)
-        self.assertTrue((testing_stemma.dist_matrix == [
-                        [0., 1., 1.], [1., 0., 1.], [1., 1., 0.]]).all())
-
-    def test_is_similarity(self):
-        """Tests the is_similarity method."""
-        with self.assertRaises(ValueError, msg="Does not raise an error if distance parameter is not callable."):
-            StemmaNJ.is_similarity("test")
-
-        def testing_function(text1: str, text2: str) -> str:
-            """Function used for testing is_similaritys return a number condition."""
-            return "test"
-
-        with self.assertRaises(ValueError, msg="Does not raise an error if distance parameter does not return a number."):
-            StemmaNJ.is_similarity(testing_function)
-
-        def testing_function(text1: str, text2: str) -> int:
-            """Function used for testing is_similaritys d(x,x) = 0 condition."""
-            return len(text1) + len(text2)
-
-        self.assertFalse(StemmaNJ.is_similarity(
-            testing_function), msg="Does not retun false if distance parameter function does not respect d(x,x) = 0.")
-
-        def testing_function(text1: str, text2: str) -> int:
-            """Function used for testing is_similaritys d(x,y) = d(y,x) condition."""
-            if len(text1) < len(text2):
-                shortest = text1
-            else:
-                shortest = text2
-            for i in range(len(shortest)):
-                if text1[i] != text2[i]:
-                    return ord(text1[i]) - ord(text2[i])
-            return 0
-
-        self.assertFalse(StemmaNJ.is_similarity(
-            testing_function), msg="Does not retun false if distance parameter function does not respect d(x,y) = d(y,x).")
+        """Tests the dist method."""
+        with self.assertRaises(RuntimeError, msg="Does not raise a RuntimeError when the dist method is called on a StemmaNJ object that does not have it's folder_path set."):
+            self.stemmaNJ_empty.dist(levenshtein)

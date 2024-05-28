@@ -19,7 +19,7 @@ class Manuscript(ManuscriptBase):
                  parent: Union[ManuscriptBase, None] = None,
                  label: Union[str, None] = None,
                  children: list[ManuscriptBase] = [],
-                 edges: Union[list[float], None] = None,
+                 edges: Union[list[float], None] = [],
                  recursive: Union[dict[str,dict], None] = None,
                  text: Union[str, None] = None,
                  text_list: list[str] = None) -> None:
@@ -47,6 +47,7 @@ class Manuscript(ManuscriptBase):
             self._parent: Union[ManuscriptBase, None] = None
             self._children: list = []
             self._label: Union[str, None] = list(recursive.keys())[0]
+            self._edges = edges
             # End recursion if list of keys is empty
             if list(recursive[self.label]) == []:
                 return None
