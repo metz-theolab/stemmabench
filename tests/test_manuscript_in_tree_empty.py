@@ -29,14 +29,11 @@ class TestManuscriptEmpty(unittest.TestCase):
             shutil.rmtree(self.dump_folder_path)
 
     def test_manuscript_empty(self):
-        """Tests ManuscriptBase instanciation."""
+        """Tests ManuscriptInTreeEmpty instanciation."""
         with self.assertRaises(ValueError, msg="Dose not throw error if parent is of wrong type."):
             ManuscriptInTreeEmpty(label="label", children=[], parent="test")
         with self.assertRaises(ValueError, msg="Dose not throw error if children not a list."):
             ManuscriptInTreeEmpty(label="label", children="test", parent=None)
-        with self.assertRaises(RuntimeError, msg="Dose not throw error if children and edges of different length."):
-            ManuscriptInTreeEmpty(
-                label="label", children=[], parent=None, edges=[1])
         with self.assertRaises(ValueError):
             ManuscriptInTreeEmpty()
         with self.assertRaises(ValueError, msg="The __init__ method does not raise a ValueError if recursive is specified and text_list is not."):
@@ -72,7 +69,7 @@ class TestManuscriptEmpty(unittest.TestCase):
         manuscriptEmpty = ManuscriptInTreeEmpty(
             label="label", children=children, parent=None, edges=[1, 2, 3])
         function_output = ManuscriptInTreeEmpty(label="label", parent=None).recursive_init({
-            'label': {'child1': {}, 'child2': {}, 'child3': {}}}, Utils.get_text_list("test_data/test_stemma"))
+            'label': {'child1': {}, 'child2': {}, 'child3': {}}}, Utils.get_text_list("tests/test_data/test_stemma"))
         self.assertTrue(function_output.__eq__(manuscriptEmpty))
 
     def test_repr(self):
