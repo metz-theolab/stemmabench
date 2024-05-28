@@ -87,13 +87,29 @@ class Stemma:
             raise ValueError("The folder_path specified is not an existing folder path.")
         self._folder_path = folder_path
     
-    def get_edges(self) -> None:
-        """Return array of all the edge values.
+    def get_edge_values(self) -> Dict[str, float]:
+        """Return dictionary with edges as keys an edge distances as values.
         
-        ### Raises:
-            - NotImplementedError: Not implemented yet.
+        ### Returns:
+            - dict: Dictionary with edges as keys and edge distances as values.
         """
-        raise NotImplementedError()
+        out = {}
+        for key in self.text_lookup:
+            for i in range(len(self.text_lookup[key].edges)):
+                out.update({self.text_lookup[key].label + "," + self.text_lookup[key].children[i].label: self.text_lookup[key].edges[i]})
+        return out
+    
+    def to_edge_list(self) -> list[list[str]]:
+        """Returns a list of edges. Uses the text_lookup attribute to generate list.
+        
+        ### Returns:
+            - list: A list of lists containing all the edges of the stemma.
+        """
+        out = []
+        for key in self.text_lookup:
+            for child in self.text_lookup[key].children:
+                out.append([self.text_lookup[key].label, child.label])
+        return out
 
     def dict(self, include_edges: bool = False) -> Dict[str, dict]:
         """Return a dict representation of the tree.
@@ -136,7 +152,10 @@ class Stemma:
             return "Tree(" + json.dumps(self.dict(), indent=2) + ")"
         return "Empty"
 
-    def dump(self, folder: Union[str, None] = None) -> None:
+    def dump(self, folder: Union[str, None] = None,
+             edge_file: Union[str, None] = None,
+             dump_edges: bool = True,
+             dump_texts: bool = True) -> None:
         """Dump the generated stemma into a folder:
             - The texts in .txt file named after the manuscript label.
             - The corresponding tree structure in edge file.
@@ -144,6 +163,9 @@ class Stemma:
 
         ### Args:
             - folder (str, Optional): The folder where the text should be written.
+            - edge_file (str, Optional): The name of the edge file in which the edges will be placed.
+            - dump_edges (bool, Optional): Value indicating if the edges file should be dumped.
+            - dump_texts (bool, Optional): Value indicating if the all the texts should be dumped.
 
         ### Raises:
             - ValueError: If folder is not specified and the folder_path variable is not set.
@@ -154,8 +176,20 @@ class Stemma:
             folder = self.folder_path
         if not os.path.isdir(folder):
                 Path(folder).mkdir(exist_ok=True)
+        if not edge_file:
+            edge_file = "edges.txt"
+        if dump_edges:
+            fedge = open(folder + "/" + edge_file, "w")
         for key in self.text_lookup:
-            self.text_lookup[key].dump(folder)
+            if dump_edges:
+                for child in self.text_lookup[key].children:
+                    fedge.write("('" + self.text_lookup[key].label + "','" + child.label + "')\n")
+            if dump_texts and isinstance(self.text_lookup[key], Manuscript):
+                ftext = open(folder + "/" + self.text_lookup[key].label + ".txt", "w")
+                ftext.write(self.text_lookup[key].text)
+                ftext.close()
+        if dump_edges:
+            fedge.close()
 
     def compute(self,
                 algo: Union[StemmaAlgo, None] = None,

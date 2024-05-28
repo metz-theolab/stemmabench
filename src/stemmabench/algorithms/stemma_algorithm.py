@@ -57,6 +57,7 @@ class StemmaAlgo:
 
     def compute(self, folder_path: Union[str, None] = None, *arg, **kwarg) -> Manuscript:
         """Builds the stemma tree. The implementation at this level only checks the inputs and sets the attributes.
+        At this level this method checks that attributs are properly set to be able to call the compute method.
 
         ### Args:
             - folder_path (str, Optional): The path to the folder containing the texts. The path specified here will surplant the previous path defined in constructor and will be set as new path_folder attribute.
@@ -68,9 +69,10 @@ class StemmaAlgo:
         ### Raises:
             - ValueError: If both the folder_path parameter and the object _folder_path attribute have not been specified.
         """
-        if folder_path == None and self.folder_path == None:
+        if not folder_path and not self.folder_path:
             raise ValueError("The attribute folder_path has not been initialized for this instance. Therefore folder_path must be specified.")
-        self._set_from_folder_path(folder_path)
+        if not self.folder_path:
+            self._set_from_folder_path(folder_path)
     
     def _build_edges(self) -> list[list[str]]:
         """Builds a list representation of stemma tree edges.

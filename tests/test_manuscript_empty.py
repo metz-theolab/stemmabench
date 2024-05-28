@@ -42,8 +42,6 @@ class TestManuscriptEmpty(unittest.TestCase):
             ManuscriptEmpty(label="label", children=[], parent="test")
         with self.assertRaises(ValueError, msg="Dose not throw error if children not a list."):
             ManuscriptEmpty(label="label", children="test", parent=None)
-        with self.assertRaises(RuntimeError, msg="Dose not throw error if children and edges of different length."):
-            ManuscriptEmpty(label="label", children=[], parent=None, edges=[1])
         with self.assertRaises(ValueError):
              ManuscriptEmpty()
         with self.assertRaises(ValueError, msg="The __init__ method does not raise a ValueError if recursive is specified and text_list is not."):

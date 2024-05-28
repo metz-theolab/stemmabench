@@ -18,7 +18,7 @@ class ManuscriptEmpty(ManuscriptBase):
                  parent: Union[ManuscriptBase, None] = None,
                  label: Union[str, None] = None,
                  children: list[ManuscriptBase] = [],
-                 edges: Union[list[float], None] = None,
+                 edges: Union[list[float], None] = [],
                  recursive: Union[dict[str,dict], None] = None,
                  text_list: Union[list[str], None] = None) -> None:
         """A class representing the Manuscripts that make up the nodes of a stemma.
@@ -39,9 +39,10 @@ class ManuscriptEmpty(ManuscriptBase):
         if recursive:
             if not text_list:
                 raise ValueError("If parameter recursive is specified, parameter text_list must also be specified.")
-            self._parent: Union[ManuscriptBase, None] = None
+            self._parent: Union[ManuscriptBase, None] = parent
             self._children: list = []
             self._label: Union[str, None] = list(recursive.keys())[0]
+            self._edges: list[float] = edges
             # End recursion if list of keys is empty
             if list(recursive[self.label]) == []:
                 return None

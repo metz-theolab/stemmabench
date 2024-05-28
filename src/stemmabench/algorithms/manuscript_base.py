@@ -16,7 +16,7 @@ class ManuscriptBase:
                  label: str,
                  parent: Union["ManuscriptBase", None],
                  children: list["ManuscriptBase"] = [],
-                 edges: Union[list[float], None] = None,
+                 edges: Union[list[float], None] = [],
                  #recursive: Union[dict[str,dict], None] = None,
                  #text_list: list[str] = []
                  ) -> None:
@@ -31,13 +31,15 @@ class ManuscriptBase:
             and will build all the children of the manuscript from the given list.
 
         ### Raises:
+            - ValueError: If label is not a string.
             - ValueError: If parent different than None or not of type ManuscriptBase.
             - ValueError: If children not of type list.
-            - RuntimeError: If edges specified and len(edges) > len(children)
         """
         # Setting label
-        if label: # and not recursive
-            self._label: str = label
+        if not isinstance(label, str): # and not recursive
+            raise ValueError("Parameter label must be a string.")
+        self._label: str = label
+        self._edges: Union[list[float], None] = edges
         #elif not recursive:
         #    raise RuntimeError("If the parameter recursive is not specified then the label must be specified.")
         # Setting parent
@@ -51,11 +53,9 @@ class ManuscriptBase:
         else:
             raise ValueError("The children must be of type list.")
         # Setting edges
-        if edges != None:
-                if len(children) != len(edges):
-                    raise RuntimeError("The edges array must be of same length as the children array.")
-                else:
-                    self._edges: Union[list[float], None] = edges
+        #if edges != None:
+                #if len(children) != len(edges):
+                #    raise RuntimeError("The edges array must be of same length as the children array.")
         
         # If recursivity is specified. !!!!! Not factored due to ciscular imports !!!!!!
         #if recursive:
@@ -152,3 +152,16 @@ class ManuscriptBase:
              for c in self.children:
                   out.update(c.build_text_lookup())
         return out
+    
+    def set_edges(self, edge_dict: Dict[str, float]) -> None:
+        """Sets the edges of the current manuscript and propagates the edge setting to all its children.
+        
+        ### Args:
+            - edge_dict (dict): The dictionary used to set the edges with the edges as keys and the edge distances as values.
+            The format of the keys is: "node_label1,node_label2".
+        """
+        if self.edges != []:
+            self._edges = []
+        for child in self.children:
+            self._edges.append(edge_dict[self.label + "," + child.label])
+            child.set_edges(edge_dict=edge_dict)

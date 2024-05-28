@@ -83,6 +83,42 @@ class Utils:
         return root
 
     @staticmethod
+    def recursive_fit(input_dict: Dict[str, dict], 
+                      to_be_fited_label: str, 
+                      to_be_fited_dict: Dict[str, dict]) -> Dict[str, dict]:
+        """Takes nested dictionaries and places the to_be_fited_dict in the corresponding place. If to_be_fited_label is not a key in any of the input_dict
+        nested dictionaries it will return input_dict unchanged.
+        
+        ### Args:
+            - input_dict (dict): The nested dictionary in which the to_be_fited_dict will be placed.
+            - to_be_fited_label (str): The label of the to_be_fited_dict. Used to find its corresponding places in the input_dict.
+            - to_be_fited_dict (dict): The dictionary to fitted into the input_dict at the position identified by to_be_fited_label.
+
+        ### Returns:
+            - dict: The input_dict with the to_be_fited_dict dictionary placed at the position identified by the key to_be_fited_label.
+            If to_be_fited_label is not a key in input_dict will return input_dict.
+
+        ### Example:
+            >>> test_dict = {'1':{'A':{'e':{}, 'f':{}}, 'B':{}}, '2':{}}
+            >>> to_be_fited = {'i':{}, 'j':{}}
+            >>> to_be_fited_lab = 'e'
+            >>> recursive_fit(test_dict, to_be_fited_lab, to_be_fited)
+            {'1': {'A': {'e': {'i': {}, 'j': {}}, 'f': {}}, 'B': {}}, '2': {}}
+
+            >>> test_dict = {'1':{'A':{'e':{}, 'f':{}}, 'B':{}}, '2':{}}
+            >>> to_be_fited = {'i':{}, 'j':{}}
+            >>> to_be_fited_lab = 'w'
+            >>> recursive_fit(test_dict, to_be_fited_lab, to_be_fited)
+            {'1': {'A': {'e': {}, 'f': {}}, 'B': {}}, '2': {}}
+        """
+        if to_be_fited_label in list(input_dict.keys()):
+            input_dict[to_be_fited_label] = to_be_fited_dict    
+        else:
+            for key in input_dict:
+                input_dict[key] = Utils.recursive_fit(input_dict = input_dict[key], to_be_fited_label = to_be_fited_label, to_be_fited_dict = to_be_fited_dict)
+        return input_dict
+
+    @staticmethod
     def dict_from_edge(*,edge_path: Union[str, None] = None, edge_list: Union[list[list[str]], None] = None) -> Dict[str, dict]:
         """Converts edge file to dictionary representation.
 
@@ -109,15 +145,13 @@ class Utils:
         if not Utils.validate_edge(tree_data):
             raise ValueError("The edge file given is not valid. Look at validate_edge function for more details.")
         while len(tree_data) > 1:
-            # TODO: Optimize this mess
+            # If root is the last one take next as root should be fitted last
             if root[0] == list(tree_data.keys())[len(tree_data.keys())-1]:
                 lab = list(tree_data.keys())[len(tree_data.keys())-2]
             else:
                 lab = list(tree_data.keys())[len(tree_data.keys())-1]
             moving = tree_data.pop(lab)
-            for i in tree_data:
-                if tree_data[i].get(lab) != None:
-                    tree_data[i][lab] = moving
+            tree_data = Utils.recursive_fit(tree_data, lab, moving)
         return tree_data
 
     @staticmethod

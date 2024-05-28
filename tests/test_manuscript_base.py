@@ -42,8 +42,8 @@ class TestManuscriptBase(unittest.TestCase):
             ManuscriptBase(label="label", children=[], parent="test")
         with self.assertRaises(ValueError, msg="Dose not throw error if children not a list."):
             ManuscriptBase(label="label", children="test", parent=None)
-        with self.assertRaises(RuntimeError, msg="Dose not throw error if children and edges of different length."):
-            ManuscriptBase(label="label", children=[], parent=None, edges=[1])
+        with self.assertRaises(ValueError, msg="Does not raise a ValueError if the label parameter is not a string."):
+            ManuscriptBase(label=1, parent=None)
 
     def test_Manuscript_attributes(self):
         """Tests attribute instantiation."""
@@ -70,5 +70,5 @@ class TestManuscriptBase(unittest.TestCase):
     
     def test_dump(self):
          """Tests the dump method. (The rest of this method is tested in test_stemmas test_dump test.)"""
-         self.test_child1.dump(self.dump_folder_path)
+         self.manuscriptBase.dump(self.dump_folder_path)
          self.assertTrue(os.path.isdir(self.dump_folder_path), msg="The dump method does not create directory if it does not already exist.")

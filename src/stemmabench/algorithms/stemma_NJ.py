@@ -1,144 +1,161 @@
 from stemmabench.algorithms.stemma_algorithm import StemmaAlgo
-from stemmabench.algorithms.manuscript import Manuscript
+from stemmabench.algorithms.manuscript_empty import ManuscriptEmpty
+from stemmabench.algorithms.manuscript_base import ManuscriptBase
+from stemmabench.algorithms.utils import Utils
 import numpy as np
-from textdistance import levenshtein, jaccard
-from typing import Callable, Dict, Union
+from typing import Callable, Dict, Union, Tuple
 
 
 class StemmaNJ(StemmaAlgo):
     """Class that constructs a stemma using the Neighbor-Joining algorithm.
     
     ### Attributes:
-        - palceholder
+        - folder_path (str): The path to the folder containing all the texts.
+        - manuscripts (dict): The dictionay of all the texts with text labels as keys and texts as values.
+        - distance (Callable): The function to be used as a distance metric.
+        - _dist_matrix (numpy.ndarray): The distance matrix
     """
-
-    #TODO: Remove this.
-    TESTING_FOLDER = "../../../tests/test_data"
 
     def __init__(self,
                  folder_path: Union[str, None] = None,
                  distance: Union[Callable, None] = None) -> None:
-        if distance == None:
-            raise ValueError("No distance specified.")
+        """
+        Constructor for the StemmaNJ class.
+
+        ### Args:
+            - folder_path (str, Optional): The path to the folder containing all the texts.
+            - distance (Callable, Optional): A function that takes 2 strings as parameters and returns a numeric value which is
+            the distance between the 2 strings.
+        """
         super().__init__(folder_path=folder_path)
-        self.dist(distance)
+        self._distance: Union[Callable, None] = distance
+        if distance:
+            self.dist(distance)
+        else:
+            self._dist_matrix: Union[np.ndarray, None] = None
+
+    @property
+    def distance(self):
+        return self._distance
     
-    def compute(self, folder_path: Union[str, None] = None) -> Manuscript:
-        """Builds the stemma tree.
+    @property
+    def dist_matrix(self):
+        return self._dist_matrix
+
+    def compute(self, 
+                folder_path: Union[str, None] = None,
+                distance: Union[Callable, None] = None) -> ManuscriptBase:
+        """Builds the stemma tree. If the distance is specified in function call it will surplant the existing distance if it exists.
 
         ### Args:
             - folder_path (str, Optional): The path to the folder containing the texts. The path specified here will surplant the previous path defined in constructor.
             !!! All .txt files in this folder must be files containing Manuscript texts unless the file name contains the substring "edge" !!!
-            - distance (distance, Optional): The distance to be used in the construction of the tree.
+            - distance (Callable, Optional): A function that takes 2 strings as parameters and returns a numeric value which is
+            the distance between the 2 strings.
         
         Returns:
             - Manuscript: The root of the stemma with the rest of its tree as its children.
 
         Raises:
-            - ValueError: If both the folder_path parameter and the folder_path have not been specified.
+            - RuntimeError: If the _distance attribute has not been specified in the constructor and has not been specified in the compute function call.
         """
         super().compute(folder_path)
-        raise NotImplementedError()
-        
-        return Manuscript(parent= None, recursive=_build_dict())
+        if not self.distance and not distance:
+            raise RuntimeError("The _distance was not specified in the constructor, therefore the distance parameter must be specified.")
+        if distance:
+            self.dist(distance=distance)
+        edges_dict, edges_list = self._build_edges()
+        out = ManuscriptEmpty(parent= None, recursive=Utils.dict_from_edge(edge_list=edges_list), text_list=list(self.manuscripts.keys()))
+        out.set_edges(edges_dict)
+        return out
     
-    def _build_dict(self, distance=None) -> Dict[str, dict]:
-        """Returns the dictionary representation of the tree based to ba used for instanciation.
-        This is where the algorythme is implemented.
-
-        ### Args:
-            - distance (?, Optional): The distance metric used for the the contruction of the tree.
-        """
-        pass
-
     def dist(self, distance: Callable) -> None:
         """Builds the distance matix based on the provided distance function and sets the attribute _dist_matrix.
         
         ### Args:
             - distance (Callable, Required): A function that takes as parameters 2 strings and that returns the distance between them.
+        
+        ### Raises:
+            - RuntimeError: If the folder_path attribut is not set.
         """
+        self._distance = distance
         if not self.folder_path:
             raise RuntimeError("The folder_path attribut needs to be specified in order to buil distance matrix.")
         self._dist_matrix = np.ndarray((len(self.manuscripts), len(self.manuscripts)))
         # TODO: use map instead
-        for key, row in zip(self.manuscripts.keys(), range(len(self.manuscripts))):
-            print(f"nb manuscript rows: {len(self.manuscripts)}")
-            for text, col in zip(self.manuscripts.values(), range(len(self.manuscripts))):
-                print(f"nb manuscript rows: {len(self.manuscripts)}")
+        for key, row in zip(sorted(self.manuscripts.keys()), range(len(self.manuscripts))):
+            for text, col in zip([self.manuscripts[k] for k in sorted(self.manuscripts.keys())], range(len(self.manuscripts))):
                 self._dist_matrix[row][col] = distance(self.manuscripts[key], text)
-        
 
-    # Returns the min value, it's column and it's row
-    @staticmethod 
-    def _get_min(dist: np.ndarray) -> tuple[float, int, int]:
-        """When given a matrix returns a tuple containing the minimum value in the matrix, its column position and its row position in that order.
+    def _build_edges(self) -> Tuple[Dict[str, float], list[list[str]]]:
+        """Builds list of edges as well as the associated dictionayr containing the edge distances.
         
-        ### Args:
-            - dist (np.ndarray, Required): Distance matrix of the of all elements.
-
         ### Returns:
-            - tuple: (minimum value in matrix, its column coordinate, its row coordinate)
+            - dict: The dictionary with edges as keys and distences as values.
+            - list: List of edges.
         """
-        coord = np.argwhere(dist == dist.min())
-        return dist.min(), coord[0][0], coord[0][1]
-    
-    # The Q distance for the neighbour joining algo
-    @staticmethod
-    def _Q_dist(dist: np.ndarray, zero_diag: bool = True) -> np.ndarray:
-        # TODO: Insert the right terms for the objects in description.
-        """Given a distance matrix returns its !!!insert name here!!! matrix.
+        if not isinstance(self._dist_matrix, np.ndarray):
+            raise RuntimeError("Can not call _build_edges if _dist_matrix has not been initialized.")
+        temp_dist_matrix = self._dist_matrix.copy()
+        labels = sorted(list(self.manuscripts.keys()))
+        edges_labels = []
+        edges_distance = []
+        while temp_dist_matrix.shape[0] > 2:
+            temp_dist_matrix, labels, df, f_lab, dg, g_lab = self._aglo(temp_dist_matrix, labels)
+            edges_labels.append([labels[len(labels)-1],f_lab])
+            edges_distance.append(df)
+            edges_labels.append([labels[len(labels)-1],g_lab])
+            edges_distance.append(dg)
+        edges_distance.append(temp_dist_matrix[0,1])
+        edges_labels.append([labels[0], labels[1]])
+        edges_dict_labels = [l[0] + "," + l[1] for l in edges_labels]
+        print(edges_labels)
+        out = {edges_dict_labels[i]: edges_distance[i] for i in range(len(edges_dict_labels))}
+        return out, edges_labels
+
+    def _aglo(self, dist_mat: np.ndarray, labels: list) -> Tuple[np.ndarray, list[str], float, str, float, str]:
+        """Performs one step in the distance matrix aglomeration process and returns all information needed for Neighbour Joining.
+           Does not work for matrix 2*2. 
         
         ### Args:
-            - dist (np.ndarray, Required): Distance matrix of the of all elements.
-            - zero_diag (bool, Optional): Indicates if the resulting matrix should have it's diagonal values set to 0.
-
-        ### Returns:
-            - np.ndarray: Matrix of !!!insert name here!!! distance.
-        """
-        # Q = (n - 2)D - R_i - R_j
-        out = (dist.shape[0] - 2) * dist - dist.sum(axis=0) - dist.sum(axis=1)
-
-        if zero_diag:
-            np.fill_diagonal(out,0)
-
-        return out
-
-    @staticmethod
-    def _aglo(dist_mat: np.ndarray) -> np.ndarray:
-        # TODO: Insert the right terms for the objects in description.
-        # TODO: Check if description is realy what this does.
-        # TODO: Add dict construction output to function.
-        # TODO: What to do when 2 distances are equal.
-        """Performs one step in the distance matrix aglomeration process.
-        
-        ### Args:
-            - dist_mat (np.ndarray, Requred): A !!!insert name here!!! distance matrix to be aglomerated by one step.
+            - dist_mat (np.ndarray): A !!!insert name here!!! distance matrix to be aglomerated by one step.
+            - labels (list): The list of labels that corespond to the distance matrix labels. Can be found in manuscrips.keys().
 
         ### Returns:
             - np.ndarray: The distance matrix aglomerated by one step.
+            - list: The list of labels for the new aglomerated matrix.
+            - folat: Distance between the the aglomerrated manuscript f and the new node u.
+            - str: The label of the manuscript f.
+            - folat: Distance between the the aglomerrated manuscript g and the new node u.
+            - str: The label of the manuscript g.
         """
-        
         # Calculate divergence matrix
-        Q = StemmaNJ._Q_dist(dist_mat)
-
+        Q = (dist_mat.shape[0] - 2) * dist_mat - (dist_mat.sum(axis=0).reshape((dist_mat.shape[0],1)) + dist_mat.sum(axis=1))
+        Q = Q.round(7)
+        np.fill_diagonal(Q,0)
         # Find min of divergence matrix
-        #temp = StemmaNJ._get_min(Q)
-        min = dist_mat.min()
-        coord = np.argwhere(dist_mat == min)[0]
-
+        coord = np.argwhere(Q == Q.min())[0]
+        # The distances d(f,u) and d(g,u)
+        df = round(0.5*dist_mat[coord[0],coord[1]] + (dist_mat[coord[0],].sum() - dist_mat[coord[1],].sum())/(2*(dist_mat.shape[0] - 2)), 7)
+        dg = round(dist_mat[coord[0],coord[1]] - df, 7)
         # Removed aglomerated rows and columns
-        #out = np.delete(np.delete(dist_mat, obj=temp[1:], axis=0), obj=temp[1:], axis=1)
-        out = np.delete(np.delete(dist_mat, obj=coord, axis=0), obj=coord, axis=1)
-
+        out = np.delete(np.delete(dist_mat, obj=coord, axis=0), obj=coord, axis=1).round(7)
         # Vector to be appended to side of reduced matrix
-        vect = 0.5*(np.delete(Q[coord[1]], coord) + np.delete(Q[coord[0]], coord) - min)
-
+        vect = 0.5*(np.delete(dist_mat[coord[0],], [coord[0],coord[1]]) + np.delete(dist_mat[coord[1],], [coord[0],coord[1]]) - dist_mat[coord[0],coord[1]])
+        vect = vect.round(7)
         # Stick new U distance vectors on the right and bottom of the original distance matrix
-        out =  np.row_stack((np.column_stack((out, vect)), np.append(vect, 0)))
-
-        # Return tuple with new aglomerated matrix as first element, the row of the aglomerated texts and the column of aglo text.
-        return out
-    
-    
-    
-    
+        out =  np.row_stack((np.column_stack((out, vect)), np.append(vect, 0))).round(7)
+        # Extracting labels and creating new node label
+        f_label = labels[coord[0]]
+        g_label = labels[coord[1]]
+        new_label = "N_" + str(self.dist_matrix.shape[0] - len(labels) + 1)
+        labels = list(np.delete(labels, coord))
+        labels.append(new_label)
+        print(labels)
+        print(new_label)
+        print(f_label)
+        print(g_label)
+        print(coord)
+        print(dist_mat)
+        print(Q)
+        return out, labels, df, f_label, dg, g_label
