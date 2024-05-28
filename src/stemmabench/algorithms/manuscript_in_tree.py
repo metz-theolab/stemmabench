@@ -18,7 +18,7 @@ class ManuscriptInTree(ManuscriptInTreeBase):
                  parent: Union[ManuscriptInTreeBase, None] = None,
                  label: Union[str, None] = None,
                  children: List[ManuscriptInTreeBase] = [],
-                 edges: Union[List[float], None] = None,
+                 edges: List[float] = [],
                  recursive: Union[Dict[str, Any], None] = None,
                  text: Union[str, None] = None,
                  text_list: Union[List[str], None] = None) -> None:
@@ -39,8 +39,12 @@ class ManuscriptInTree(ManuscriptInTreeBase):
         if text:
             self._text: Union[str, None] = text
         if recursive:
+            if not text_list:
+                raise ValueError(
+                    "If parameter recursive is specified, parameter text_list must also be specified.")
             self._parent: Union[ManuscriptInTreeBase, None] = None
             self._children: List[ManuscriptInTreeBase] = []
+            self._edges: List[float] = edges
             self._label: Union[str, None] = list(recursive.keys())[0]
             self.recursive_init(recursive, text_list)
         elif label:

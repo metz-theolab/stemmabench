@@ -15,7 +15,7 @@ class ManuscriptInTreeBase:
                  label: str,
                  parent: Union["ManuscriptInTreeBase", None],
                  children: List["ManuscriptInTreeBase"] = [],
-                 edges: Union[List[float], None] = None
+                 edges: List[float] = []
                  ) -> None:
         """Base class for representing manuscripts.
 
@@ -32,22 +32,19 @@ class ManuscriptInTreeBase:
             - ValueError: If children not of type list.
             - RuntimeError: If edges specified and len(edges) > len(children)
         """
-        if label:
-            self._label: str = label
+        if not isinstance(label, str):
+            raise ValueError("Parameter label must be a string.")
+        self._label: str = label
+        self._edges: List[float] = edges
         if not parent or isinstance(parent, ManuscriptInTreeBase):
             self._parent: Union[ManuscriptInTreeBase, None] = parent
         else:
-            raise ValueError("Parent must be None or of type ManuscriptBase.")
+            raise ValueError(
+                "Parent must be None or of type ManuscriptInTreeBase.")
         if isinstance(children, list):
             self._children: List["ManuscriptInTreeBase"] = children
         else:
             raise ValueError("The children must be of type list.")
-        if edges != None:
-            if len(children) != len(edges):
-                raise RuntimeError(
-                    "The edges array must be of same length as the children array.")
-            else:
-                self._edges: Union[List[float], None] = edges
 
     @property
     def parent(self):
@@ -109,3 +106,19 @@ class ManuscriptInTreeBase:
             for c in self.children:
                 out.update(c.build_text_lookup())
         return out
+
+    def set_edges(self, edge_dict: Dict[str, Union[float, int]]) -> None:
+        """Sets the edges of the current manuscript and propagates the edge setting to all its children.
+
+        ### Args:
+            - edge_dict (dict): The dictionary used to set the edges with the edges as keys and the edge distances as values.
+            The format of the keys is: "node_label1,node_label2".
+        """
+        if len(self.edges) > 0:
+            self._edges = []
+        for child in self.children:
+            if edge_dict.get(f"{self.label},{child.label}") != None:
+                self._edges.append(edge_dict[f"{self.label},{child.label}"])
+            else:
+                self._edges.append(edge_dict[f"{child.label},{self.label}"])
+            child.set_edges(edge_dict=edge_dict)
