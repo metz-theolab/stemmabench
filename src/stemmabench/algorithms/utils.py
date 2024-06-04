@@ -142,7 +142,7 @@ class Utils:
             edge_list = Utils.edge_to_list(edge_path)
         tree_data = Utils.dict_of_children(edge_list)
         root = Utils.find_root(tree_data)
-        if not Utils.validate_edge(tree_data):
+        if edge_path and not Utils.validate_edge(tree_data):
             raise ValueError("The edge file given is not valid. Look at validate_edge function for more details.")
         while len(tree_data) > 1:
             # If root is the last one take next as root should be fitted last
