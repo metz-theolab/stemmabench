@@ -12,7 +12,8 @@ dependencies = [
   "typer==0.4.1",
   "wheel",
   "numpy==1.25.2",
-  "textdistance==4.6.2"
+  "textdistance==4.6.2",
+  "ctypes=1.1.0"
 ]
 
 [project.scripts]
