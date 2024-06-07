@@ -7,7 +7,7 @@ import numpy as np
 from stemmabench.bench.config_parser import ProbabilisticConfig, VariantConfig, MetaConfig
 from stemmabench.bench.textual_units.sentence import Sentence
 from stemmabench.bench.textual_units.word import Word
-
+from stemmabench.bench.textual_units.letter import Letter
 
 class Text:
     """Class for the representation of a text undergoing a copy
@@ -29,6 +29,7 @@ class Text:
         self.sentences = [Sentence(sentence)
                           for sentence in text.split(punc) if sentence]
         self.words = [Word(word) for word in text.split(" ") if word]
+
         # TODO: improve punctuation diversity
         self.punc = punc
 
@@ -44,6 +45,37 @@ class Text:
             bool: The result of the draw
         """
         return np.random.random() < rate
+
+    def transform_letter(self,
+                         letter: Letter,
+                         letter_config: Dict[str, Any]) -> str:
+        """Transform the text at the letter level, by applying
+        every method specified in the configuration.
+        """
+        for transformation, law in letter_config.items():
+            if self.draw_boolean(law.rate):
+                letter.letter = getattr(letter,
+                                        transformation)(rate=law.rate,
+                                                        **law.args)
+        return letter.letter
+
+    def transform_letters(self,
+                          sentence: str,
+                          letter_config: Dict[str, Any],
+                          language: str) -> str:
+        """Transform the text at the letter level, by applying to every word
+        a possible transformation"""
+        edited_letters = []
+        # instantiate a class for every letter in the word
+        letter_word = [Letter(letter, language=language)
+                       for letter in sentence]
+        for letter in letter_word:
+            if letter.letter == " ":
+                edited_letters.append(" ")
+            else:
+                edited_letters.append(self.transform_letter(letter=letter,
+                                                        letter_config=letter_config))
+        return "".join(edited_letters)
 
     def transform_word(self,
                        word: Word,
@@ -147,6 +179,11 @@ class Text:
         # Transform at word level
         sentence_edited_words = " "
         for sentence in text_edited_sentences.split(self.punc):
+            sentence = self.transform_letters(
+                sentence=sentence,
+                letter_config=variant_config.letters,
+                language=meta_config.language)
+            print(sentence)
             new_sentence = self.transform_words(
                 sentence=sentence,
                 word_config=variant_config.words,
