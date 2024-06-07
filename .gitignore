@@ -127,3 +127,10 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# working files
+working.ipynb
+test_output/
+test_output2/
+Activate_testing.bat
+Activate_testing.cmd
