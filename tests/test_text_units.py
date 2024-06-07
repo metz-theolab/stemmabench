@@ -48,7 +48,8 @@ class TestLetter(unittest.TestCase):
             )
 
     def test_wrong_rate_build_probability_matrix(self):
-        """Tests that the probability matrix is built as expected.
+        """Check that the proper validation errors are raised
+        when the specific rates for lettre is higher than rate.
         """
         with self.assertRaises(ValueError):
             wrong_specific_rate = {
@@ -60,8 +61,10 @@ class TestLetter(unittest.TestCase):
                 specific_rates= wrong_specific_rate,
                 alphabet=["a", "b", "c"]
             )
+
     def test_wrong_letter_build_probability_matrix(self):
-        """Tests that the probability matrix is built as expected.
+        """Check that the proper validation errors are raised
+        when lettre in specific rates is not in the alphabet.
         """
         with self.assertRaises(ValueError):
             wrong_specific_rate = {
