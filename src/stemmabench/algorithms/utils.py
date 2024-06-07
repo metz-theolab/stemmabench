@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, Union
+from typing import Dict, Union, List, Any
 
 
 class Utils:
@@ -18,8 +18,8 @@ class Utils:
         with open(path_to_text, "r", encoding="utf-8") as file:
             return file.read()
 
-    @staticmethod   
-    def dict_of_children(edges: list[list[str]]) -> Dict[str, dict]:
+    @staticmethod
+    def dict_of_children(edges: List[List[str]]) -> Dict[str, Any]:
         """Builds a dictionary with node label as key and dictionary of children as value.
 
         ### Args:
@@ -47,13 +47,13 @@ class Utils:
         return tree_data
 
     @staticmethod
-    def find_root(dict_of_children: Dict[str, dict]) -> list[str]:
+    def find_root(dict_of_children: Dict[str, Any]) -> List[str]:
         """Finds the root of the stemma from a dictionary of children.
-        
+
         ### Args:
             - dict_of_children (dict): Dictionary containing the labels of all manuscripts that have children as keys
             and dictionary of whith all children of key manuscript as keys as values.
-        
+
         ### Example:
             >>> Utils.find_root({'a': {'b': {}, 'c': {}}, 
                                  'b': {'d': {}, 'e': {}}, 
@@ -69,7 +69,7 @@ class Utils:
         return root
 
     @staticmethod
-    def dict_from_edge(*,edge_path: Union[str, None] = None, edge_list: Union[list[list[str]], None] = None) -> Dict[str, dict]:
+    def dict_from_edge(*, edge_path: Union[str, None] = None, edge_list: Union[List[List[str]], None] = None) -> Dict[str, Any]:
         """Converts edge file to dictionary representation.
 
         ### Args:
@@ -85,15 +85,18 @@ class Utils:
             - ValueError: If both parameters are specified.
         """
         if edge_path and edge_list:
-            raise ValueError("Only one of the parameters edge_path and edge_list can be specified.")
+            raise ValueError(
+                "Only one of the parameters edge_path and edge_list can be specified.")
         if not edge_path and not edge_list:
-            raise ValueError("At least one of the parameters edge_path or edge_list must be specified.")
+            raise ValueError(
+                "At least one of the parameters edge_path or edge_list must be specified.")
         if edge_path:
             edge_list = Utils.edge_to_list(edge_path)
         tree_data = Utils.dict_of_children(edge_list)
         root = Utils.find_root(tree_data)
         if not Utils.validate_edge(tree_data):
-            raise ValueError("The edge file given is not valid. Look at validate_edge function for more details.")
+            raise ValueError(
+                "The edge file given is not valid. Look at validate_edge function for more details.")
         while len(tree_data) > 1:
             # TODO: Optimize this mess
             if root[0] == list(tree_data.keys())[len(tree_data.keys())-1]:
@@ -107,8 +110,8 @@ class Utils:
         return tree_data
 
     @staticmethod
-    def validate_edge(dict_of_children: Dict[str, dict]) -> bool:
-        """Cheks to see if edge file is valid.
+    def validate_edge(dict_of_children: Dict[str, Any]) -> bool:
+        """Checks to see if edge file is valid.
             - Checks to see if there is only one root.
         ### Args:
             - dict_of_children (dict): A dictionary of nodes with node labels as keys and
@@ -128,7 +131,7 @@ class Utils:
         return nb_root_cond
 
     @staticmethod
-    def edge_to_list(edge_path: str) -> list[list[str]]:
+    def edge_to_list(edge_path: str) -> List[List[str]]:
         """Builds an list representation of the edge file.
         ### Args:
             - edge_path (str): The path to the edge file.
@@ -136,5 +139,6 @@ class Utils:
         ### Returns:
             - list: List of edges in edge format.
         """
-        input_lines = Path(edge_path).read_text().strip().replace("(", "").replace(")","").replace("'","").replace(" ","").split(sep="\n")
-        return list(e.split(sep=",") for e in input_lines)
+        input_lines = Path(edge_path).read_text().strip().replace(
+            "(", "").replace(")", "").replace("'", "").replace(" ", "").split(sep="\n")
+        return [e.split(sep=",") for e in input_lines]

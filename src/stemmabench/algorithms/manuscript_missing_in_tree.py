@@ -1,8 +1,8 @@
-from typing import Union
-from stemmabench.algorithms.manuscript_base import ManuscriptBase
+from typing import Union, List
+from stemmabench.algorithms.manuscript_in_tree_base import ManuscriptInTreeBase
 
 
-class ManuscriptMissing(ManuscriptBase):
+class ManuscriptMissingInTree(ManuscriptInTreeBase):
     """Class for the representation of a missing manuscript in a stemma tree.
 
     ### Attributes:
@@ -12,11 +12,11 @@ class ManuscriptMissing(ManuscriptBase):
         - edges (list): The list of all the edges conected to the tree. Is in the same order as the children list.
     """
 
-    def __init__(self, 
-                 label: str, 
-                 parent: Union[ManuscriptBase, None], 
-                 children: Union[list[ManuscriptBase], None] = None, 
-                 edges: Union[list[float], None] = None) -> None:
+    def __init__(self,
+                 label: str,
+                 parent: Union[ManuscriptInTreeBase, None],
+                 children: Union[List[ManuscriptInTreeBase], None] = None,
+                 edges: Union[List[float], None] = None) -> None:
         """Class for the representation of a missing manuscript in a stemma tree.
 
         ### Args:

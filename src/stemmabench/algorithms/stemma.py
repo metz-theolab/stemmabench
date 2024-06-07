@@ -1,18 +1,17 @@
 import json
 from pathlib import Path
-from typing import Dict, List, Union, Any
-from stemmabench.algorithms.manuscript import Manuscript
-from stemmabench.algorithms.manuscript_base import ManuscriptBase
-from stemmabench.algorithms.utils import Utils
-#from stemmabench.algorithms.stemma_algorithm import StemmaAlgo
+from typing import Dict, Union, Any
 import os
+from stemmabench.algorithms.manuscript_in_tree import ManuscriptInTree
+from stemmabench.algorithms.manuscript_in_tree_base import ManuscriptInTreeBase
+from stemmabench.algorithms.utils import Utils
 
 
 class Stemma:
     """Class that represents a stemma tree.
-    
+
     ### Attributes:
-        - root (Manuscript): The root of the stemma tree.
+        - root (ManuscriptInTree): The root of the stemma tree.
         - folder_path (str): The path to the folder containing the texts for the stemma.
         - edge_file (str): The path to the .txt file that contains the edges for the stemma.
         - text_lookup (dict): Dictionary containing all the manuscripts contained in the stemma tree.
@@ -22,7 +21,7 @@ class Stemma:
     """
 
     def __init__(self,
-                 folder_path: Union[str, None] = None,
+                 folder_path: str,
                  edge_file: Union[str, None] = None,
                  generation_info: Dict[str, Any] = {}) -> None:
         """A class to perform variant generation.
@@ -45,8 +44,8 @@ class Stemma:
         self._set_folder_path(folder_path=folder_path)
         self._edge_file: Union[str, None] = edge_file
         self._generation_info: Union[Dict[str, Any], None] = generation_info
-        self._root: Union[ManuscriptBase, None] = None
-        self._text_lookup: Dict[str, ManuscriptBase] = {}
+        self._root: Union[ManuscriptInTreeBase, None] = None
+        self._text_lookup: Dict[str, ManuscriptInTreeBase] = {}
         self._fitted: bool = False
 
     @property
@@ -56,45 +55,45 @@ class Stemma:
     @property
     def folder_path(self):
         return self._folder_path
-    
+
     @property
     def edge_file(self):
         return self._edge_file
-    
+
     @property
     def fitted(self):
         return self._fitted
-    
+
     @property
     def text_lookup(self):
         return self._text_lookup
-    
+
     @property
     def generation_info(self):
         return self._generation_info
-    
-    def _set_folder_path(self, folder_path: Union[str, None]) -> None:
+
+    def _set_folder_path(self, folder_path: str) -> None:
         """Checks that the folder path is an existing directory and sets the folder_path attribute.
-        
+
         ### Args:
             - folder_path (str): The path to the folder containing all the texts.
 
         ### Raises:
             - ValueError: If the specified folder_path is not an existing directory.
         """
-        if folder_path and not os.path.isdir(folder_path):
-            raise ValueError("The folder_path specified is not an existing folder path.")
+        if not os.path.isdir(folder_path):
+            raise ValueError(f"{folder_path} is not an existing folder path.")
         self._folder_path = folder_path
-    
+
     def get_edges(self) -> None:
         """Return array of all the edge values.
-        
+
         ### Raises:
             - NotImplementedError: Not implemented yet.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
-    def dict(self, include_edges: bool = False) -> Dict[str, dict]:
+    def dict(self, include_edges: bool = False) -> Dict[str, Any]:
         """Return a dict representation of the tree.
         Dict is empty until tree is fitted (fitting can be done using .fit() method)
 
@@ -110,10 +109,11 @@ class Stemma:
         if not self.fitted:
             raise RuntimeError("Stemma not fitted yet.")
         return self.root.dict(include_edges)
-    
+
     def __eq__(self, value: object) -> bool:
         """Returns true if both stemmas are the same. !!! Only checks that both stemmas contain all the same texts !!!
-        
+        # TODO: This method is a placeholder until a better definition of equality can be found.
+
         ### Args:
             - value (object): The object to be compared to the calling Stemma.
 
@@ -128,82 +128,76 @@ class Stemma:
                         return False
                 return True
         return False
-    
+
     def __repr__(self) -> str:
         """String representation of the tree."""
         if self.fitted:
             return "Tree(" + json.dumps(self.dict(), indent=2) + ")"
         return "Empty"
 
-    def dump(self, folder: Union[str, None] = None) -> None:
+    def dump(self, folder: str) -> None:
         """Dump the generated stemma into a folder:
             - The texts in .txt file named after the manuscript label.
             - The corresponding tree structure in edge file.
             If folder is not specified will use the stemas path_to_folder attribute as path.
 
         ### Args:
-            - folder (str, Optional): The folder where the text should be written.
+            - folder (str): The folder where the text should be written.
 
         ### Raises:
-            - ValueError: If folder is not specified and the folder_path variable is not set.
+            - RuntimeError: If was unable to create directory.
         """
-        if not self.folder_path and not folder:
-            raise ValueError("This stemmas path_to_folder varaibles is not set. Therefor folder must be specified.")
-        if not folder and self.folder_path:
-            folder = self.folder_path
         if not os.path.isdir(folder):
+            try:
                 Path(folder).mkdir(exist_ok=True)
+            except:
+                raise RuntimeError(
+                    f"Was unable to create the directory {folder}.")
+        fedge = open("edges.txt", "w")
         for key in self.text_lookup:
-            self.text_lookup[key].dump(folder)
+            for child in self.text_lookup[key].children:
+                fedge.write(f"({self.text_lookup[key].label},{child.label})\n")
+            if isinstance(self.text_lookup[key], ManuscriptInTree):
+                ftext = open(f"{self.text_lookup[key].label}.txt", "w")
+                ftext.write(self.text_lookup[key].text)
+                ftext.close()
 
     def compute(self,
-                algo = None,
+                algo: Any = None,
                 edge_file: Union[str, None] = None,
-                folder_path: Union[str, None] = None,
-                generation_info: Union[Dict[str, Any], None] = None,
+                generation_info: Dict[str, Any] = {},
                 *args,
                 **kargs) -> None:
         """Builds the stemma based on given algorithm or edge file. Builds the stemma in place. 
            Meaning it does not return anything.
 
         ### Args:
-            - algo (StemmaAlgo, Optinal): indicating the function used to build the tree.
+            - algo (StemmaAlgo, Optional): indicating the function used to build the tree.
             - edge_file (str, Optional): Path to the edge file used to build the tree. If given will ignore all other parameters.
-            - folder_path (str, Optional): The path to the folder containing all the stemma texts. 
             If specified with the algo perameter this path will overwrite all other
             - **kargs: The parameters to be passed to the algo parameter for the stemma generation.
 
         ### Raises:
-            - ValueError: If edge_file is specified and path_to_folder is not specified.
-            - RuntimeError: If folder_path is not specified and both the _folder_path attribute and the algo folder_path attribute are set to None.
             - RuntimeError: If both edge_file and algo pararmeters are unspecified.
         """
         self._generation_info = generation_info
         if edge_file:
-            if not folder_path:
-                raise ValueError("If edge_file is specified path_to_folder must be specified.")
-            self._folder_path = folder_path
-            self._root = Manuscript(parent= None, recursive=Utils.dict_from_edge(edge_path=edge_file))
+            self._root = ManuscriptInTree(
+                parent=None, recursive=Utils.dict_from_edge(edge_path=edge_file))
             self._text_lookup = self._root.build_text_lookup()
             for text in self.text_lookup.values():
-                text._text = Utils.load_text(self.folder_path + "/" + text.label + ".txt")
+                text._text = Utils.load_text(
+                    self.folder_path + "/" + text.label + ".txt")
             self._fitted = True
             self._edge_file = edge_file
         elif algo:
-            raise NotImplementedError()
-            if folder_path:
-                self._set_folder_path(folder_path=folder_path)
-            elif self.folder_path:
-                folder_path = self.folder_path
-            elif algo.folder_path:
-                folder_path = algo.folder_path
-                self._set_folder_path(folder_path=algo.folder_path)
-            else:
-                raise RuntimeError("The folder_path is not specified as an attribute of this stemma instance or as an attribute of the algo parameter instance. Therefore the parameter folder_path must be specified.")  
-            self._root = algo.compute(folder_path=folder_path,*args,**kargs)
+            self._root = algo.compute(
+                folder_path=self.folder_path, *args, **kargs)
             self._text_lookup = self._root.build_text_lookup()
             for text in self.text_lookup.values():
-                text._text = Utils.load_text(folder_path + "/" + text.label + ".txt")
+                text._text = Utils.load_text(
+                    self.folder_path + "/" + text.label + ".txt")
             self._fitted = True
         else:
-            raise RuntimeError("At least one of edge_file or algo parameters must be specified.")
+            raise RuntimeError(
+                "At least one of edge_file or algo parameters must be specified.")

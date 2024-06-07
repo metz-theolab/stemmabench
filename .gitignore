@@ -128,7 +128,7 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# Andrew's working files
+# working files
 working.ipynb
 test_output/
 test_output2/

@@ -1,9 +1,7 @@
-from pathlib import Path
-from typing import Union, Dict
-import os
+from typing import Union, Dict, Any, List
 
 
-class ManuscriptBase:
+class ManuscriptInTreeBase:
     """Base class for representing manuscripts in a stemma tree.
 
     ### Attributes:
@@ -15,9 +13,9 @@ class ManuscriptBase:
 
     def __init__(self,
                  label: str,
-                 parent: Union["ManuscriptBase", None],
-                 children: list["ManuscriptBase"] = [],
-                 edges: Union[list[float], None] = None
+                 parent: Union["ManuscriptInTreeBase", None],
+                 children: List["ManuscriptInTreeBase"] = [],
+                 edges: Union[List[float], None] = None
                  ) -> None:
         """Base class for representing manuscripts.
 
@@ -35,46 +33,47 @@ class ManuscriptBase:
             - RuntimeError: If edges specified and len(edges) > len(children)
         """
         if label:
-                self._label: str = label
-        if not parent or isinstance(parent, ManuscriptBase):
-                self._parent: Union[ManuscriptBase, None] = parent
+            self._label: str = label
+        if not parent or isinstance(parent, ManuscriptInTreeBase):
+            self._parent: Union[ManuscriptInTreeBase, None] = parent
         else:
             raise ValueError("Parent must be None or of type ManuscriptBase.")
         if isinstance(children, list):
-                self._children: list["ManuscriptBase"] = children
+            self._children: List["ManuscriptInTreeBase"] = children
         else:
             raise ValueError("The children must be of type list.")
         if edges != None:
-                if len(children) != len(edges):
-                    raise RuntimeError("The edges array must be of same length as the children array.")
-                else:
-                    self._edges: Union[list[float], None] = edges
+            if len(children) != len(edges):
+                raise RuntimeError(
+                    "The edges array must be of same length as the children array.")
+            else:
+                self._edges: Union[List[float], None] = edges
 
     @property
     def parent(self):
         return self._parent
-    
+
     @property
     def children(self):
         return self._children
-    
+
     @property
     def label(self):
         return self._label
-    
+
     @property
     def edges(self):
         return self._edges
-    
+
     def __repr__(self) -> str:
         """String representation of the Manuscript.
-        
+
         ### Returns:
             - str: String representation of the manuscript.
         """
         return self.label
 
-    def dict(self, include_edges: bool = False) -> Dict[str, dict]:
+    def dict(self, include_edges: bool = False) -> Dict[str, Any]:
         """ Constructs dictionary representaion of tree from the Manuscript it is called from.
 
         ### Args:
@@ -87,8 +86,8 @@ class ManuscriptBase:
             if len(self.children) == 0:
                 return {self.label: {}}
             else:
-                return {"label": self.label, 
-                        "edges": {child.label: edge for edge,child in zip(self.edges, self.children)},
+                return {"label": self.label,
+                        "edges": {child.label: edge for edge, child in zip(self.edges, self.children)},
                         "children": {child.label: child.dict() for child in self.children}}
         else:
             if not self.children or len(self.children) == 0:
@@ -96,32 +95,10 @@ class ManuscriptBase:
             else:
                 out = {}
                 for child in self.children:
-                     out.update(child.dict())
+                    out.update(child.dict())
                 return {self.label: out}
 
-    def dump(self, folder_path: str, edge_path: Union[str, None] = None) -> None:
-        """Adds the edge to the edge file present in given folder.
-            If the folder does not exist it will be created.
-            If the edge file does not existe it will be created.
-            Will look through edge file if it exists to check that edge is alredy present in edge file. 
-        
-        ### Args:
-            - folder_path (str): The path the folder where the text file will be writen.
-            - edge_path (str, Optional): The path to the edge file.
-        """
-        if not os.path.isdir(folder_path):
-             Path(folder_path).mkdir(exist_ok=True)
-        if not edge_path:
-            edge_path = Path(folder_path) / "edges.txt"
-        with open(edge_path, "a") as fedge:
-            edges = open(edge_path, "r").read()
-            for child in self.children:
-               edge = "('" + self.label + "','" + child.label + "')\n"
-               if edges.find(edge) < 1:
-                fedge.write(edge)
-        fedge.close()
-
-    def build_text_lookup(self) -> Dict[str, "ManuscriptBase"]:
+    def build_text_lookup(self) -> Dict[str, "ManuscriptInTreeBase"]:
         """Used to instantiate the stemmas lookup attribute.
 
         ### Returns:
@@ -129,6 +106,6 @@ class ManuscriptBase:
         """
         out = {self.label: self}
         if self.children:
-             for c in self.children:
-                  out.update(c.build_text_lookup())
+            for c in self.children:
+                out.update(c.build_text_lookup())
         return out
