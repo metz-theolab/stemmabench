@@ -2,8 +2,6 @@
 Unit tests for the ManuscriptInTreeBase class.
 """
 import unittest
-import shutil
-import os
 from stemmabench.algorithms.manuscript_in_tree_base import ManuscriptInTreeBase
 
 
