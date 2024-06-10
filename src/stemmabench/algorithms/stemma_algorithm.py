@@ -1,6 +1,6 @@
 import os
-from typing import Union, Dict
-from stemmabench.algorithms.manuscript import Manuscript
+from typing import Dict, List
+from stemmabench.algorithms.manuscript_in_tree import ManuscriptInTree
 
 
 class StemmaAlgo:
@@ -12,67 +12,37 @@ class StemmaAlgo:
         This is what is ued to build the stemmas.
     """
 
-    def __init__(self, 
-                 folder_path: Union[str, None] = None) -> None:
+    def __init__(self) -> None:
         """StemmaAlgo constructor.
-
-        ### Args:
-            - folder_path (str, Optional): The path to the folder containing the texts. 
-            !!! All .txt files in this folder must be files containing Manuscript texts unless the file name contains the substring "edge" !!!
         """
-        if folder_path:
-            self._set_from_folder_path(folder_path)
-        else:
-            self._folder_path: Union[str, None] = None
-            self._manuscripts: Dict[str, str] = {}
+        self._manuscripts: Dict[str, str] = {}
 
-    @property
-    def folder_path(self):
-        return self._folder_path
-    
     @property
     def manuscripts(self):
         return self._manuscripts
-    
-    def _set_from_folder_path(self, folder_path: Union[str, None] = None) -> None:
-        """Setter for all attributs that rely on the folder path.
-        
-        ### Args:
-            - folder_path (str): The path to the folder containing all the texts.
 
-        ### Raises:
-            - ValueError: If folder_path not specified.
-            - RuntimeError: If the given folder_path is not an existing directory.
-        """
-        if not folder_path:
-            raise ValueError("No folder_path specified.")
-        if not os.path.isdir(folder_path):
-            raise RuntimeError("The given path is not an existing directory.")
-        self._folder_path = folder_path
-        self._manuscripts = {}
-        files: list[str] = list(filter(lambda x: "edge" not in x and os.path.isfile(folder_path + "/" + x) and ".txt" in x, 
-                                       os.listdir(folder_path)))
-        for text in files:
-            self._manuscripts.update({text.replace(".txt", ""): open(folder_path + "/" + text, "r").read()})
-
-    def compute(self, folder_path: Union[str, None] = None, *arg, **kwarg) -> Manuscript:
+    def compute(self, folder_path: str, *arg, **kwarg) -> ManuscriptInTree:
         """Builds the stemma tree. The implementation at this level only checks the inputs and sets the attributes.
 
         ### Args:
-            - folder_path (str, Optional): The path to the folder containing the texts. The path specified here will surplant the previous path defined in constructor and will be set as new path_folder attribute.
+            - folder_path (str): The path to the folder containing the texts. The path specified here will surplant the previous path defined in constructor and will be set as new path_folder attribute.
             !!! All .txt files in this folder must be files containing Manuscript texts unless the file name contains the substring "edge" !!!
-        
+
         ### Returns:
             - Manuscript: The root of the stemma with the rest of its tree as its children.
 
         ### Raises:
-            - ValueError: If both the folder_path parameter and the object _folder_path attribute have not been specified.
+            - RuntimeError: If folder_path is not an existing directory.
         """
-        if folder_path == None and self.folder_path == None:
-            raise ValueError("The attribute folder_path has not been initialized for this instance. Therefore folder_path must be specified.")
-        self._set_from_folder_path(folder_path)
-    
-    def _build_edges(self) -> list[list[str]]:
+        if not os.path.isdir(folder_path):
+            raise RuntimeError(f"{folder_path} is not an existing directory.")
+        files: List[str] = list(filter(lambda x: "edge" not in x and os.path.isfile(folder_path + "/" + x) and ".txt" in x,
+                                       os.listdir(folder_path)))
+        for text in files:
+            self._manuscripts.update(
+                {text.replace(".txt", ""): open(folder_path + "/" + text, "r").read()})
+
+    def _build_edges(self) -> List[List[str]]:
         """Builds a list representation of stemma tree edges.
         This is where the algorythmes are implemented.
 
@@ -82,7 +52,7 @@ class StemmaAlgo:
         ### Raises:
             - NotImplementedError: Method not implemented for this class.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def __eq__(self, value: object) -> bool:
         """Tests equality with an other object.
@@ -96,7 +66,7 @@ class StemmaAlgo:
         ### Raises:
             NotImplementedError: Method not implemented for this class.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def __repr__(self) -> str:
         """Returns a string representation of this object.
@@ -107,4 +77,4 @@ class StemmaAlgo:
         ### Raises:
             - NotImplementedError: Method not implemented for this class.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
