@@ -61,7 +61,7 @@ class StemmaDummy(StemmaAlgo):
         if width:
             self._width = width
         super().compute(folder_path)
-        return ManuscriptInTree(parent=None, recursive=Utils.dict_from_edge(edge_list=self._build_edges(self._build_random_levels())))
+        return ManuscriptInTree(parent=None, recursive=Utils.dict_from_edge(edge_list=self._build_edges(self._build_random_levels())), text_list=Utils.get_text_list(folder_path))
 
     def _build_random_levels(self) -> List[List[str]]:
         """Builds a list of labels at each level of the stemma tree.

@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Dict, Union, Any
 import os
 from stemmabench.algorithms.manuscript_in_tree import ManuscriptInTree
+from stemmabench.algorithms.manuscript_in_tree_empty import ManuscriptInTreeEmpty
 from stemmabench.algorithms.manuscript_in_tree_base import ManuscriptInTreeBase
 from stemmabench.algorithms.utils import Utils
 
@@ -182,8 +183,14 @@ class Stemma:
         """
         self._generation_info = generation_info
         if edge_file:
-            self._root = ManuscriptInTree(
-                parent=None, recursive=Utils.dict_from_edge(edge_path=edge_file))
+            text_list = Utils.get_text_list(self.folder_path)
+            generation_dict = Utils.dict_from_edge(edge_path=edge_file)
+            if list(generation_dict.keys())[0] in text_list:
+                self._root = ManuscriptInTree(
+                    parent=None, recursive=generation_dict, text_list=text_list)
+            else:
+                self._root = ManuscriptInTreeEmpty(
+                    parent=None, recursive=generation_dict, text_list=text_list)
             self._text_lookup = self._root.build_text_lookup()
             for text in self.text_lookup.values():
                 text._text = Utils.load_text(

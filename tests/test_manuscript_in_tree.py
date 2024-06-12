@@ -3,6 +3,7 @@ Unit tests for the ManuscriptInTree class.
 """
 import unittest
 from stemmabench.algorithms.manuscript_in_tree import ManuscriptInTree
+from stemmabench.algorithms.utils import Utils
 
 
 class TestManuscriptInTree(unittest.TestCase):
@@ -21,6 +22,18 @@ class TestManuscriptInTree(unittest.TestCase):
             label="different label", text="same text", children=[])
         self.manuscript4 = ManuscriptInTree(
             label="same label", text="different text", children=[self.manuscript1])
+
+    def test_recursive_init(self):
+        """Tests the recursive_init method."""
+        test_child1 = ManuscriptInTree(label="child1", parent=None)
+        test_child2 = ManuscriptInTree(label="child2", parent=None)
+        test_child3 = ManuscriptInTree(label="child3", parent=None)
+        children = [test_child1, test_child2, test_child3]
+        manuscriptEmpty = ManuscriptInTree(
+            label="label", children=children, parent=None, edges=[1, 2, 3])
+        function_output = ManuscriptInTree(label="label", parent=None).recursive_init({
+            'label': {'child1': {}, 'child2': {}, 'child3': {}}}, Utils.get_text_list("test_data/test_stemma"))
+        self.assertTrue(function_output.__eq__(manuscriptEmpty))
 
     def test_manuscript(self):
         """Tests Manuscript instanciation."""

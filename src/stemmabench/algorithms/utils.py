@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import Dict, Union, List, Any
+from os import listdir
 
 
 class Utils:
@@ -17,6 +18,19 @@ class Utils:
         """
         with open(path_to_text, "r", encoding="utf-8") as file:
             return file.read()
+
+    @staticmethod
+    def get_text_list(folder_path: str) -> List[str]:
+        """For a given folder path returns a list of all the text names in that folder.
+        Will remove all names that contain the subsring "edge" from the list.
+
+        ### Args:
+            - folder_path (str): The path to the folder that contains stemma texts.
+
+        ### Returns:
+            - list: List of manuscript names.
+        """
+        return [l.stem for l in Path(folder_path).glob("*.txt") if not "edge" in l.stem]
 
     @staticmethod
     def dict_of_children(edges: List[List[str]]) -> Dict[str, Any]:
