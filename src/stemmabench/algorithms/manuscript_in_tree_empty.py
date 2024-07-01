@@ -17,7 +17,7 @@ class ManuscriptInTreeEmpty(ManuscriptInTreeBase):
                  parent: Union[ManuscriptInTreeBase, None] = None,
                  label: Union[str, None] = None,
                  children: List[ManuscriptInTreeBase] = [],
-                 edges: Union[List[float], None] = None,
+                 edges: List[float] = [],
                  recursive: Union[Dict[str, dict], None] = None,
                  text_list: Union[List[str], None] = None) -> None:
         """A class representing the Manuscripts that make up the nodes of a stemma.
@@ -36,11 +36,12 @@ class ManuscriptInTreeEmpty(ManuscriptInTreeBase):
             - ValueError: If both recursive and lable are not specified.
         """
         if recursive:
-            if text_list != []:
+            if not text_list:
                 raise ValueError(
                     "If parameter recursive is specified, parameter text_list must also be specified.")
             self._parent: Union[ManuscriptInTreeBase, None] = parent
             self._children: List[ManuscriptInTreeBase] = []
+            self._edges: List[float] = edges
             self._label: Union[str, None] = list(recursive.keys())[0]
             self.recursive_init(recursive, text_list)
         elif label:

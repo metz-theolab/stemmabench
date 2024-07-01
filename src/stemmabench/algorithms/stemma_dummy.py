@@ -56,10 +56,10 @@ class StemmaDummy(StemmaAlgo):
         ### Returns:
             - Manuscript: The root of the stemma with the rest of its tree as its children.
         """
-        if not isinstance(width, int):
-            raise ValueError("Parameter width must be of type int.")
         if width:
             self._width = width
+        if not isinstance(width, int):
+            raise ValueError("Parameter width must be of type int.")
         super().compute(folder_path)
         return ManuscriptInTree(parent=None, recursive=Utils.dict_from_edge(edge_list=self._build_edges(self._build_random_levels())), text_list=Utils.get_text_list(folder_path))
 

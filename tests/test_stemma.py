@@ -5,6 +5,7 @@ import unittest
 import os
 import shutil
 from stemmabench.algorithms.stemma import Stemma
+from stemmabench.algorithms.stemma_dummy import StemmaDummy
 
 
 class TestStemma(unittest.TestCase):
@@ -27,6 +28,10 @@ class TestStemma(unittest.TestCase):
                                         '7': {'11': {'5': {}, '8': {}},
                                               '6': {}}}}
         self.stemma_str = 'Tree({"1":{"4":{"11":{},"12":{},"13":{}},"3":{"9":{},"10":{},"8":{}},"2":{"5":{},"6":{},"7":{}}}})'
+        self.test_edge_list = [['4', '11'], ['2', '5'], ['2', '6'],
+                               ['2', '7'], ['3', '9'], ['3', '10'],
+                               ['1', '4'], ['3', '8'], ['1', '3'],
+                               ['4', '12'], ['4', '13'], ['1', '2']]
 
     def tearDown(self) -> None:
         """Clean up by deleting the output folder and its contents.
@@ -90,13 +95,35 @@ class TestStemma(unittest.TestCase):
             self.assertTrue(open(self.stemma_edge_file,
                             "r").read().find(edge) > -1)
 
-    def test_get_edges(self):
+    def test_get_edge_values(self):
         """Tests the get_edges method."""
         testing_stemma = Stemma(folder_path=self.stemma_folder)
-        with self.assertRaises(NotImplementedError):
-            testing_stemma.get_edges()
+        testing_stemma.compute(edge_file=self.stemma_edge_file)
+        testing_stemma.root._edges = [4, 3, 2]
+        testing_stemma.root.children[0]._edges = [11, 12, 13]
+        testing_stemma.root.children[1]._edges = [9, 10, 8]
+        testing_stemma.root.children[2]._edges = [5, 6, 7]
+        self.assertDictEqual(testing_stemma.get_edge_values(), {'1,4': 4,
+                                                                '1,3': 3,
+                                                                '1,2': 2,
+                                                                '4,11': 11,
+                                                                '4,12': 12,
+                                                                '4,13': 13,
+                                                                '3,9': 9,
+                                                                '3,10': 10,
+                                                                '3,8': 8,
+                                                                '2,5': 5,
+                                                                '2,6': 6,
+                                                                '2,7': 7})
 
     def test_set_folder_path(self):
         """Tests the _set_folder_path method."""
         with self.assertRaises(ValueError, msg="The _set_folder_path method does not raise a ValueError when the given folder_path is not an existing directory."):
             Stemma(folder_path="tests/not_folder_path")
+
+    def test_to_edge_list(self):
+        """Tests the to_edge_list method."""
+        testing_stemma = Stemma(folder_path=self.stemma_folder)
+        testing_stemma.compute(edge_file=self.stemma_edge_file)
+        self.assertCountEqual(
+            testing_stemma.to_edge_list(), self.test_edge_list)
