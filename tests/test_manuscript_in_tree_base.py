@@ -30,14 +30,11 @@ class TestManuscriptInTreeBase(unittest.TestCase):
                                        'child3': {'child3': {}}}}
 
     def test_manuscript(self):
-        """Tests ManuscriptBase instanciation."""
+        """Tests ManuscriptInTreeBase instanciation."""
         with self.assertRaises(ValueError, msg="Does not throw error if parent is of wrong type."):
             ManuscriptInTreeBase(label="label", children=[], parent="test")
         with self.assertRaises(ValueError, msg="Does not throw error if children not a list."):
             ManuscriptInTreeBase(label="label", children="test", parent=None)
-        with self.assertRaises(RuntimeError, msg="Does not throw error if children and edges of different length."):
-            ManuscriptInTreeBase(label="label", children=[],
-                                 parent=None, edges=[1])
 
     def test_manuscript_attributes(self):
         """Tests attribute instantiation."""

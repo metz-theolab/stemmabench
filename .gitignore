@@ -130,7 +130,11 @@ dmypy.json
 
 # working files
 working.ipynb
+tree_metrics.py
 test_output/
 test_output2/
 Activate_testing.bat
 Activate_testing.cmd
+tests/test_data/res_presentation/
+tests/test_data/res_out/
+.vscode

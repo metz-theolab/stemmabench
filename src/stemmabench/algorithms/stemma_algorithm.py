@@ -7,7 +7,6 @@ class StemmaAlgo:
     """Base class for all th stemma algorithmes.
 
     ### Attributes:
-        - folder_path (str): The path to the folder containing all the texts.
         - manuscripts (dict): The dictionay of all the texts with text labels as keys and texts as values.
         This is what is ued to build the stemmas.
     """
@@ -23,6 +22,7 @@ class StemmaAlgo:
 
     def compute(self, folder_path: str, *arg, **kwarg) -> ManuscriptInTree:
         """Builds the stemma tree. The implementation at this level only checks the inputs and sets the attributes.
+        At this level this method checks that attributs are properly set to be able to call the compute method.
 
         ### Args:
             - folder_path (str): The path to the folder containing the texts. The path specified here will surplant the previous path defined in constructor and will be set as new path_folder attribute.

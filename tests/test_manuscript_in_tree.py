@@ -32,7 +32,7 @@ class TestManuscriptInTree(unittest.TestCase):
         manuscriptEmpty = ManuscriptInTree(
             label="label", children=children, parent=None, edges=[1, 2, 3])
         function_output = ManuscriptInTree(label="label", parent=None).recursive_init({
-            'label': {'child1': {}, 'child2': {}, 'child3': {}}}, Utils.get_text_list("test_data/test_stemma"))
+            'label': {'child1': {}, 'child2': {}, 'child3': {}}}, Utils.get_text_list("tests/test_data/test_stemma"))
         self.assertTrue(function_output.__eq__(manuscriptEmpty))
 
     def test_manuscript(self):

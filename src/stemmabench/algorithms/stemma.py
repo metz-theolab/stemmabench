@@ -30,7 +30,7 @@ class Stemma:
 
         ### Args:
             - folder_path (str, Optional): The path to the folder that contains the texts.
-            - edge_file (str, Optional): An edge file from which the tree can be built. 
+            - edge_file (str, Optional): An edge file from which the tree can be built.
             !!! The labels used in the edge file must be the same as the name used for the text .txt names !!!
             - generation_info (dict, Optional): A dictionnary containing information about the stemma's generation.
 
@@ -39,7 +39,7 @@ class Stemma:
             The following section is a suggestion of the possible contents of the dictionary.
         #### Content:
             - config (str, Optional): The path to the config file used to generate the tree.
-            - has_ground_truth (bool, Optional): Boolean indicating if the true tree is known. If false the path_to_original attribute will indicate the 
+            - has_ground_truth (bool, Optional): Boolean indicating if the true tree is known. If false the path_to_original attribute will indicate the
             estimated original text.
         """
         self._set_folder_path(folder_path=folder_path)
@@ -86,13 +86,29 @@ class Stemma:
             raise ValueError(f"{folder_path} is not an existing folder path.")
         self._folder_path = folder_path
 
-    def get_edges(self) -> None:
-        """Return array of all the edge values.
+    def get_edge_values(self) -> Dict[str, Union[float, int]]:
+        """Return dictionary with edges as keys an edge distances as values.
 
-        ### Raises:
-            - NotImplementedError: Not implemented yet.
+        ### Returns:
+            - dict: Dictionary with edges as keys and edge distances as values.
         """
-        raise NotImplementedError
+        out = {}
+        for key in self.text_lookup:
+            for i in range(len(self.text_lookup[key].edges)):
+                out.update({f"{self.text_lookup[key].label},{self.text_lookup[key].children[i].label}": self.text_lookup[key].edges[i]})
+        return out
+
+    def to_edge_list(self) -> list[list[str]]:
+        """Returns a list of edges. Uses the text_lookup attribute to generate list.
+
+        ### Returns:
+            - list: A list of lists containing all the edges of the stemma.
+        """
+        out = []
+        for key in self.text_lookup:
+            for child in self.text_lookup[key].children:
+                out.append([self.text_lookup[key].label, child.label])
+        return out
 
     def dict(self, include_edges: bool = False) -> Dict[str, Any]:
         """Return a dict representation of the tree.
@@ -154,12 +170,13 @@ class Stemma:
             except:
                 raise RuntimeError(
                     f"Was unable to create the directory {folder}.")
-        fedge = open("edges.txt", "w")
+        fedge = open(f"{folder}/edges.txt", "w")
         for key in self.text_lookup:
             for child in self.text_lookup[key].children:
                 fedge.write(f"({self.text_lookup[key].label},{child.label})\n")
             if isinstance(self.text_lookup[key], ManuscriptInTree):
-                ftext = open(f"{self.text_lookup[key].label}.txt", "w")
+                ftext = open(
+                    f"{folder}/{self.text_lookup[key].label}.txt", "w")
                 ftext.write(self.text_lookup[key].text)
                 ftext.close()
 
@@ -193,17 +210,19 @@ class Stemma:
                     parent=None, recursive=generation_dict, text_list=text_list)
             self._text_lookup = self._root.build_text_lookup()
             for text in self.text_lookup.values():
-                text._text = Utils.load_text(
-                    self.folder_path + "/" + text.label + ".txt")
+                if isinstance(text, ManuscriptInTree):
+                    text._text = Utils.load_text(
+                        self.folder_path + "/" + text.label + ".txt")
             self._fitted = True
             self._edge_file = edge_file
         elif algo:
             self._root = algo.compute(
-                folder_path=self.folder_path, *args, **kargs)
+                folder_path=self.folder_path, **kargs)
             self._text_lookup = self._root.build_text_lookup()
             for text in self.text_lookup.values():
-                text._text = Utils.load_text(
-                    self.folder_path + "/" + text.label + ".txt")
+                if isinstance(text, ManuscriptInTree):
+                    text._text = Utils.load_text(
+                        f"{self.folder_path}/{text.label}.txt")
             self._fitted = True
         else:
             raise RuntimeError(
