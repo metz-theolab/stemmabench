@@ -30,6 +30,6 @@ for trad in tradition_dir_list:
     for i in range(len(NJ_distances)):
         stemma = Stemma(trad)
         print(f"NJ_param: {NJ_dist_names[i]}")
-        stemma.compute(algo=StemmaNJ(distance=NJ_distances[i]), rooting_method= "none")
+        stemma.compute(algo=StemmaNJ(distance=NJ_distances[i]))
         output_edge_name = f"edges_NJ_Dist_{NJ_dist_names[i]}.txt"
         stemma.dump(trad,output_edge_name, dump_texts=False)
