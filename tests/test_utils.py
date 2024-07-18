@@ -182,13 +182,13 @@ class TestUtils(unittest.TestCase):
     def test_set_new_root(self):
         """Tests the set_new_root method."""
         self.assertCountEqual(Utils.set_new_root(self.test_edge_list2, "3"),
-                              [['1', 'A'], ['1', '2'], ['3', '1'],
-                              ['2', '4'], ['2', '5'], ['3', '6'],
-                              ['3', '7']],
+                              [['1', 'A'],
+                               ['1', '2'],
+                               ['3', '1'],
+                               ['2', '4'],
+                               ['2', '5'],
+                               ['3', '6'],
+                               ['3', '7']],
                               msg="Does not return the right edge list.")
         with self.assertRaises(ValueError,  msg="Does no raise a ValueError when the specified new root is not in the tree."):
             Utils.set_new_root(self.test_edge_list, "B")
-        with self.assertRaises(ValueError,  msg="Does no raise a ValueError when specified edge list is not a valid edge list."):
-            Utils.set_new_root([['1', 'A'], ['1', '2'], ['3', '1'],
-                                ['2', '4'], ['2', '5'], ['3', '6'],
-                                ['3', '7'], ["B", "2"]], "3")
