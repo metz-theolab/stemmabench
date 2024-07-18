@@ -1,19 +1,19 @@
 #!/bin/bash
 
-# Variables pour les dossiers
-racine="./"
-sous_dossier="./missing_tradition"
+# Variables for directories
+root="./"
+sub_directory="./missing_tradition"
 
-# Boucler à travers les fichiers dans le sous-dossier
-for fichier in "$sous_dossier"/*; do
-  # Extraire le nom de fichier sans le chemin
-  nom_fichier=$(basename "$fichier")
+# Loop through the files in the sub-directory
+for file in "$sub_directory"/*; do
+  # Extract the file name without the path
+  file_name=$(basename "$file")
   
-  # Vérifier si le fichier existe dans le dossier racine
-  if [ -e "$racine/$nom_fichier" ]; then
-    # Supprimer le fichier dans le dossier racine
-    rm "$racine/$nom_fichier"
+  # Check if the file exists in the root directory
+  if [ -e "$root/$file_name" ]; then
+    # Delete the file in the root directory
+    rm "$root/$file_name"
   fi
 done
 
-echo "Opération terminée."
+echo "Operation completed."
