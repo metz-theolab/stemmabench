@@ -87,7 +87,7 @@ stemma:
                                     'law': 'Bernouilli',
                                     'rate': self.rate_mispell,
                                     'args': {
-                                        'specific_rates': self.specific_rate
+                                        'specific_rates': self.specific_rate if self.specific_rate else {}
                                     }
                                 }
                             },
@@ -145,7 +145,7 @@ if __name__ == "__main__":
     rate_omit = float(sys.argv[3])
     rate_duplicate = float(sys.argv[4])
     n_duplicate = int(sys.argv[5])
-    specific_rate = json.loads(sys.argv[6])  # Convert string to dictionary
+    specific_rate = None if sys.argv[6].lower() == 'none' else json.loads(sys.argv[6])
     name = sys.argv[7]
 
     builder = TemplateBuilder(rate_mispell, rate_synonym, rate_omit, rate_duplicate, n_duplicate, specific_rate, name)
