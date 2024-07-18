@@ -233,30 +233,29 @@ class Utils:
             - list: The edge list of the rerooted tree.
 
         ### Raises:
-            - ValueError: If edge_list is not a valid edge list.
             - ValueError: If new_root is not present in edge_list.
         """
-        if not Utils.validate_edge(edge_list):
-            raise ValueError(
-                "Parameter edge_list is not valid. See conditions present in function Utils.validate_edge().")
         if new_root not in np.array(edge_list).flatten():
             raise ValueError(f"Parameter new_root: {new_root} is not present in edge_list.")
-        if isinstance(edge_list, list):
-            np_edge_list = np.array(edge_list)
-        flip = Utils.find_root(edge_list)
-        leaves = Utils.find_leaf_nodes(edge_list)
-        # This line should enable the function to be called in any edge list so as to format in correctly
-        flip.extend(np.setdiff1d(
-            np_edge_list[:, 0].tolist(), np_edge_list[:, 1].tolist()))
-        flip = np.array(flip)[flip != new_root]
         out = []
-        for edge in edge_list:
-            if edge[0] in flip and edge[1] not in leaves:
-                out.append([edge[1], edge[0]])
-            elif edge[1] == new_root:
-                out.append([edge[1], edge[0]])
-            else:
-                out.append(edge)
+        leaves = Utils.find_leaf_nodes(edge_list)
+        curent_level = [new_root]
+        next_level = []
+        already_done = []
+        while curent_level != []:
+            for edge in edge_list:
+                if edge[0] in curent_level and edge[0] not in already_done and edge[1] not in already_done:
+                    out.append([edge[0], edge[1]])
+                    if edge[1] not in next_level and edge[1] not in leaves:
+                        next_level.append(edge[1])
+                elif edge[1] in curent_level:
+                    if edge[1] not in next_level and edge[1] not in already_done and edge[0] not in already_done:
+                        out.append([edge[1], edge[0]])
+                        if edge[1] not in leaves:
+                            next_level.append(edge[0])
+            already_done.extend(curent_level)
+            curent_level = next_level.copy()
+            next_level = []
         return out
 
     @staticmethod
