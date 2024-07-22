@@ -183,7 +183,6 @@ class Text:
                 sentence=sentence,
                 letter_config=variant_config.letters,
                 language=meta_config.language)
-            print(sentence)
             new_sentence = self.transform_words(
                 sentence=sentence,
                 word_config=variant_config.words,
