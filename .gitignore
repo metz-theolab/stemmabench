@@ -142,3 +142,9 @@ src/stemmabench/algorithms/tmp.gz
 src/stemmabench/algorithms/test_stemma/
 src/stemmabench/algorithms/Scripts/
 .vscode
+tmp.gz
+src/stemmabench/algorithms/test.c
+src/stemmabench/algorithms/test.py
+src/stemmabench/algorithms/test.dll
+src/stemmabench/algorithms/test_stemma/
+src/stemmabench/algorithms/Scripts/
