@@ -15,15 +15,20 @@ class StemmaNJ(StemmaAlgo):  # mid-point-rooting
         - manuscripts (dict): The dictionay of all the texts with text labels as keys and texts as values.
         - distance (Callable): The function to be used as a distance metric.
         - _dist_matrix (numpy.ndarray): The distance matrix
+        - _rooting_method (str): The rooting method used on the tree resulting from Neighbor-Joining algorithm.
     """
 
-    def __init__(self, distance: Callable) -> None:
+    def __init__(self, 
+                 distance: Callable,
+                 rooting_method: str = "midpoint-dist") -> None:
         """
         Constructor for the StemmaNJ class.
 
         ### Args:
             - distance (Callable): A function that takes 2 strings as parameters and returns a numeric value which is
             the distance between the 2 strings.
+            - rooting_method (str, Optional): Indicates the method used for rooting the tree. If set to none will return an unrroted tree. 
+            Supported methods are: {midpoint-dist, midpoint-edge, none}
 
         Raises:
             - ValueError: If the distance parameter does not respect d(x,x) = 0 or d(x,y) = d(y,x).
@@ -34,6 +39,7 @@ class StemmaNJ(StemmaAlgo):  # mid-point-rooting
                 "The distance parameter function is not an acceptable similarity metric. It must respect d(x,x) = 0 and d(x,y) = d(y,x).")
         self._dist_matrix: Union[np.ndarray, None] = None
         self._distance: Callable = distance
+        self._rooting_method: str = rooting_method
 
     @property
     def dist_matrix(self):
@@ -43,16 +49,12 @@ class StemmaNJ(StemmaAlgo):  # mid-point-rooting
     def distance(self):
         return self._distance
 
-    def compute(self,
-                folder_path: str,
-                rooting_method: str = "midpoint-dist") -> ManuscriptInTreeBase:
+    def compute(self, folder_path: str) -> ManuscriptInTreeBase:
         """Builds the stemma tree. If the distance is specified in function call it will surplant the existing distance if it exists.
 
         ### Args:
             - folder_path (str): The path to the folder containing the texts. The path specified here will surplant the previous path defined in constructor.
             !!! All .txt files in this folder must be files containing Manuscript texts unless the file name contains the substring "edge" !!!
-            - rooting_method (str, Optional): Indicates the method used for rooting the tree. If set to none will return an unrroted tree. 
-            Supported methods are: {midpoint-dist, midpoint-edge, none}
 
         Returns:
             - Manuscript: The root of the stemma with the rest of its tree as its children.
@@ -60,10 +62,10 @@ class StemmaNJ(StemmaAlgo):  # mid-point-rooting
         super().compute(folder_path)
         self.dist(distance=self.distance)
         edges_dict, edges_list = self._build_edges()
-        if rooting_method == "midpoint-dist":
+        if self._rooting_method == "midpoint-dist":
             edges_list = Utils.set_new_root(
                 edge_list=edges_list, new_root=Utils.find_midpoint_root(edges_list, edges_dict))
-        if rooting_method == "midpoint-edge":
+        if self._rooting_method == "midpoint-edge":
             edges_list = Utils.set_new_root(
                 edge_list=edges_list, new_root=Utils.find_midpoint_root(edges_list))
         out = ManuscriptInTreeEmpty(parent=None, recursive=Utils.dict_from_edge(

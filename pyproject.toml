@@ -13,7 +13,7 @@ dependencies = [
   "wheel",
   "numpy==1.25.2",
   "textdistance==4.6.2",
-  "ctypes=1.1.0"
+  "pywin32-ctypes==0.2.2"
 ]
 
 [project.scripts]

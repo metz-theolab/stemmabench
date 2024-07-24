@@ -9,6 +9,7 @@
 #include <zlib.h>
 #include <math.h>
 
+
 struct node_st
 {
     int id, *fill;
@@ -20,25 +21,6 @@ struct node_st
     int leftcost;
     int rightcost;
 };
-
-/*
-struct output{
-    int*** edge_list;
-    int lenD1;
-    int lenD2;
-    int lenD3;
-};
-
-
-struct output *new_output(int*** edge_list, int D1, int D2, int D3){
-    struct output *out;
-    out->edge_list = edge_list;
-    out->lenD1 = D1;
-    out->lenD2 = D2;
-    out->lenD3 = D3;
-    return out;
-}
-*/
 
 const char *outfolder;
 FILE *fout;
@@ -59,6 +41,8 @@ int *empty_counter = 0;
 FILE *edge_file;
 /*Array containing the names for the empty nodes.*/
 char **empty_names;
+/*The output directory.*/
+char *dirname = "test_stemma";
 
 void set_edge_file(char* output_file){
   edge_file = output_file;
@@ -106,7 +90,7 @@ unsigned int set_random_seed(void)
   return seed;
 }
 
-char *fullname(const char *dirname, const char *fname)
+char *fullname(char *dirname, const char *fname)
 {
     static char pathfname[256];
 
@@ -117,7 +101,7 @@ char *fullname(const char *dirname, const char *fname)
     return pathfname;
 }
 
-int count_lines(const char *fname)
+int count_lines(char *fname)
 {
     FILE *f;
     int line;
@@ -182,7 +166,7 @@ int read_file(const char *dirname)
   	{  
       const char* ext = strrchr(de->d_name, '.');
     	// Check if the file extension is .txt and file name does not contain substring edge
-      if (de->d_name[0] != '.' && ext != NULL && strcmp(ext, ".txt") == 0 && strstr(de->d_name, "edge") == NULL)
+      if (de->d_name[0] != '.' && ext != NULL && strcmp(ext, ".txt") == 0 && strstr(de->d_name, "edge") == NULL && strstr(de->d_name, "rhm") == NULL && strstr(de->d_name, "RHM") == NULL)
     	{
       		names[leafs] = (char *) malloc(sizeof(char) * (strlen(de->d_name)+1));
 
@@ -797,14 +781,15 @@ The global file pointer `fout` is assigned the opened file stream.
 
 @sideeffects Modifies the global variable fout.
 */
-void open_output(char* out_file)
+void open_output(char* dirname_in)
 {
   //char fname[256];
   //sprintf(fname, "rhm-tree_%d.dot", boot);
   //fout = fopen(fname, "w+");
 
-  
-  sprintf(out_file, "/rhm-tree_%d.dot", boot);
+  char fname[256];
+  sprintf(fname, "%s/rhm-tree_%d.dot", dirname_in, boot);
+  //printf("Output path: %s\n", fname);
   fout = fopen(fname, "w+");
 }
 
@@ -872,12 +857,12 @@ the make_look_nice function. It then opens an output file in DOT format,
 prints graph information including Sankoff scores and bootstrap values, 
 and finally prints the tree structure recursively using the print_subtree function.
 */
-void print_tree()
+void print_tree(struct node_st *tree, char* out_file) // The first argument when it is called is a tree!!!!!!!!!!!!!!
 {
   int ch;
   //fprintf(stderr, ".");
   make_look_nice(tree);
-  open_output();
+  open_output(out_file);
   fprintf(fout, "graph \"sankoff-tree\" {\nlabel=\"sankoff-score %d ", 
 	  bestval);
   fprintf(fout, "bootstrap ");
@@ -1250,8 +1235,8 @@ Otherwise, it moves node 'a' under node 'b'.
 @return (struct node_st *): Pointer to the root of the mutated tree.
 */
 struct node_st *do_mutate_tree(struct node_st *tree, 
-			       struct node_st *a,
-			       struct node_st *b)
+			                         struct node_st *a,
+			                         struct node_st *b)
 {
   struct node_st *tmp;
 
@@ -1412,7 +1397,7 @@ The optimization is performed over a specified number of iterations.
 @param iters (int): Number of iterations for optimization.
 @return (int): The best score achieved after optimization.
 */
-int optimize_tree(int iters)
+int optimize_tree(int iters, char *out_file)
 {
   int newval, iter, postpone = 10;
   float T, dif;
@@ -1432,7 +1417,7 @@ int optimize_tree(int iters)
   bestval = minval = eval_tree(tree, NULL, NULL);
   fill_subtree(tree->cost, tree);
   if(print_dot == 1){
-    print_tree(tree);
+    print_tree(tree, out_file);
   }
 
   while (iter++ < iters)
@@ -1470,7 +1455,7 @@ int optimize_tree(int iters)
 	bestval = newval;
 	fill_subtree(tree->cost, tree);
     if(print_dot == 1){
-	    print_tree(tree);
+	    print_tree(tree, out_file);
     }
 	postpone = 0;
       }
@@ -1583,38 +1568,6 @@ int** build_ascii_edge(char* str1, char* str2, int length) {
     return combined_array;
 }
 
-// Function to traverse the tree and store node IDs and their parent's IDs in a 2D array
-void traverseTree(struct node_st *node, int parentId, int ***output, int *size, int *capacity) {
-    if (node == NULL) return;
-
-    // Create a 2D array for the current node
-
-    //int **nodeData = malloc(1 * sizeof(int *));
-    //nodeData[0] = malloc(longest_name * sizeof(int));
-    //nodeData[1] = malloc(longest_name * sizeof(int));
-
-    //nodeData[0][0] = names[node->id];
-    //nodeData[0][1] = names[parentId];
-
-
-    // Convert each character to its ASCII code
-    //for (int i = 0; i < longest_name; i++) {
-    //    nodeData[0][i] = (int)names[parentId][i];
-    //    nodeData[1][i] = (int)names[node->id][i];
-    //} 
-
-    // Append the 2D array to the final output array
-    //append2DArray(output, size, capacity, nodeData, 1, 2);
-    append2DArray(output, size, capacity, build_ascii_edge(names[parentId], names[node->id], longest_name), 1, 2);
-
-    // Free the temporary 2D array
-    //free2DArray(nodeData, 1);
-
-    // Traverse left and right children
-    traverseTree(node->left, node->id, output, size, capacity);
-    traverseTree(node->right, node->id, output, size, capacity);
-}
-
 /*
 Runs through the given tree and counts the number of edges present in the tree.
 
@@ -1669,89 +1622,13 @@ void collectConnections(struct node_st *node, char ****connections, int *count) 
         char* empty_name_node[50];
         sprintf(empty_name_node_up, "N_%d", node->id);
         sprintf(empty_name_node, "N_%d", node->up->id);
-        //printf("empty name: %s", empty_name_node);
-        //printf("Node id: %d | name: %s | node up id %d | name: %s\n", node->id, node->id<leafs ? names[node->id] : empty_name_node, node->up->id, node->up->id<leafs ? names[node->up->id] : empty_name_node);
-        //printf("name: %s",node->up->id<leafs ? names[node->up->id] : empty_names[node->up->id]);
-        /*Temporary solution until we can passe result directly to python.*/
         fprintf(edge_file, "(%s, %s)\n", node->up->id<leafs ? names[node->up->id] : empty_name_node_up, node->id<leafs ? names[node->id] : empty_name_node);
-
-        /*
-        int** edge = build_ascii_edge(node->up->id<leafs ? names[node->up->id] : "empty", node->id<leafs ? names[node->id] : "empty", longest_name);
-
-        for(int dim3=0;dim3<longest_name;dim3++){
-            (*connections)[*count][0][dim3] = edge[0][dim3];
-            (*connections)[*count][1][dim3] = edge[1][dim3];
-        }
-        */
-
-       //for(int dim3=0;dim3<longest_name;dim3++){
-       //   strcpy(connections[*count][0], node->up->id<leafs ? names[node->up->id] : "empty");
-       //   strcpy(connections[*count][0], node->id<leafs ? names[node->id] : "empty");
-       //}
-
-
-
         (*count)++;
     }
 
     // Traverse right subtree
     collectConnections(node->right, connections, count);
 }
-
-/*
-Main function to execute tree optimization using simulated annealing over multiple bootstrap iterations.
-
-@param argc (int): Number of command-line arguments.
-@param argv (char **): Array of command-line arguments.
-@return (int): Status code indicating the termination status of the program.
-@note Unless using print_doy == 1 there is no way of collecting result from multiple "strap"s so best always set strap=1.
-*/
-/*
-int ***compute(char *dirname, int chunkSize, int strap, int nb_opti, int print_dot)
-{
-  set_chuncksize(chunkSize);
-  set_print_dot(print_dot);
-  set_random_seed();
-  read_file(dirname);
-  for (boot = 0; boot < strap; boot++)
-  {
-    init_bootstrap();
-    init_tree();
-    optimize_tree(nb_opti);
-    if(boot < strap-1){
-        free_tree(tree);
-    }
-  }
-
-  int nb_edge = countConnections(tree);
-  int len_edge = 2;
-  int len_str = 22;//longest_name;
-
-  // Idx of edge in output array
-  int *output_idx;
-  output_idx = 0;
-
-  // Setting apropriate memory size for output.
-  int*** out = (int*** )malloc(nb_edge * sizeof(int *));
-  for(int i=0;i<nb_edge;i++){
-      out[i] = (int** )malloc(len_edge * sizeof(int *));
-      for(int j=0;j<len_edge;j++){
-          out[i][j] = (int* )malloc(len_str * sizeof(int));
-          for(int k=0;k<len_str;k++){
-              out[i][j][k] = malloc(sizeof(int));
-          }
-      }
-  }
-  
-
-  collectConnections(tree, &out, &output_idx);
-
-  free_mem();
-  free_tree(tree);
-  return out;
-}
-*/
-
 
 void open_edge()
 {
@@ -1776,7 +1653,6 @@ Builds and fill the empty_names array.
 */
 void build_empty_names(){
   char nb_str[4];
-  //char empty_name[50] = "N_";
   int nb_edges = countConnections(tree);
   int nb_empty = (nb_edges - leafs + 1);
   // Set empty names array
@@ -1787,7 +1663,6 @@ void build_empty_names(){
         char empty_name[50] = "N_";
         sprintf(nb_str, "%d", i);
         strcat(empty_name, nb_str);
-        //printf("Empty name: %s\n", empty_name);/////////////////////////////////
         empty_names[i] = empty_name;
       }
       else{
@@ -1797,88 +1672,21 @@ void build_empty_names(){
     }
 }
 
-void free_memory(){
-    free(outfolder);
-    free(fout);
-    free(tree);
-    free(names);
-    free(Kyx);
-    free(Kx);
-    free(minval);
-    free(bestval);
-    free(boot);
-    free(strap);
-    free(n);
-    free(leafs);
-    free(chunks);
-    free(empty);
-    free(unique);
-    free(bootw);
-    free(chunksize);
-    free(GZIP_HEADER);
-    free(alternate);
-    /*Indicates if rhm should output dot files.*/
-    free(print_dot);
-    /*Indicates the name of the longest name.*/
-    free(longest_name);
-    /*Counter that counts the number of empty nodes present in output.*/
-    free(empty_counter);
-    /*The file used tou output edge file.*/
-    free(edge_file);
-    /*Array containing the names for the empty nodes.*/
-    free(empty_names);
-}
-
-int compute(char* dirname, int chunkSize, int strap, int nb_opti, int print_dot){
-    //char* dirname = "test_stemma";
-    set_edge_file(dirname);
+int compute(char* dirname_in, int chunkSize, int strap, int nb_opti, int print_dot){
+ 
     set_chuncksize(chunkSize);
     set_print_dot(print_dot);
     set_random_seed();
-    read_file(dirname);
+    read_file(dirname_in);
     for (boot = 0; boot < strap; boot++)
     {
       init_bootstrap();
       init_tree();
-      optimize_tree(nb_opti);
+      optimize_tree(nb_opti, dirname_in);
       if(boot < strap-1){
           free_tree(tree);
       }
     }
-
-    /*
-    int nb_edge = countConnections(tree);
-    //printf("nb_edge: %d\n", nb_edge);
-    int len_edge = 2;
-    //printf("len_edge: %d\n", len_edge);
-    int len_str = longest_name;
-    //printf("len_str: %d\n", len_str);
-
-    // Idx of edge in output array
-    int *output_idx;
-    output_idx = 0;
-    
-    int**** out = (int*** )malloc(nb_edge * sizeof(int *));
-    for(int i=0;i<nb_edge;i++){
-        out[i] = (int** )malloc(len_edge * sizeof(int *));
-        for(int j=0;j<len_edge;j++){
-            out[i][j] = (int* )malloc(len_str * sizeof(int));
-            for(int k=0;k<len_str;k++){
-                out[i][j][k] = malloc(sizeof(int));
-            }
-        }
-    }
-    
-    //printf("out allocated\n");
-
-    //build_empty_names();
-
-    //printf("Empty names built\n");
-   
-   open_edge();
-   collectConnections(tree, &out, &output_idx);
-   close_edge();
-   */
 
     return 0;
 

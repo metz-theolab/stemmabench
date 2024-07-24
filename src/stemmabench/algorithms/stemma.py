@@ -152,7 +152,7 @@ class Stemma:
             return "Tree(" + json.dumps(self.dict(), indent=2) + ")"
         return "Empty"
 
-    def dump(self, folder: str) -> None:
+    def dump(self, folder: str, edge_file_name: str = "edges.txt", dump_texts: bool = True) -> None:
         """Dump the generated stemma into a folder:
             - The texts in .txt file named after the manuscript label.
             - The corresponding tree structure in edge file.
@@ -160,6 +160,8 @@ class Stemma:
 
         ### Args:
             - folder (str): The folder where the text should be written.
+            - edge_file_name (str): The name of the outputed edge file.
+            - dump_texts (bool): Indicates if all of the stemma texts should be dumped as well.
 
         ### Raises:
             - RuntimeError: If was unable to create directory.
@@ -170,11 +172,11 @@ class Stemma:
             except:
                 raise RuntimeError(
                     f"Was unable to create the directory {folder}.")
-        fedge = open(f"{folder}/edges.txt", "w")
+        fedge = open(f"{folder}/{edge_file_name}", "w")
         for key in self.text_lookup:
             for child in self.text_lookup[key].children:
                 fedge.write(f"({self.text_lookup[key].label},{child.label})\n")
-            if isinstance(self.text_lookup[key], ManuscriptInTree):
+            if isinstance(self.text_lookup[key], ManuscriptInTree) and dump_texts:
                 ftext = open(
                     f"{folder}/{self.text_lookup[key].label}.txt", "w")
                 ftext.write(self.text_lookup[key].text)
