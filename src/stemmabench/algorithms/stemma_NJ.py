@@ -1,3 +1,5 @@
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures._base import Future
 from numbers import Number
 from typing import Callable, Dict, Union, Tuple, List
 import numpy as np
@@ -7,7 +9,7 @@ from stemmabench.algorithms.manuscript_in_tree_empty import ManuscriptInTreeEmpt
 from stemmabench.algorithms.utils import Utils
 
 
-class StemmaNJ(StemmaAlgo):  # mid-point-rooting
+class StemmaNJ(StemmaAlgo):
     """Class that constructs a stemma using the Neighbor-Joining algorithm.
 
     ### Attributes:
@@ -104,13 +106,21 @@ class StemmaNJ(StemmaAlgo):  # mid-point-rooting
         ### Args:
             - distance (Callable): A function that takes as parameters 2 strings and that returns the distance between them.
         """
-        self._dist_matrix = np.ndarray(
-            (len(self.manuscripts), len(self.manuscripts)))
-        # TODO: use map instead
-        for key, row in zip(sorted(self.manuscripts.keys()), range(len(self.manuscripts))):
-            for text, col in zip([self.manuscripts[k] for k in sorted(self.manuscripts.keys())], range(len(self.manuscripts))):
-                self._dist_matrix[row][col] = distance(
-                    self.manuscripts[key], text)
+        self._dist_matrix = np.zeros((len(self._manuscripts), len(self._manuscripts)), dtype=float)
+        keys = list(self._manuscripts.keys())
+        keys.sort()
+        labels = {}
+        man_range = range(len(self._manuscripts))
+        with ThreadPoolExecutor(max_workers=len(self._manuscripts)*len(self._manuscripts)) as executor:
+            for row in man_range:
+                for col in man_range:
+                    if col >= row:
+                        labels.update({f"{keys[row]},{keys[col]}" : executor.submit(distance, self._manuscripts[keys[row]], self._manuscripts[keys[col]])})
+        for row in enumerate(keys, start=0):
+            for col in enumerate(keys, start=0):
+                if col[0] >= row[0]:
+                    self._dist_matrix[row[0]][col[0]] = labels[f"{row[1]},{col[1]}"].result()
+        self._dist_matrix = self._dist_matrix + self._dist_matrix.transpose()
 
     def _build_edges(self) -> Tuple[Dict[str, float], List[List[str]]]:
         """Builds list of edges as well as the associated dictionayr containing the edge distances.
