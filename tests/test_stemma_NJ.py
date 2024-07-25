@@ -77,8 +77,9 @@ class TestStemmaNJ(unittest.TestCase):
         """Testing getters for class properties."""
         self.stemmaNJ = StemmaNJ(distance=levenshtein)
         self.stemmaNJ.compute(folder_path=self.stemma_folder_path)
-        self.assertTrue((self.stemmaNJ.dist_matrix.round(7) == self.test_distance_matrix.round(
-            7)).all(), msg="The distance matrix is not correct.")
+        for row in range(self.stemmaNJ.dist_matrix.shape[0]):
+            for col in range(self.stemmaNJ.dist_matrix.shape[1]):
+                self.assertEqual(self.stemmaNJ.dist_matrix[row][col].round(7), self.test_distance_matrix[row][col].round(7), msg="The distance matrix is not correct.")
         self.assertEqual(self.stemmaNJ.distance, levenshtein,
                          msg="The returned distance is not correct.")
 
@@ -95,12 +96,12 @@ class TestStemmaNJ(unittest.TestCase):
                               msg="Does not return the correct edge list.")
 
     def test_dist(self):
-        """Tests that the dist method build and sets the corredt distance matrix"""
+        """Tests that the dist method build and sets the correct distance matrix"""
         testing_stemma = StemmaNJ(distance=levenshtein)
         testing_stemma._manuscripts = {
             "m1": "text1", "m2": "text2", "m3": "text3"}
         testing_stemma.dist(distance=levenshtein)
-        self.assertTrue((testing_stemma.dist_matrix == [
+        self.assertTrue((testing_stemma.dist_matrix.round(0) == [
                         [0., 1., 1.], [1., 0., 1.], [1., 1., 0.]]).all())
 
     def test_is_similarity(self):
