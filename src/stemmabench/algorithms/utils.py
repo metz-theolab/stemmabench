@@ -31,6 +31,32 @@ class Utils:
             - list: List of manuscript names.
         """
         return [l.stem for l in Path(folder_path).glob("*.txt") if not "edge" in l.stem]
+    
+    @staticmethod
+    def get_dot_list(folder_path: str) -> List[str]:
+        """For a given folder path returns a list of all the dot files that containe rhm in their name.
+
+        ### Args:
+            - folder_path (str): The path to the folder that contains the dot files.
+
+        ### Returns:
+            - list: List of manuscript names.
+        """
+        return [l.stem for l in Path(folder_path).glob("*.dot") if "rhm" in l.stem]
+    
+    @staticmethod
+    def save_edge(edge_list: List[List[str]], path: str) -> None:
+        """Saves an edge list to a txt edge file. It is recomended to have the substring "edge" present in the file name
+        as some of the package functionalities rely on this substring being present in the name in order to identify edge files.
+        
+        ### Args:
+            - edge_list (list): A list of edges.
+            - path (str): The path to the file to be created. This includes the file name.
+        """
+        fedge = open(path, "+x")
+        for edge in edge_list:
+            fedge.write(f"({edge[0]},{edge[1]})\n")
+        fedge.close()
 
     @staticmethod
     def dict_of_children(edges: List[List[str]]) -> Dict[str, Any]:
@@ -168,6 +194,8 @@ class Utils:
                 "The edge file or edge list given is not valid. Look at validate_edge function for more details.")
         tree_data = Utils.dict_of_children(edge_list)
         root = Utils.find_root(tree_data)
+        if edge_path and not Utils.validate_edge(tree_data):
+            raise ValueError("The edge file given is not valid. Look at validate_edge function for more details.")
         while len(tree_data) > 1:
             # If root is the last one take next as root should be fitted last
             if root[0] == list(tree_data.keys())[len(tree_data.keys())-1]:
@@ -439,4 +467,38 @@ class Utils:
         else:
             raise ValueError(
                 "tree parameter must be of type list or numpy.ndarray.")
+        return out
+
+    @staticmethod
+    def dot_to_edge(file_path: str) -> List[List[str]]:
+        """Converts a tree represented in a dot file format to an edge list.
+
+            ### Args:
+                - path_to_text (str): The path to the dot file to be converted.
+
+            ### Returns:
+                - list: A list of edge representing the tree.
+            """
+        with open(file_path, "r", encoding="utf-8") as file:
+            dot_text = file.read()
+        nodes = {}
+        empty_node_counter = 0
+        lines = dot_text.split(";")
+        edges = []
+        for line in lines:
+                if "label" in line and "graph" not in line:
+                        label = line[line.find("label")+7:line.find("\" fill")].replace(".txt", "").replace("\"", "")
+                        id = line[1:line.find(" ")]
+                        if label.find("f:") == -1:
+                                nodes.update({id: label})
+                        else:
+                                nodes.update({id: f"N_{empty_node_counter}"})
+                                empty_node_counter += 1
+                if "--" in line:
+                       connection = line.replace("\n", "").replace(" ", "").split("--")
+                       connection[1] = connection[1][0:connection[1].find("[")]
+                       edges.append(connection)
+        out = []
+        for edge in edges:
+                out.append([nodes[edge[0]], nodes[edge[1]]])
         return out

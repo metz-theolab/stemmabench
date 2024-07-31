@@ -2,6 +2,7 @@
 Unit tests for the Utils class.
 """
 import unittest
+import os
 from pathlib import Path
 import numpy as np
 from stemmabench.algorithms.utils import Utils
@@ -14,6 +15,7 @@ class TestUtils(unittest.TestCase):
     def setUp(self):
         """Setup the unit test.
         """
+        self.output_folder = "tests/test_data/test_output"
         self.test_path_edge_file = Path(
             "tests/test_data/test_edge.txt").resolve()
         self.test_path_edge_2roots_file = Path(
@@ -61,6 +63,22 @@ class TestUtils(unittest.TestCase):
                                      '7': ['3']}
         self.test_dist_dict = {"A,1": 0.5, "1,2": 0.5, "1,3": 0.5,
                                "2,4": 0.5, "2,5": 0.5, "3,6": 0.5, "3,7": 10.5}
+        self.test_dot_to_edge1 = [['N_0', '5'], ['N_0', '10'], ['N_1', 'N_0'], 
+                                  ['N_1', '4'], ['N_2', 'N_1'], ['N_2', '11'], 
+                                  ['N_3', 'N_2'], ['N_3', '8'], ['N_4', 'N_3'], 
+                                  ['N_4', '12'], ['N_5', 'N_4'], ['N_5', '9'], 
+                                  ['N_6', 'N_5'], ['N_6', '1'], ['N_7', 'N_6'], 
+                                  ['N_7', '3'], ['N_8', 'N_7'], ['N_8', '7'], 
+                                  ['N_9', 'N_8'], ['N_9', '6'], ['N_10', 'N_9'], 
+                                  ['N_10', '2'], ['N_10', '13']]
+        self.test_dot_to_edge2 = [['N_0', '1'], ['N_0', '8'], ['N_1', 'N_0'], 
+                                  ['N_1', '2'], ['N_2', 'N_1'], ['N_2', '4'], 
+                                  ['N_3', 'N_2'], ['N_3', '7'], ['N_4', 'N_3'], 
+                                  ['N_4', '13'], ['N_5', 'N_4'], ['N_5', '10'], 
+                                  ['N_6', 'N_5'], ['N_6', '12'], ['N_7', 'N_6'], 
+                                  ['N_7', '5'], ['N_8', 'N_7'], ['N_8', '3'], 
+                                  ['N_9', 'N_8'], ['N_9', '11'], ['N_10', 'N_9'], 
+                                  ['N_10', '9'], ['N_10', '6']]
 
     def test_load_text(self):
         """Tests the load_text method."""
@@ -192,3 +210,24 @@ class TestUtils(unittest.TestCase):
                               msg="Does not return the right edge list.")
         with self.assertRaises(ValueError,  msg="Does no raise a ValueError when the specified new root is not in the tree."):
             Utils.set_new_root(self.test_edge_list, "B")
+
+    def test_get_dot_list(self):
+        """Tests the get_dot_list method."""
+        self.assertCountEqual(Utils.get_dot_list("tests/test_data/dot_files"), ["rhm-tree_0","rhm-tree_1","rhm-tree_2"], msg="Does not return the right list of dot files.")
+
+    def test_save_edge(self):
+        """Tests the save_edge method."""
+        os.mkdir(self.output_folder)
+        edge_list = [["1", "2"],["1", "3"],["2", "4"],["2", "5"],["3", "6"],["3", "7"]]
+        Utils.save_edge(edge_list, f"{self.output_folder}/edges.txt")
+        try:
+            edges = open(f"{self.output_folder}/edges.txt", "r").read().split("\n")
+            for edge_f, edge_l in zip(edges, edge_list):
+                self.assertCountEqual([edge_f[1], edge_f[3]], edge_l, msg="One of the edges is no correct.")
+        finally:
+            os.remove(f"{self.output_folder}/edges.txt")
+            os.rmdir(self.output_folder)
+    def test_dot_to_edge(self):
+        """Tests the dot_to_edge method."""
+        self.assertCountEqual(Utils.dot_to_edge("tests/test_data/dot_files/rhm-tree_0.dot"), self.test_dot_to_edge1, msg="Does not convert the dot file correctly.")
+        self.assertCountEqual(Utils.dot_to_edge("tests/test_data/dot_files/rhm-tree_1.dot"), self.test_dot_to_edge2, msg="Does not convert the dot file correctly.")

@@ -136,6 +136,12 @@ test_output2/
 Activate_testing.bat
 Activate_testing.cmd
 tests/test_data/res_presentation/
+src/stemmabench/algorithms/tmp.gz
+src/stemmabench/algorithms/Scripts/
+src/stemmabench/algorithms/test_stemma/
+src/stemmabench/algorithms/test.py
+src/stemmabench/algorithms/test.c
+src/stemmabench/algorithms/test.dll
 tests/test_data/res_out/
 src/stemmabench/algorithms/test.py
 src/stemmabench/algorithms/tmp.gz
