@@ -1,3 +1,3 @@
 #!/bin/bash
 
-gcc -o rhm.o -shared rhm.c -lz -fPIC
+gcc -o src/stemmabench/algorithms/rhm.o -shared src/stemmabench/algorithms/rhm.c -lz -fPIC
