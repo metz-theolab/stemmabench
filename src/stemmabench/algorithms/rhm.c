@@ -42,7 +42,9 @@ FILE *edge_file;
 /*Array containing the names for the empty nodes.*/
 char **empty_names;
 /*The output directory.*/
-char *dirname = "test_stemma";
+//char *dirname = "test_stemma";
+/*The number of optimization iterations*/
+int nb_opti_global;
 
 void set_edge_file(char* output_file){
   edge_file = output_file;
@@ -788,7 +790,7 @@ void open_output(char* dirname_in)
   //fout = fopen(fname, "w+");
 
   char fname[256];
-  sprintf(fname, "%s/rhm-tree_%d.dot", dirname_in, boot);
+  sprintf(fname, "%s/edges_rhm_nb_opti%d_strap_%d_chunksize_%d.dot", dirname_in, nb_opti_global, boot, chunksize);
   //printf("Output path: %s\n", fname);
   fout = fopen(fname, "w+");
 }
@@ -1673,7 +1675,7 @@ void build_empty_names(){
 }
 
 int compute(char* dirname_in, int chunkSize, int strap, int nb_opti, int print_dot){
- 
+    nb_opti_global = nb_opti;
     set_chuncksize(chunkSize);
     set_print_dot(print_dot);
     set_random_seed();
