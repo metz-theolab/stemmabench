@@ -46,13 +46,14 @@ class Utils:
     
     @staticmethod
     def save_edge(edge_list: List[List[str]], path: str) -> None:
-        """Saves an edge list to a txt edge file. It is recomended to have the substring "edge" present in the file name
+        """Saves an edge list to a txt edge file. If the file already exists it will be deleted. It is recomended to have the substring "edge" present in the file name
         as some of the package functionalities rely on this substring being present in the name in order to identify edge files.
         
         ### Args:
             - edge_list (list): A list of edges.
             - path (str): The path to the file to be created. This includes the file name.
         """
+        Path(path).unlink(missing_ok=True)
         fedge = open(path, "+x")
         for edge in edge_list:
             fedge.write(f"({edge[0]},{edge[1]})\n")
