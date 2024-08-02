@@ -76,6 +76,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#how-to-use" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -286,6 +291,19 @@
       <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
       
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Algorithms
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
       
       <a href="./" class="md-nav__link md-nav__link--active">
         
@@ -296,6 +314,46 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#build-stemma-from-edge-file" class="md-nav__link">
+    Build stemma from edge file
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#build-stemma-from-using-implemented-algorithms" class="md-nav__link">
+    Build stemma from using implemented algorithms
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#saving-the-results-of-a-stemma" class="md-nav__link">
+    Saving the results of a stemma
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -337,6 +395,37 @@
   
   
   
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#build-stemma-from-edge-file" class="md-nav__link">
+    Build stemma from edge file
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#build-stemma-from-using-implemented-algorithms" class="md-nav__link">
+    Build stemma from using implemented algorithms
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#saving-the-results-of-a-stemma" class="md-nav__link">
+    Saving the results of a stemma
+  </a>
+  
+</li>
+      
+    </ul>
   
 </nav>
                   </div>
@@ -351,9 +440,147 @@
                   
 
 
-  <h1>Algorithms</h1>
-
-
+<h1 id="how-to-use">How to use</h1>
+<p>In order to construct a stemma in the stemmabench package, a <code>Stemma</code> object must be created, which stores all relevant information about the stemma. A stemma can be constructed in one of two ways:</p>
+<ul>
+<li>From an edge file containing all the edges present in the stemma</li>
+<li>Using one of the implemented algorithms in the stemmabench package</li>
+</ul>
+<p>For both methods, the stemma object must be initialized with the path to the folder containing all the stemma texts.
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">stemma</span> <span class="o">=</span> <span class="n">Stemma</span><span class="p">(</span><span class="n">folder_path</span><span class="o">=</span><span class="s2">&quot;path_to_the_folder&quot;</span><span class="p">)</span>
+</code></pre></div>
+The stemmas can then be built by calling the compute method on the stemma object.</p>
+<h2 id="build-stemma-from-edge-file">Build stemma from edge file</h2>
+<p>A stemma can be built from a txt file containing the list of all the edges contained in the stemma. This txt file must be present in the folder path specified in the stemma constructor.</p>
+<p>The format of the edge file must be as follows:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>(2, 5)
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>(2, 6)
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>(root, 2)
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>(root, 3)
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>(root, 4)
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>(3, 7)
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>(3, 8)
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>(3, 9)
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>(4, 10)
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>(4, 11)
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>(4, 12)
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>(4, 13)
+</code></pre></div>
+<blockquote>
+<p>[Note]</p>
+<p>For an edge file to be valid, it must possess only one root. The root is defined as the label that only appears on the left side of all the edges, as shown in the example above. The order of the labels in each edge is important and represents (parent, child).</p>
+</blockquote>
+<p>The labels present in the edges must have matching txt files in the specified folder path containing the corresponding manuscript text.
+If the txt file does not exist, the node will be considered as empty. That is to say, a node with no text.</p>
+<p>To build a stemma from an edge file, simply instantiate the stemma, taking care to specify the folder containing the edge file. Then call the compute method, specifying the name of the edge file.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">stemma</span> <span class="o">=</span> <span class="n">Stemma</span><span class="p">(</span><span class="n">folder_path</span><span class="o">=</span><span class="s2">&quot;path_to_the_folder&quot;</span><span class="p">)</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">stemma</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">edge_file</span><span class="o">=</span><span class="s2">&quot;edge_file.txt&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="build-stemma-from-using-implemented-algorithms">Build stemma from using implemented algorithms</h2>
+<p>In the stemmabench package, algorithms are implemented in the form of objects that perform the stemma tree construction. The result of the compute method called on these algorithm objects is the root of the stemma that is passed to the stemma object.</p>
+<p>All parameters specific to each algorithm are passed in the algorithm object constructor.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">stemma</span> <span class="o">=</span> <span class="n">Stemma</span><span class="p">(</span><span class="n">folder_path</span><span class="o">=</span><span class="s2">&quot;path_to_the_folder&quot;</span><span class="p">)</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">stemma</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">algo</span><span class="o">=</span><span class="n">StemmaDummy</span><span class="p">(</span><span class="n">width</span> <span class="o">=</span> <span class="mi">2</span><span class="p">))</span>
+</code></pre></div>
+<p>The extra arguments to be passed to the algorithm's compute method can be passed in the <code>**kwargs</code> of the stemma compute method.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">stemma</span> <span class="o">=</span> <span class="n">Stemma</span><span class="p">(</span><span class="n">folder_path</span><span class="o">=</span><span class="s2">&quot;path_to_the_folder&quot;</span><span class="p">)</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">stemma</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">algo</span><span class="o">=</span><span class="n">StemmaDummy</span><span class="p">(),</span> <span class="n">width</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span>
+</code></pre></div>
+<p>For further details on the algorithm objects and their parameters, check the Implemented algorithms section.</p>
+<h2 id="saving-the-results-of-a-stemma">Saving the results of a stemma</h2>
+<p>A stemma can be saved using the <code>dump</code> method. This method will create a txt file for each manuscript present in the stemma (manuscript_label.txt), as well as an edge file listing all the edges present in the tree. If the specified folder does not exist, it will be created.</p>
+<p>The specific name of the edge file can be specified using the edge_file_name parameter.</p>
+<p>If the parameter dump_texts is set to false, only the edge file will be created.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">stemma</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">folder</span><span class="o">=</span><span class="s2">&quot;path_to_the_folder&quot;</span><span class="p">,</span> <span class="n">edge_file_name</span><span class="o">=</span><span class="s2">&quot;my_edges.txt&quot;</span><span class="p">,</span> <span class="n">dump_texts</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</code></pre></div>
+<h1 id="implemented-algorithms">Implemented algorithms</h1>
+<p>The following algorithms are currently implemented in the package:</p>
+<ul>
+<li>Dummy</li>
+<li>Neighbor-Joining</li>
+<li>RHM (Experimental)</li>
+</ul>
+<h2 id="dummy">Dummy</h2>
+<p>This algorithm constructs random stemmas that respect certain constraints. The stemmas produced by this algorithm are meant to be used as a baseline to gauge the performance of various other stemmatological algorithms against random attribution. The algorithm will fill the tree structure from top to bottom and from left to right until all the manuscripts have been placed in the tree structure.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">stemma</span> <span class="o">=</span> <span class="n">Stemma</span><span class="p">(</span><span class="n">folder_path</span><span class="o">=</span><span class="s2">&quot;path_to_the_folder&quot;</span><span class="p">)</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="n">stemma</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">algo</span><span class="o">=</span><span class="n">StemmaDummy</span><span class="p">(</span><span class="n">width</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">))</span>
+</code></pre></div>
+<h3 id="parameters">Parameters</h3>
+<ul>
+<li><code>width</code>: The number of children of each manuscript in the tree.</li>
+<li><code>seed</code>: The seed that is passed to a random number generator in order to produce reproducible results.</li>
+</ul>
+<h2 id="neighbor-joining">Neighbor-Joining</h2>
+<p>The Neighbor-Joining algorithm functions similarly to the agglomerative hierarchical clustering method, in that it requires a distance or similarity metric in order to progressively group individuals together.</p>
+<p>Neighbor-Joining, being a distance or dissimilarity-based algorithm, therefore requires a choice of metric to calculate a distance matrix representing the distance between each pair of texts.</p>
+<p>This method can only produce bifid trees with existing manuscripts only existing on leaf nodes.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">stemma</span> <span class="o">=</span> <span class="n">Stemma</span><span class="p">(</span><span class="n">folder_path</span><span class="o">=</span><span class="s2">&quot;path_to_the_folder&quot;</span><span class="p">)</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="n">stemma</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">algo</span><span class="o">=</span><span class="n">StemmaNJ</span><span class="p">(</span><span class="n">distance</span> <span class="o">=</span> <span class="n">levenshtein</span><span class="p">,</span> <span class="n">rooting_method</span> <span class="o">=</span> <span class="s2">&quot;none&quot;</span><span class="p">))</span>
+</code></pre></div>
+<h3 id="parameters_1">Parameters</h3>
+<ul>
+<li><code>distance</code>: The distance metric to be used to calculate the distance between texts. This can be any function that takes at least 2 strings as arguments and returns a float. For the distance function to be valid, it must respect the following 2 constraints:<ul>
+<li>The distance of 2 identical strings must be equal to 0 <code>distance("test", "test") == 0</code>.</li>
+<li>No matter the order the strings are placed in as parameters, the result must be identical <code>distance("test1", "test2") == distance("test2", "test1")</code>.</li>
+</ul>
+</li>
+<li><code>rooting_method</code>: As the Neighbor-Joining algorithm produces unrooted trees, this parameter specifies the rooting method to be used on the resulting tree. The currently supported rooting methods are:<ul>
+<li><strong>none</strong>: This will return the last agglomerated node as the root of the tree.</li>
+<li><strong>midpoint-dist</strong>: This is an implementation of the midpoint rooting method, and will return the tree with the root being the midpoint of the longest distance between all leaf nodes in the tree. This method takes into account the length of the tree edges. This is the default method used by the algorithm.</li>
+<li><strong>midpoint-edge</strong>: Similar to the previous method, although all edge lengths are considered to be equal to 1.</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>Reference</p>
+<p>Saitou N, Nei M (July 1987). “The neighbor-joining method: a new method for reconstructing phylogenetic trees”. In: Mol. Biol. Evol.</p>
+</blockquote>
+<h2 id="rhm">RHM</h2>
+<p>RHM is a stochastic algorithm which functions by randomly rearranging a given tree and only keeping the changes that reduce a certain cost function. This means that the heart of RHM algorithm is the various cost functions of which it is comprised. </p>
+<p>This method can only produce bifid trees with existing manuscripts only existing on leaf nodes.</p>
+<p>Currently, this algorithm can only build the stemma by reading the outputted dot file produced by the compute method.</p>
+<p>In the case that multiple iterations of the algorithm are run (strap&gt;1) then the stemma that is returned by the compute method is the last one calculated.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="n">stemma</span> <span class="o">=</span> <span class="n">Stemma</span><span class="p">(</span><span class="n">folder_path</span><span class="o">=</span><span class="s2">&quot;path_to_the_folder&quot;</span><span class="p">)</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">stemma</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">algo</span><span class="o">=</span><span class="n">StemmaRHM</span><span class="p">(</span><span class="n">nb_opti</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">strap</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">segment_size</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">keep_dot</span> <span class="o">=</span> <span class="kc">True</span><span class="p">))</span>
+</code></pre></div>
+<h3 id="parameters_2">Parameters</h3>
+<ul>
+<li><code>nb_opti</code>: The number of optimisation iterations to run through for each run of the algorithm.</li>
+<li><code>strap</code>: The number of times the algorithm will be run and the results outputted. Due to the stochastic nature of the algorithm, this parameter is used to enable the calculation of an average performance.</li>
+<li><code>segment_size</code>: The size of the segments that the texts will be divided up into. The number represents the number of words per segment.</li>
+<li><code>keep_dot</code>: Boolean indicating if the dot files should be removed once the edge.txt files have been produced.</li>
+</ul>
+<blockquote>
+<p>Reference</p>
+<p>Roos, Teemu, Tuomas Heikkilä, and Petri Myllymäki (Jan. 2006). “A Compression-Based Method for Stemmatic Analysis.” In: Frontiers in Artificial Intelligence and Applications 141, pp. 805–806.</p>
+</blockquote>
+<h1 id="how-to-implement-a-custom-algorithm">How to implement a custom algorithm</h1>
+<p>All algorithms inherit from the class StemmaAlgo. Therefore, any custom algorithm must inherit from this class. </p>
+<p>The algorithm object must also possess a compute method which must take the path to the folder containing the stemma txt file as first parameter. This compute method must return the root of the stemma tree which will be passed to the _root attribute of the stemma as shown below. This root must be an object that inherits from the ManuscriptInTreeBase object.</p>
+<p>The code section bellow shows the section of the stemma compute method that is executed when building as stemma using an algorithm.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="k">elif</span> <span class="n">algo</span><span class="p">:</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">_root</span> <span class="o">=</span> <span class="n">algo</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">folder_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">folder_path</span><span class="p">,</span> <span class="o">**</span><span class="n">kargs</span><span class="p">)</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">_text_lookup</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_root</span><span class="o">.</span><span class="n">build_text_lookup</span><span class="p">()</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>    <span class="k">for</span> <span class="n">text</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">text_lookup</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">ManuscriptInTree</span><span class="p">):</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>            <span class="n">text</span><span class="o">.</span><span class="n">_text</span> <span class="o">=</span> <span class="n">Utils</span><span class="o">.</span><span class="n">load_text</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">folder_path</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">text</span><span class="o">.</span><span class="n">label</span><span class="si">}</span><span class="s2">.txt&quot;</span><span class="p">)</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">_fitted</span> <span class="o">=</span> <span class="kc">True</span>
+</code></pre></div>
+<p>Then following example shows the implementation of the compute method for the dummy algorithm.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">folder_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ManuscriptInTree</span><span class="p">:</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>        <span class="k">if</span> <span class="n">width</span><span class="p">:</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">_width</span> <span class="o">=</span> <span class="n">width</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Parameter width must be of type int.&quot;</span><span class="p">)</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">folder_path</span><span class="p">)</span>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>        <span class="k">return</span> <span class="n">ManuscriptInTree</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="n">Utils</span><span class="o">.</span><span class="n">dict_from_edge</span><span class="p">(</span><span class="n">edge_list</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_build_edges</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_build_random_levels</span><span class="p">())),</span> 
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>                                                                            <span class="n">text_list</span><span class="o">=</span><span class="n">Utils</span><span class="o">.</span><span class="n">get_text_list</span><span class="p">(</span><span class="n">folder_path</span><span class="p">))</span>
+</code></pre></div>
+<p>As it can be seen in the above example in order to instantiate a tree the algorithm need only produce a dictionary representation of the stemma tree and passe it as an argument to the <code>recursive</code> parameter of a manuscript object.</p>
+<p>In order to facilitate the production of this dictionary, a list of edges can be passed to the <code>dict_from_edge</code> method from the Utils class that will construct the dictionary. This list of edges must be specified in the following format:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="p">[[</span><span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;2&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;3&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;2&quot;</span><span class="p">,</span> <span class="s2">&quot;4&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;2&quot;</span><span class="p">,</span> <span class="s2">&quot;5&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;3&quot;</span><span class="p">,</span> <span class="s2">&quot;6&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;3&quot;</span><span class="p">,</span> <span class="s2">&quot;7&quot;</span><span class="p">]]</span>
+</code></pre></div>
+<p>The labels on the left are considered parens and the labels on the right children. For an edge list to be valid, it must possess a single root. Therefore, only a single label can only be present on the left of all the edges.</p>
 
 
 
