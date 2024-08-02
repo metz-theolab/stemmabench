@@ -1,9 +1,11 @@
 import sys
-
+sys.setrecursionlimit(2000)
 
 import networkx as nx
 import numpy as np
 from itertools import combinations
+import time
+import math
 
 class TreeMetrics:
     def __init__(self, file_target, file_rebuild):
@@ -62,16 +64,27 @@ class TreeMetrics:
         :return: The Roos similarity metric.
         :rtype: float
         """
-        similarity = 0
-        labels = list(self.Tree_target.nodes())
+        nodes_G1 = set(self.Tree_rebuild.nodes())
+        nodes_G2 = set(self.Tree_target.nodes())
+
+        # Calcul des nœuds communs
+        labels = nodes_G1.intersection(nodes_G2)
+        if len(labels) <= 2:
+            return [None, None, None]
+        res = []
+        t0 = time.time()
+        similarity = 0        
+        nnodes = len(list(self.Tree_target.nodes()))
         triplets = list(combinations(labels, 3))
         for i in range(len(triplets)):
             A = triplets[i][0]
             B = triplets[i][1]
             C = triplets[i][2]
-            similarity += self.u(A, B, C)
-
-        return similarity
+            similarity += self.u(A, B, C)        
+        res.append(similarity)
+        res.append(time.time()-t0)
+        res.append((similarity)/(math.comb(nnodes,3)))
+        return res
 
     def graph_edit_distance(self, times=120):
         """
@@ -82,7 +95,11 @@ class TreeMetrics:
         :return: The graph edit distance between the target and rebuilt trees.
         :rtype: float
         """
-        return nx.graph_edit_distance(self.Tree_target, self.Tree_rebuild, timeout=times)
+        t0 = time.time()
+        nnodes = len(list(self.Tree_target.nodes()))
+        dist = nx.graph_edit_distance(self.Tree_target, self.Tree_rebuild, timeout=times)
+        score = 1 - (dist/(2*(nnodes*nnodes)+nnodes-5))
+        return [dist,time.time()-t0,score]
 
     def save_graph(self, graph, path):
         """
@@ -105,7 +122,7 @@ class TreeMetrics:
         :return: The graph created from the edges.
         :rtype: nx.Graph
         """
-        G = nx.DiGraph()
+        G = nx.Graph()
         edges_file = open(path_to_edges, "r")
         clear = edges_file.readlines()
         for i in range(len(clear)):
@@ -149,11 +166,11 @@ def main():
     tree_metrics = TreeMetrics(file_target, file_rebuild)
 
     roos_similarity = tree_metrics.Roos_similarity()
-    graph_edit_distance = tree_metrics.graph_edit_distance()
+    graph_edit_distance = tree_metrics.graph_edit_distance(300)
 
     with open(output_file, 'w') as f:
-        f.write(f"Roos et al : {roos_similarity}\n")
-        f.write(f"Graph edit : {graph_edit_distance}\n")
+        f.write(f"Roos et al : {roos_similarity[0]}, temps de calcul :{roos_similarity[1]}, score :{roos_similarity[2]}\n")
+        f.write(f"Graph edit : {graph_edit_distance[0]}, temps de calcul :{graph_edit_distance[1]}, score :{graph_edit_distance[2]}\n")
 
 if __name__ == "__main__":
     main()

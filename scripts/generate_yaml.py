@@ -1,6 +1,7 @@
 import os
 import json
 from jinja2 import Environment, FileSystemLoader
+from stemmabench.bench.stemma_generator import Stemma
 
 class TemplateBuilder:
     def __init__(self, rate_mispell, rate_synonym, rate_omit, rate_duplicate, n_duplicate, specific_rate, name):
@@ -65,14 +66,14 @@ stemma:
             file.write(template_content)
         return template_file_path
 
-    def build_scenario(self):
+    def build_scenario(self,text,name, depth_max, width_max,missing_max):
         template_file_path = self.build_template()
         template = self.env.get_template(os.path.basename(template_file_path))
 
-        for missing in range(1, 7):
-            for width in range(1, 9):
-                for depth in range(2, 11):
-                    scenario_name = f'scenario_1_depth{depth}_width{width}_missing{missing}'
+        for missing in range(0, missing_max+1):
+            for width in range(1, width_max+1):
+                for depth in range(2, depth_max+1):
+                    scenario_name = f'{name}_depth{depth}_width{width}_missing{missing}'
                     scenario_dir = os.path.join(os.getcwd(), scenario_name)
                     os.makedirs(scenario_dir, exist_ok=True)
 
@@ -129,15 +130,20 @@ stemma:
                     output_file_path = os.path.join(scenario_dir, f'{scenario_name}.yaml')
                     with open(output_file_path, 'w') as yaml_file:
                         yaml_file.write(output_from_parsed_template)
-                    print(f"Fichier YAML généré avec succès : {output_file_path}")
+                    stemma = Stemma(path_to_text=text,
+                                        config_path=output_file_path)
+                    stemma.generate()
+                    stemma.dump(folder="./"+scenario_name+"/generation")
+
+                    print(f"Text generation OK!")
 
         return 0
 
 if __name__ == "__main__":
     import sys
 
-    if len(sys.argv) != 8:
-        print("Usage: python script.py <rate_mispell> <rate_synonym> <rate_omit> <rate_duplicate> <n_duplicate> <specific_rate> <name>")
+    if len(sys.argv) != 12:
+        print("Usage: python script.py <rate_mispell> <rate_synonym> <rate_omit> <rate_duplicate> <n_duplicate> <specific_rate> <name> <text> <depth> <width> <missing>")
         sys.exit(1)
 
     rate_mispell = float(sys.argv[1])
@@ -147,6 +153,11 @@ if __name__ == "__main__":
     n_duplicate = int(sys.argv[5])
     specific_rate = None if sys.argv[6].lower() == 'none' else json.loads(sys.argv[6])
     name = sys.argv[7]
+    text = sys.argv[8]
+    depth = sys.argv[9]
+    width = sys.argv[10]
+    missing = sys.argv[11]
+    
 
     builder = TemplateBuilder(rate_mispell, rate_synonym, rate_omit, rate_duplicate, n_duplicate, specific_rate, name)
-    builder.build_scenario()
+    builder.build_scenario(text,name, depth, width,missing)
