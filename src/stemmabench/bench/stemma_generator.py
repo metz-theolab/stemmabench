@@ -56,6 +56,16 @@ class Stemma:
         self.edges = []  # List to store edges in the tree
         self.next_id = 1  # Next available ID
 
+    def reinitialize(self):
+        """Reinitialize all the attributes of the class.
+        """
+        self.tree = {}
+        self._levels = [[]]
+        self.texts_lookup = {}
+        self.edges = []
+        self.next_id = 1
+
+
     @property
     def width(self):
         """Get the width of the tree, based on the random law defined
@@ -90,7 +100,7 @@ class Stemma:
 
     def __repr__(self) -> str:
         """String representation of the tree"""
-        return "Tree(" + json.dumps(self.dict(), indent=2) + ")"
+        return "Tree(" + json.dumps(self.dict(), indent=2, ensure_ascii=False) + ")"
 
     def _apply_level(self, manuscript: str) -> List[str]:
         """Apply transformation on a single generation"""
@@ -131,6 +141,8 @@ class Stemma:
 
     def generate(self):
         """Fit the tree, I.E, generate variants"""
+        # Empty the data before generation
+        self.reinitialize()
         self.add_manuscript(self.original_text)
         for depth in range(self.depth-1):
             self._levels.append([])
