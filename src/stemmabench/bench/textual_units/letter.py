@@ -57,7 +57,6 @@ class Letter:
 
             if total_specific_rate > rate:
                 raise ValueError(f"Sum of specific rates for '{letter}' is higher than the global rate")
-
             probability_matrix[letter] = {**specific_rate, letter: 1 - rate}
             remaining_rate = rate - total_specific_rate
             remaining_letters = len(alphabet) - len(probability_matrix[letter])

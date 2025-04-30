@@ -8,7 +8,7 @@ base_folder = Path(__file__).resolve().parent
 
 
 # Load synonyms
-SUPPORTED_LANGUAGES = ["en","gr"]
+SUPPORTED_LANGUAGES = ["en","gr","hbr"]
 
 SYNONYM_DICT = {}
 for language in SUPPORTED_LANGUAGES:
@@ -17,4 +17,5 @@ for language in SUPPORTED_LANGUAGES:
 
 # Load letters depending on language
 LETTERS ={"gr": ['α', 'β', 'γ', 'δ', 'ε', 'ζ', 'η', 'θ', 'ι', 'κ', 'λ', 'μ', 'ν', 'ξ', 'ο', 'π', 'ρ', 'σ', 'τ', 'υ', 'φ', 'χ', 'ψ', 'ω'],
+          "hbr": ['א','ב','ג','ד','ה','ו','ז','ח','ט','י','כ','ל','מ','נ','ס','ע','פ','צ','ק','ר','ש','ת','ך','ם','ן','ף','ץ'],
           "en": ascii_lowercase}
