@@ -3,13 +3,20 @@ meta:
   language: en
 
 variants:
+  letters:
+    mispell:
+      law: Bernouilli
+      rate: 0.03
+      args:
+        specific_rates:
+          a:
+            b: 0.01
+            c: 0.02
+
   words:
     synonym:
       law: Bernouilli
-      rate: 0.1
-    mispell:
-      law: Bernouilli
-      rate: 0.05
+      rate: 0.0
     omit:
       law: Bernouilli
       rate: 0.05
@@ -21,11 +28,11 @@ variants:
       rate: 0.1
 
 stemma:
-  depth: 2
+  depth: 3
   width:
     law: Uniform
     min: 2
-    max: 4
+    max: 3
   missing_manuscripts:
     law: Bernouilli
     rate: 0.5

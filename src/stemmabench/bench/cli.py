@@ -2,7 +2,7 @@
 """
 import typer
 
-from stemmabench.stemma_generator import Stemma
+from stemmabench.bench.stemma_generator import Stemma
 
 
 app = typer.Typer()

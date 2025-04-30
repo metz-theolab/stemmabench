@@ -6,7 +6,7 @@ import string
 
 import numpy as np
 from loguru import logger
-from stemmabench.data import SUPPORTED_LANGUAGES, SYNONYM_DICT, LETTERS
+from stemmabench.bench.data import SUPPORTED_LANGUAGES, SYNONYM_DICT, LETTERS
 
 
 class Word:
@@ -56,19 +56,6 @@ class Word:
             logger.debug(f"Could not find synonym for word {self.word}")
         except KeyError:
             logger.debug(f"Could not find synonym for word {self.word}")
-        return self.word
-
-    def mispell(self) -> str:
-        """Mispell the word by replacing a letter with another one.
-
-        Returns:
-            str: The mispelled word.
-        """
-        if self.word:
-            random_location = np.random.randint(0, len(self.word))
-            return self.word[:random_location] + \
-                np.random.choice(list(LETTERS[self.language])) + \
-                self.word[random_location + 1:]
         return self.word
 
     def omit(self) -> str:

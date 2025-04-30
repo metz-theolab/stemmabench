@@ -4,7 +4,7 @@ from pathlib import Path
 import unittest
 from pydantic import ValidationError
 
-from stemmabench.config_parser import ProbabilisticConfig, StemmaBenchConfig, VariantConfig
+from stemmabench.bench.config_parser import ProbabilisticConfig, StemmaBenchConfig
 
 TEST_YAML = Path(__file__).resolve().parent / "test_data" / "config.yaml"
 
